@@ -170,7 +170,7 @@ const Comment = ({
             content={comment ?? null}
             readOnly={true}
             workspaceMembers={workspaceMembers}
-            enableYouTubeEmbed={false}
+
             disableHeadings={true}
           />
         </div>
@@ -181,7 +181,7 @@ const Comment = ({
               content={watch("comment")}
               onChange={(value) => setValue("comment", value)}
               workspaceMembers={workspaceMembers}
-              enableYouTubeEmbed={false}
+  
               placeholder={t`Add comment... (type '/' to open commands or '@' to mention)`}
               disableHeadings={true}
             />

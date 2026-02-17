@@ -64,7 +64,6 @@ const NewCommentForm = ({
         content={watch("comment")}
         onChange={(value) => setValue("comment", value)}
         workspaceMembers={workspaceMembers}
-        enableYouTubeEmbed={false}
         placeholder={t`Add comment... (type '/' to open commands or '@' to mention)`}
         disableHeadings={true}
       />

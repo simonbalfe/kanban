@@ -24,7 +24,6 @@ import { PageHead } from "~/components/PageHead";
 import PatternedBackground from "~/components/PatternedBackground";
 import { StrictModeDroppable as Droppable } from "~/components/StrictModeDroppable";
 import { Tooltip } from "~/components/Tooltip";
-import { EditYouTubeModal } from "~/components/YouTubeEmbed/EditYouTubeModal";
 import { useDragToScroll } from "~/hooks/useDragToScroll";
 import { usePermissions } from "~/hooks/usePermissions";
 import { useKeyboardShortcut } from "~/providers/keyboard-shortcuts";
@@ -384,12 +383,6 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
           />
         </Modal>
 
-        <Modal
-          modalSize="sm"
-          isVisible={isOpen && modalContentType === "EDIT_YOUTUBE"}
-        >
-          <EditYouTubeModal />
-        </Modal>
       </>
     );
   };

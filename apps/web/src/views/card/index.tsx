@@ -16,7 +16,6 @@ import LabelIcon from "~/components/LabelIcon";
 import Modal from "~/components/modal";
 import { NewWorkspaceForm } from "~/components/NewWorkspaceForm";
 import { PageHead } from "~/components/PageHead";
-import { EditYouTubeModal } from "~/components/YouTubeEmbed/EditYouTubeModal";
 import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
@@ -548,12 +547,6 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
             />
           </Modal>
 
-          <Modal
-            modalSize="sm"
-            isVisible={isOpen && modalContentType === "EDIT_YOUTUBE"}
-          >
-            <EditYouTubeModal />
-          </Modal>
         </>
       </div>
     </>

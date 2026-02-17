@@ -46,7 +46,6 @@ import { Markdown } from "tiptap-markdown";
 
 import { getAvatarUrl } from "~/utils/helpers";
 import Avatar from "./Avatar";
-import { YouTubeNode } from "./YouTubeEmbed/YouTubeNode";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -442,7 +441,6 @@ export default function Editor({
   onBlur,
   readOnly = false,
   workspaceMembers,
-  enableYouTubeEmbed = true,
   placeholder,
   disableHeadings = false,
 }: {
@@ -451,7 +449,6 @@ export default function Editor({
   onBlur?: () => void;
   readOnly?: boolean;
   workspaceMembers: WorkspaceMember[];
-  enableYouTubeEmbed?: boolean;
   placeholder?: string;
   disableHeadings?: boolean;
 }) {
@@ -549,7 +546,6 @@ export default function Editor({
             superscriptTwo: false,
             superscriptThree: false,
         }),
-        ...(enableYouTubeEmbed ? [YouTubeNode] : []),
       ],
       content,
       onUpdate: ({ editor }) => onChange?.(editor.getHTML()),
@@ -605,9 +601,6 @@ export default function Editor({
           color: rgb(59, 130, 246);
           text-decoration: none;
           font-weight: 500;
-        }
-        .tiptap [data-youtube] {
-          margin: 1rem 0;
         }
       `}</style>
       {!readOnly && editor && <EditorBubbleMenu editor={editor} />}

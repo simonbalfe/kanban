@@ -349,7 +349,6 @@ export function NewCardForm({
                   }),
                 ) ?? []
               }
-              enableYouTubeEmbed={false}
             />
           </div>
         </div>

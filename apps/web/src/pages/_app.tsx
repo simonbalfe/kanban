@@ -8,9 +8,6 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
 import { env } from "next-runtime-env";
 import { ThemeProvider } from "next-themes";
-import posthog from "posthog-js";
-import { PostHogProvider } from "posthog-js/react";
-import { useEffect } from "react";
 
 import { KeyboardShortcutProvider } from "~/providers/keyboard-shortcuts";
 import { LinguiProviderWrapper } from "~/providers/lingui";
@@ -45,21 +42,6 @@ type AppPropsWithLayout = AppProps & {
 };
 
 const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
-  const posthogKey = env("NEXT_PUBLIC_POSTHOG_KEY");
-
-  useEffect(() => {
-    if (posthogKey) {
-      posthog.init(posthogKey, {
-        api_host: env("NEXT_PUBLIC_POSTHOG_HOST"),
-        person_profiles: "identified_only",
-        defaults: "2025-05-24",
-        loaded: (posthog) => {
-          if (process.env.NODE_ENV === "development") posthog.debug();
-        },
-      });
-    }
-  }, [posthogKey]);
-
   const getLayout = Component.getLayout ?? ((page) => page);
 
   return (
@@ -86,13 +68,7 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
               <ModalProvider>
                 <PopupProvider>
-                  {posthogKey ? (
-                    <PostHogProvider client={posthog}>
-                      {getLayout(<Component {...pageProps} />)}
-                    </PostHogProvider>
-                  ) : (
-                    getLayout(<Component {...pageProps} />)
-                  )}
+                  {getLayout(<Component {...pageProps} />)}
                 </PopupProvider>
               </ModalProvider>
             </ThemeProvider>
