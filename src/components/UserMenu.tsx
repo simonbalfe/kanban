@@ -7,8 +7,6 @@ import { useTheme } from "next-themes";
 import { Fragment } from "react";
 import { twMerge } from "tailwind-merge";
 
-import { authClient } from "~/lib/auth/client";
-
 import { env } from "~/env";
 import { useIsMobile } from "~/hooks/useMediaQuery";
 import { useKeyboardShortcuts } from "~/providers/keyboard-shortcuts";
@@ -38,12 +36,11 @@ export default function UserMenu({
   const { openLegend } = useKeyboardShortcuts();
   const isMobile = useIsMobile();
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     if (onCloseSideNav && isMobile) {
       onCloseSideNav();
     }
-    await authClient.signOut();
-    router.push("/login");
+    router.push("/");
   };
 
   const handleLinkClick = () => {

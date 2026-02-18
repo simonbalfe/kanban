@@ -2,7 +2,6 @@ import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 import type { NextApiRequest } from "next";
 import type { OpenApiMeta } from "trpc-to-openapi";
 import { initTRPC, TRPCError } from "@trpc/server";
-import { env } from "next-runtime-env";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
@@ -14,35 +13,14 @@ interface User {
   id: string;
   name: string | null;
   email: string;
-  emailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
   image?: string | null | undefined;
 }
 
-interface AuthAdapter {
-  api: {
-    getSession: () => Promise<{ user: User } | null>;
-    signInMagicLink: (input: {
-      email: string;
-      callbackURL: string;
-    }) => Promise<{ status: boolean }>;
-  };
-}
-
-const createAuthWithHeaders = (_headers: Headers): AuthAdapter => {
-  return {
-    api: {
-      getSession: async () => null,
-      signInMagicLink: async (_input) => ({ status: true }),
-    },
-  };
-};
-
 interface CreateContextOptions {
-  user: User | null | undefined;
+  user: User;
   db: dbClient;
-  auth: AuthAdapter;
   headers: Headers;
 }
 
@@ -50,24 +28,23 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     user: opts.user,
     db: opts.db,
-    auth: opts.auth,
     headers: opts.headers,
   };
 };
 
-const FALLBACK_EMAIL = "local@kan.dev";
+const DEFAULT_EMAIL = "local@kan.dev";
 
-const getEffectiveUser = async (db: dbClient): Promise<User> => {
-  const existing = await userRepo.getByEmail(db, FALLBACK_EMAIL);
+const getDefaultUser = async (db: dbClient): Promise<User> => {
+  const existing = await userRepo.getByEmail(db, DEFAULT_EMAIL);
   const user =
     existing ??
     (await userRepo.create(db, {
-      email: FALLBACK_EMAIL,
+      email: DEFAULT_EMAIL,
     }));
   if (!user) {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      message: "Failed to initialize local auth bypass user",
+      message: "Failed to initialize default user",
     });
   }
 
@@ -75,7 +52,6 @@ const getEffectiveUser = async (db: dbClient): Promise<User> => {
     id: user.id,
     name: user.name ?? "Local User",
     email: user.email,
-    emailVerified: true,
     createdAt: new Date(),
     updatedAt: new Date(),
     image: null,
@@ -85,28 +61,25 @@ const getEffectiveUser = async (db: dbClient): Promise<User> => {
 export const createTRPCContext = async ({ req }: CreateNextContextOptions) => {
   const db = createDrizzleClient();
   const headers = new Headers(req.headers as Record<string, string>);
-  const auth = createAuthWithHeaders(headers);
-  const user = await getEffectiveUser(db);
+  const user = await getDefaultUser(db);
 
-  return createInnerTRPCContext({ db, user, auth, headers });
+  return createInnerTRPCContext({ db, user, headers });
 };
 
 export const createNextApiContext = async (req: NextApiRequest) => {
   const db = createDrizzleClient();
   const headers = new Headers(req.headers as Record<string, string>);
-  const auth = createAuthWithHeaders(headers);
-  const user = await getEffectiveUser(db);
+  const user = await getDefaultUser(db);
 
-  return createInnerTRPCContext({ db, user, auth, headers });
+  return createInnerTRPCContext({ db, user, headers });
 };
 
 export const createRESTContext = async ({ req }: CreateNextContextOptions) => {
   const db = createDrizzleClient();
   const headers = new Headers(req.headers as Record<string, string>);
-  const auth = createAuthWithHeaders(headers);
-  const user = await getEffectiveUser(db);
+  const user = await getDefaultUser(db);
 
-  return createInnerTRPCContext({ db, user, auth, headers });
+  return createInnerTRPCContext({ db, user, headers });
 };
 
 const t = initTRPC
@@ -142,28 +115,9 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
   });
 });
 
-const enforceUserIsAdmin = t.middleware(async ({ ctx, next }) => {
-  if (ctx.headers.get("x-admin-api-key") !== env("KAN_ADMIN_API_KEY")) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  return next({
-    ctx,
-  });
-});
-
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed).meta({
   openapi: {
     method: "GET",
     path: "/protected",
   },
 });
-
-export const adminProtectedProcedure = t.procedure
-  .use(enforceUserIsAdmin)
-  .meta({
-    openapi: {
-      method: "GET",
-      path: "/admin/protected",
-    },
-  });

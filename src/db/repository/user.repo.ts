@@ -1,8 +1,8 @@
-import { count, desc, eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 
 import type { dbClient } from "~/db/client";
-import { apikey, users } from "~/db/schema";
+import { users } from "~/db/schema";
 
 export const getCount = async (db: dbClient) => {
   const result = await db.select({ count: count() }).from(users);
@@ -17,17 +17,6 @@ export const getById = async (db: dbClient, userId: string) => {
       name: true,
       email: true,
       image: true,
-    },
-    with: {
-      apiKeys: {
-        columns: {
-          id: true,
-          prefix: true,
-          key: true,
-        },
-        orderBy: desc(apikey.createdAt),
-        limit: 1,
-      },
     },
     where: eq(users.id, userId),
   });
@@ -53,7 +42,6 @@ export const create = async (
     .values({
       id: user.id ?? uuidv4(),
       email: user.email,
-      emailVerified: false,
     })
     .returning();
 

@@ -1,13 +1,6 @@
 import { relations, sql } from "drizzle-orm";
-import {
-  boolean,
-  pgTable,
-  timestamp,
-  uuid,
-  varchar,
-} from "drizzle-orm/pg-core";
+import { pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
-import { apikey } from "./auth";
 import { boards } from "./boards";
 import { cards } from "./cards";
 import { lists } from "./lists";
@@ -19,7 +12,6 @@ export const users = pgTable("user", {
     .default(sql`uuid_generate_v4()`),
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 255 }).notNull().unique(),
-  emailVerified: boolean("emailVerified").notNull(),
   image: varchar("image", { length: 255 }),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
@@ -38,11 +30,10 @@ export const usersRelations = relations(users, ({ many }) => ({
   cards: many(cards, {
     relationName: "cardsCreatedByUser",
   }),
-deletedLists: many(lists, {
+  deletedLists: many(lists, {
     relationName: "listsDeletedByUser",
   }),
   lists: many(lists, {
     relationName: "listsCreatedByUser",
   }),
-  apiKeys: many(apikey),
 }));

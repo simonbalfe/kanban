@@ -16,8 +16,8 @@ import * as listRepo from "~/db/repository/list.repo";
 import * as userRepo from "~/db/repository/user.repo";
 
 import {
-  adminProtectedProcedure,
   createTRPCRouter,
+  protectedProcedure,
   publicProcedure,
 } from "../trpc";
 import { createS3Client } from "~/lib/shared/utils";
@@ -103,7 +103,7 @@ export const healthRouter = createTRPCRouter({
         storage,
       };
     }),
-  stats: adminProtectedProcedure
+  stats: protectedProcedure
     .meta({
       openapi: {
         method: "GET",

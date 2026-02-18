@@ -19,8 +19,6 @@ import type {
   GetCardActivitiesOutput,
   GetCardByIdOutput,
 } from "~/server/types";
-import { authClient } from "~/lib/auth/client";
-
 import Avatar from "~/components/Avatar";
 import { useLocalisation } from "~/hooks/useLocalisation";
 import { api } from "~/utils/api";
@@ -352,7 +350,7 @@ const ActivityList = ({
   isViewOnly?: boolean;
 }) => {
   const { dateLocale } = useLocalisation();
-  const { data: sessionData } = authClient.useSession();
+  const { data: currentUser } = api.user.getUser.useQuery();
   const utils = api.useUtils();
   const [allActivities, setAllActivities] = useState<
     GetCardActivitiesOutput["activities"]
@@ -471,7 +469,7 @@ const ActivityList = ({
           toList: activity.toList?.name ?? null,
           memberName: activity.user?.name ?? null,
           memberEmail: activity.user?.email ?? null,
-          isSelf: activity.user?.id === sessionData?.user.id,
+          isSelf: activity.user?.id === currentUser?.id,
           label: activity.label?.name ?? null,
           fromTitle: activity.fromTitle ?? null,
           fromDueDate: activity.fromDueDate ?? null,
@@ -496,7 +494,7 @@ const ActivityList = ({
               createdAt={activity.createdAt.toISOString()}
               comment={activity.comment?.comment}
               isEdited={!!activity.comment?.updatedAt}
-              isAuthor={activity.comment?.createdBy === sessionData?.user.id}
+              isAuthor={activity.comment?.createdBy === currentUser?.id}
               isViewOnly={!!isViewOnly}
             />
           );

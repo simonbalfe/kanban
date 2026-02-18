@@ -26,13 +26,6 @@ export const userRouter = createTRPCRouter({
         email: z.string(),
         name: z.string().nullable(),
         image: z.string().nullable(),
-        apiKey: z
-          .object({
-            id: z.number(),
-            prefix: z.string().nullable(),
-            key: z.string(),
-          })
-          .nullable(),
       }),
     )
     .query(async ({ ctx }) => {
@@ -53,15 +46,11 @@ export const userRouter = createTRPCRouter({
         });
       }
 
-      const apiKey = result.apiKeys[0];
-
-      // Generate presigned URL for avatar
       const imageUrl = await generateAvatarUrl(result.image);
 
       return {
         ...result,
         image: imageUrl,
-        apiKey: apiKey ?? null,
       };
     }),
   update: protectedProcedure

@@ -6,11 +6,10 @@ import {
   HiOutlineTrash,
 } from "react-icons/hi2";
 
-import { authClient } from "~/lib/auth/client";
-
 import Dropdown from "~/components/Dropdown";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
+import { api } from "~/utils/api";
 
 export default function CardDropdown({
   cardPublicId,
@@ -26,8 +25,8 @@ export default function CardDropdown({
   const { openModal } = useModal();
   const { showPopup } = usePopup();
   const isAdminOrMember = true;
-  const { data: session } = authClient.useSession();
-  const isCreator = cardCreatedBy && session?.user.id === cardCreatedBy;
+  const { data: currentUser } = api.user.getUser.useQuery();
+  const isCreator = cardCreatedBy && currentUser?.id === cardCreatedBy;
 
   const handleCopyCardLink = async () => {
     const path =

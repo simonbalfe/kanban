@@ -7,8 +7,6 @@ import {
   TbLayoutSidebarRightExpand,
 } from "react-icons/tb";
 
-import { authClient } from "~/lib/auth/client";
-
 import { useClickOutside } from "~/hooks/useClickOutside";
 import { api } from "~/utils/api";
 import SideNavigation from "./SideNavigation";
@@ -38,13 +36,7 @@ function Dashboard({
 }: DashboardProps) {
   const { resolvedTheme } = useTheme();
 
-  const { data: session, isPending: sessionLoading } = authClient.useSession();
-  const { data: user, isLoading: userLoading } = api.user.getUser.useQuery(
-    undefined,
-    {
-      enabled: !!session?.user,
-    },
-  );
+  const { data: user, isLoading: userLoading } = api.user.getUser.useQuery();
 
   const [isSideNavOpen, setIsSideNavOpen] = useState(false);
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
@@ -151,11 +143,11 @@ function Dashboard({
           >
             <SideNavigation
               user={{
-                displayName: user?.name ?? session?.user.name,
-                email: user?.email ?? session?.user.email ?? "",
+                displayName: user?.name ?? undefined,
+                email: user?.email ?? "",
                 image: user?.image ?? undefined,
               }}
-              isLoading={sessionLoading || userLoading}
+              isLoading={userLoading}
               onCloseSideNav={closeSideNav}
             />
           </div>

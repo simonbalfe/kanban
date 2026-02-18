@@ -9,8 +9,6 @@ import {
   HiOutlineTrash,
 } from "react-icons/hi2";
 
-import { authClient } from "~/lib/auth/client";
-
 import Dropdown from "~/components/Dropdown";
 import { Tooltip } from "~/components/Tooltip";
 import { useModal } from "~/providers/modal";
@@ -44,8 +42,8 @@ export default function List({
 }: ListProps) {
   const { openModal } = useModal();
   const isAdminOrMember = true;
-  const { data: session } = authClient.useSession();
-  const isCreator = list.createdBy && session?.user.id === list.createdBy;
+  const { data: currentUser } = api.user.getUser.useQuery();
+  const isCreator = list.createdBy && currentUser?.id === list.createdBy;
   const canEdit = isAdminOrMember || isCreator;
   const canDrag = isAdminOrMember || isCreator;
 

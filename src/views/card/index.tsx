@@ -5,8 +5,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { HiXMark } from "react-icons/hi2";
 
-import { authClient } from "~/lib/auth/client";
-
 import Editor from "~/components/Editor";
 import { LabelForm } from "~/components/LabelForm";
 import LabelIcon from "~/components/LabelIcon";
@@ -40,7 +38,7 @@ interface FormValues {
 export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
   const router = useRouter();
   const isAdminOrMember = true;
-  const { data: session } = authClient.useSession();
+  const { data: currentUser } = api.user.getUser.useQuery();
   const cardId = Array.isArray(router.query.cardId)
     ? router.query.cardId[0]
     : router.query.cardId;
@@ -50,7 +48,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
     { enabled: !!cardId && cardId.length >= 12 },
   );
 
-  const isCreator = card?.createdBy && session?.user.id === card.createdBy;
+  const isCreator = card?.createdBy && currentUser?.id === card.createdBy;
   const canEdit = isAdminOrMember || isCreator;
 
   const board = card?.list.board;
@@ -124,7 +122,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
   } = useModal();
   const { showPopup } = usePopup();
   const isAdminOrMember = true;
-  const { data: session } = authClient.useSession();
+  const { data: currentUser } = api.user.getUser.useQuery();
   const [activeChecklistForm, setActiveChecklistForm] = useState<string | null>(
     null,
   );
@@ -138,7 +136,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
     { enabled: !!cardId && cardId.length >= 12 },
   );
 
-  const isCreator = card?.createdBy && session?.user.id === card.createdBy;
+  const isCreator = card?.createdBy && currentUser?.id === card.createdBy;
   const canEdit = isAdminOrMember || isCreator;
 
   const refetchCard = async () => {
