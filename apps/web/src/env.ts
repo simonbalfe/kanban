@@ -1,0 +1,24 @@
+import { createEnv } from "@t3-oss/env-nextjs";
+import { vercel } from "@t3-oss/env-nextjs/presets";
+import { z } from "zod";
+
+export const env = createEnv({
+  extends: [vercel()],
+  shared: {
+    NODE_ENV: z
+      .enum(["development", "production", "test"])
+      .default("development"),
+  },
+  server: {},
+  client: {
+    NEXT_PUBLIC_BASE_URL: z.string().url().optional(),
+    NEXT_PUBLIC_APP_VERSION: z.string().optional(),
+  },
+  experimental__runtimeEnv: {
+    NODE_ENV: process.env.NODE_ENV,
+    NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+    NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
+  },
+  skipValidation:
+    !!process.env.CI || process.env.npm_lifecycle_event === "lint",
+});

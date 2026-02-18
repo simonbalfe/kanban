@@ -8,10 +8,10 @@ services:
       - kan-network
       - dokploy-network
     build:
-      context: .
+      context: ./apps/web
       dockerfile: ./Dockerfile
     env_file:
-      - .env
+      - ./apps/web/.env
     environment:
       # Required environment variables
       - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
