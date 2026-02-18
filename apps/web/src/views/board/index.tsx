@@ -1,7 +1,5 @@
 import type { DropResult } from "react-beautiful-dnd";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useRouter } from "next/router";
+import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { DragDropContext, Draggable } from "react-beautiful-dnd";
@@ -45,8 +43,9 @@ import { UpdateBoardSlugForm } from "./components/UpdateBoardSlugForm";
 type PublicListId = string;
 
 export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
-  const params = useParams() as { boardId: string | string[] } | null;
-  const router = useRouter();
+  const params = useParams({ strict: false });
+  const search = useSearch({ strict: false }) as Record<string, any>;
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showPopup } = usePopup();
   const { openModal, modalContentType, entityId, isOpen } = useModal();
@@ -61,11 +60,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 
   const isAdminOrMember = true;
 
-  const boardId = params?.boardId
-    ? Array.isArray(params.boardId)
-      ? params.boardId[0]
-      : params.boardId
-    : null;
+  const boardId = (params as any).boardId ?? null;
 
   const updateBoard = useMutation({
     mutationFn: api.board.update,
@@ -85,7 +80,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     });
   };
 
-  const semanticFilters = formatToArray(router.query.dueDate) as (
+  const semanticFilters = formatToArray(search.dueDate) as (
     | "overdue"
     | "today"
     | "tomorrow"
@@ -98,9 +93,9 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 
   const queryParams = {
     boardPublicId: boardId ?? "",
-    members: formatToArray(router.query.members),
-    labels: formatToArray(router.query.labels),
-    lists: formatToArray(router.query.lists),
+    members: formatToArray(search.members),
+    labels: formatToArray(search.labels),
+    lists: formatToArray(search.lists),
     ...(semanticFilters.length > 0 && {
       dueDateFilters: semanticFilters,
     }),
@@ -556,11 +551,11 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                                               e.preventDefault();
                                           }}
                                           key={card.publicId}
-                                          href={
+                                          to={(
                                             isTemplate
                                               ? `/templates/${boardId}/cards/${card.publicId}`
                                               : `/cards/${card.publicId}`
-                                          }
+                                          ) as string}
                                           className={`mb-2 flex !cursor-pointer flex-col ${
                                             card.publicId.startsWith(
                                               "PLACEHOLDER",

@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -31,7 +31,7 @@ interface NewBoardInputWithTemplate {
 export function NewBoardForm({ isTemplate }: { isTemplate?: boolean }) {
   const queryClient = useQueryClient();
   const { closeModal } = useModal();
-  const router = useRouter();
+  const navigate = useNavigate();
   const { showPopup } = usePopup();
   const [showTemplates, setShowTemplates] = useState(false);
   const templateFilter = { type: "template" };
@@ -77,9 +77,9 @@ export function NewBoardForm({ isTemplate }: { isTemplate?: boolean }) {
           icon: "error",
         });
       } else {
-        router.push(
-          `${isTemplate ? "/templates" : "/boards"}/${board.publicId}`,
-        );
+        navigate({
+          to: `${isTemplate ? "/templates" : "/boards"}/${board.publicId}`,
+        });
       }
       closeModal();
 

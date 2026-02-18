@@ -1,6 +1,144 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss" source("../");
+@import "@fontsource-variable/plus-jakarta-sans";
+
+@plugin "@tailwindcss/typography";
+@plugin "@tailwindcss/forms";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --text-sm: 0.8rem;
+
+  --color-dark-50: #161616;
+  --color-dark-100: #1c1c1c;
+  --color-dark-200: #232323;
+  --color-dark-300: #282828;
+  --color-dark-400: #2e2e2e;
+  --color-dark-500: #343434;
+  --color-dark-600: #3e3e3e;
+  --color-dark-700: #505050;
+  --color-dark-800: #707070;
+  --color-dark-900: #7e7e7e;
+  --color-dark-950: #bbb;
+  --color-dark-1000: #ededed;
+
+  --color-light-50: hsl(0deg 0% 98.8%);
+  --color-light-100: hsl(0deg 0% 97.3%);
+  --color-light-200: hsl(0deg 0% 95.3%);
+  --color-light-300: hsl(0deg 0% 92.9%);
+  --color-light-400: hsl(0deg 0% 91%);
+  --color-light-500: hsl(0deg 0% 88.6%);
+  --color-light-600: hsl(0deg 0% 85.9%);
+  --color-light-700: hsl(0deg 0% 78%);
+  --color-light-800: hsl(0deg 0% 56.1%);
+  --color-light-900: hsl(0deg 0% 52.2%);
+  --color-light-950: hsl(0deg 0% 43.5%);
+  --color-light-1000: hsl(0deg 0% 9%);
+
+  --shadow-3xl-dark: 0px 16px 70px rgba(0, 0, 0, 0.5);
+  --shadow-3xl-light: rgba(0, 0, 0, 0.12) 0px 4px 30px,
+    rgba(0, 0, 0, 0.04) 0px 3px 17px, rgba(0, 0, 0, 0.04) 0px 2px 8px,
+    rgba(0, 0, 0, 0.04) 0px 1px 1px;
+
+  --animate-border-spin: border-spin 4s linear infinite;
+  --animate-fade-down: fade-down 0.5s ease-out;
+  --animate-fade-in: fade-in 0.5s ease-out;
+  --animate-scroll: scroll 40s linear infinite;
+
+  --breakpoint-2xl: 1600px;
+}
+
+@keyframes border-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fade-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-50% - 1.5rem));
+  }
+}
+
+@utility scrollbar {
+  scrollbar-width: thin;
+}
+
+@utility scrollbar-w-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    width: 0;
+    display: none;
+  }
+}
+
+@utility scrollbar-w-* {
+  &::-webkit-scrollbar {
+    width: --value(--spacing-*);
+  }
+}
+
+@utility scrollbar-h-* {
+  &::-webkit-scrollbar {
+    height: --value(--spacing-*);
+  }
+}
+
+@utility scrollbar-track-* {
+  &::-webkit-scrollbar-track {
+    background-color: --value(--color-*);
+  }
+}
+
+@utility scrollbar-thumb-* {
+  &::-webkit-scrollbar-thumb {
+    background-color: --value(--color-*);
+  }
+}
+
+@utility scrollbar-track-rounded-* {
+  &::-webkit-scrollbar-track {
+    border-radius: --value(--spacing-*);
+  }
+}
+
+@utility scrollbar-thumb-rounded-* {
+  &::-webkit-scrollbar-thumb {
+    border-radius: --value(--spacing-*);
+  }
+}
+
+@utility break-anywhere {
+  overflow-wrap: anywhere;
+}
 
 [contenteditable="true"]:empty:before {
   content: attr(placeholder);
@@ -26,21 +164,6 @@
   height: 200%;
 }
 
-@layer utilities {
-  @supports not (overflow-wrap: anywhere) {
-    .break-anywhere {
-      word-break: break-word;
-    }
-  }
-
-  @supports (overflow-wrap: anywhere) {
-    .break-anywhere {
-      overflow-wrap: anywhere;
-    }
-  }
-}
-
-/* Tippy.js tooltip theme */
 .tippy-box[data-theme~="tooltip"] {
   @apply rounded-md border border-light-600 bg-white px-2 py-1 text-sm text-neutral-900 shadow-lg dark:border-dark-600 dark:bg-dark-100 dark:text-dark-1000;
 }

@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 import { getAvatarUrl } from "~/utils/helpers";
 
 export default function Avatar({
@@ -14,7 +12,7 @@ export default function Avatar({
     <div>
       <div className="relative">
         {avatarUrl ? (
-          <Image
+          <img
             src={avatarUrl}
             alt="Avatar"
             width={64}

@@ -1,6 +1,6 @@
-import dynamic from "next/dynamic";
+import { lazy, Suspense } from "react";
 
-const Lottie = dynamic(() => import("react-lottie-player"), { ssr: false });
+const Lottie = lazy(() => import("react-lottie-player"));
 
 interface IconProps {
   isPlaying: boolean;
@@ -10,14 +10,16 @@ interface IconProps {
 
 const Icon: React.FC<IconProps> = ({ isPlaying, index, json }) => {
   return (
-    <Lottie
-      key={index}
-      animationData={json}
-      play={isPlaying}
-      loop={false}
-      style={{ width: 18, height: 18, fill: "white" }}
-      rendererSettings={{ preserveAspectRatio: "xMidYMid slice" }}
-    />
+    <Suspense fallback={<div style={{ width: 18, height: 18 }} />}>
+      <Lottie
+        key={index}
+        animationData={json}
+        play={isPlaying}
+        loop={false}
+        style={{ width: 18, height: 18, fill: "white" }}
+        rendererSettings={{ preserveAspectRatio: "xMidYMid slice" }}
+      />
+    </Suspense>
   );
 };
 

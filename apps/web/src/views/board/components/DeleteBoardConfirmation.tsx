@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 
 import Button from "~/components/Button";
@@ -12,14 +12,14 @@ export function DeleteBoardConfirmation({
   boardPublicId: string;
   isTemplate: boolean;
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { closeModal } = useModal();
 
   const deleteBoard = useMutation({
     mutationFn: api.board.delete,
     onSuccess: () => {
       closeModal();
-      router.push(isTemplate ? `/templates` : `/boards`);
+      navigate({ to: isTemplate ? `/templates` : `/boards` });
     },
   });
 

@@ -1,11 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { env } from "next-runtime-env";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { HiCheck, HiXMark } from "react-icons/hi2";
 import { z } from "zod";
 
+import { env } from "~/env";
 import Button from "~/components/Button";
 import Input from "~/components/Input";
 import { useDebounce } from "~/hooks/useDebounce";
@@ -137,7 +137,7 @@ export function UpdateBoardSlugForm({
               ? "This board URL has already been taken"
               : undefined)
           }
-          prefix={`${env("NEXT_PUBLIC_BASE_URL")}/`}
+          prefix={`${env.NEXT_PUBLIC_BASE_URL}/`}
           onKeyDown={async (e) => {
             if (e.key === "Enter") {
               e.preventDefault();

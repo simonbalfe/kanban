@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { twMerge } from "tailwind-merge";
 
 import { getInitialsFromName, inferInitialsFromEmail } from "~/utils/helpers";
@@ -32,7 +31,7 @@ const Avatar = ({
   return (
     <>
       {imageUrl ? (
-        <Image
+        <img
           src={imageUrl}
           className="rounded-full bg-gray-50"
           width={sizeMap[size]}

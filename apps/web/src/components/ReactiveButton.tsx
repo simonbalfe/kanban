@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -37,7 +37,7 @@ const Button: React.FC<{
 
   return (
     <Link
-      href={href}
+      to={href}
       onMouseEnter={handleMouseEnter}
       onClick={handleClick}
       className={twMerge(

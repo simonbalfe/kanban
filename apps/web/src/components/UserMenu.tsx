@@ -1,8 +1,6 @@
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Menu, Transition } from "@headlessui/react";
-import { useTheme } from "next-themes";
+import { useTheme } from "~/providers/theme";
 import { Fragment } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -28,7 +26,7 @@ export default function UserMenu({
   isCollapsed = false,
   onCloseSideNav,
 }: UserMenuProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { openModal } = useModal();
   const isMobile = useIsMobile();
@@ -37,7 +35,7 @@ export default function UserMenu({
     if (onCloseSideNav && isMobile) {
       onCloseSideNav();
     }
-    router.push("/");
+    navigate({ to: "/" });
   };
 
   const handleLinkClick = () => {
@@ -74,7 +72,7 @@ export default function UserMenu({
             title={isCollapsed ? (displayName || email) : undefined}
           >
             {avatarUrl ? (
-              <Image
+              <img
                 src={avatarUrl}
                 className="rounded-full bg-gray-50"
                 width={24}
@@ -115,7 +113,7 @@ export default function UserMenu({
       >
         <Menu.Items
           className={twMerge(
-            "absolute bottom-[40px] z-10 mt-2 origin-top-left rounded-md border border-light-600 bg-light-50 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:border-dark-600 dark:bg-dark-300",
+            "absolute bottom-[40px] z-10 mt-2 origin-top-left rounded-md border border-light-600 bg-light-50 shadow-lg ring-1 ring-black/5 focus:outline-none dark:border-dark-600 dark:bg-dark-300",
             isCollapsed ? "left-0 w-48" : "left-0 w-full",
           )}
         >
@@ -169,7 +167,7 @@ export default function UserMenu({
             </div>
             <div className="light-border-600 border-t-[1px] p-1 dark:border-dark-600">
               <Menu.Item>
-                <Link
+                <a
                   href="mailto:support@kan.bn"
                   target="_blank"
                   rel="noreferrer"
@@ -177,10 +175,10 @@ export default function UserMenu({
                   className="flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
                   {"Support"}
-                </Link>
+                </a>
               </Menu.Item>
               <Menu.Item>
-                <Link
+                <a
                   href="https://docs.kan.bn"
                   target="_blank"
                   rel="noreferrer"
@@ -188,7 +186,7 @@ export default function UserMenu({
                   className="flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
                   {"Documentation"}
-                </Link>
+                </a>
               </Menu.Item>
             </div>
             <div className="light-border-600 border-t-[1px] p-1 dark:border-dark-600">
@@ -204,7 +202,7 @@ export default function UserMenu({
             {env.NEXT_PUBLIC_APP_VERSION && (
               <div className="light-border-600 border-t-[1px] p-1 dark:border-dark-600">
                 <Menu.Item>
-                  <Link
+                  <a
                     href={
                       env.NEXT_PUBLIC_APP_VERSION.includes("+")
                         ? `https://github.com/kanbn/kan/commit/${env.NEXT_PUBLIC_APP_VERSION.split("+")[1]}`
@@ -216,7 +214,7 @@ export default function UserMenu({
                     className="flex w-full items-center justify-center rounded-[5px] px-3 py-2 text-center text-xs text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-400"
                   >
                     Version: {env.NEXT_PUBLIC_APP_VERSION}
-                  </Link>
+                  </a>
                 </Menu.Item>
               </div>
             )}

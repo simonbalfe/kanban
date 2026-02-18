@@ -15,15 +15,14 @@
     "noUncheckedIndexedAccess": true,
     "noEmit": true,
     "noImplicitAny": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
       "~/*": ["./src/*"]
     },
-    "plugins": [{ "name": "next" }],
     "module": "esnext",
     "moduleResolution": "Bundler"
   },
-  "include": [".", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", ".next", "dist"]
+  "include": ["."],
+  "exclude": ["node_modules", ".output", "dist"]
 }

@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import Button from "~/components/Button";
@@ -17,7 +17,7 @@ export function DeleteCardConfirmation({
 }: DeleteCardConfirmationProps) {
   const { closeModal } = useModal();
   const queryClient = useQueryClient();
-  const router = useRouter();
+  const navigate = useNavigate();
   const { showPopup } = usePopup();
 
   const boardQueryKey = apiKeys.board.byId({ boardPublicId });
@@ -52,7 +52,7 @@ export function DeleteCardConfirmation({
       });
     },
     onSuccess: () => {
-      router.push(`/boards/${boardPublicId}`);
+      navigate({ to: `/boards/${boardPublicId}` });
     },
     onSettled: async () => {
       closeModal();

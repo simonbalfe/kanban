@@ -124,7 +124,7 @@ const CommandsList = forwardRef<
   }));
 
   return (
-    <div className="w-56 rounded-md border-[1px] border-light-200 bg-light-50 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:border-dark-500 dark:bg-dark-200">
+    <div className="w-56 rounded-md border-[1px] border-light-200 bg-light-50 shadow-lg ring-1 ring-black/5 focus:outline-none dark:border-dark-500 dark:bg-dark-200">
       <div className="max-h-[350px] overflow-y-auto p-1">
         {items.map((item, index) => (
           <button
@@ -243,7 +243,7 @@ const MentionList = forwardRef<
   }));
 
   return (
-    <div className="w-56 rounded-md border-[1px] border-light-200 bg-light-50 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:border-dark-500 dark:bg-dark-200">
+    <div className="w-56 rounded-md border-[1px] border-light-200 bg-light-50 shadow-lg ring-1 ring-black/5 focus:outline-none dark:border-dark-500 dark:bg-dark-200">
       <div className="max-h-[350px] overflow-y-auto p-1 scrollbar-thin scrollbar-thumb-light-200 dark:scrollbar-thumb-dark-300">
         {items.length > 0 ? (
           items.map((item, index) => (
@@ -578,7 +578,7 @@ export default function Editor({
 
   return (
     <div ref={containerRef}>
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .tiptap p.is-empty::before {
           content: attr(data-placeholder);
           float: left;
@@ -596,7 +596,7 @@ export default function Editor({
           text-decoration: none;
           font-weight: 500;
         }
-      `}</style>
+      ` }} />
       {!readOnly && editor && <EditorBubbleMenu editor={editor} />}
       <EditorContent
         editor={editor}

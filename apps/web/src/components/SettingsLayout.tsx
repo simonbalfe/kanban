@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { useRouter } from "next/router";
+import { Link } from "@tanstack/react-router";
 import { HiOutlineUser } from "react-icons/hi2";
 
 interface SettingsLayoutProps {
@@ -8,8 +7,6 @@ interface SettingsLayoutProps {
 }
 
 export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
-  const router = useRouter();
-
   const settingsTabs = [
     {
       key: "account",
@@ -49,7 +46,7 @@ export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
                   {settingsTabs.map((tab) => (
                     <Link
                       key={tab.key}
-                      href={`/settings/${tab.key}`}
+                      to={`/settings/${tab.key}` as string}
                       className={`whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors focus:outline-none ${
                         isTabActive(tab.key)
                           ? "border-light-1000 text-light-1000 dark:border-dark-1000 dark:text-dark-1000"

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { HiOutlineRectangleStack } from "react-icons/hi2";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
@@ -79,7 +79,7 @@ export function BoardsList({ isTemplate }: { isTemplate?: boolean }) {
           }}
         >
           <Link
-            href={`${isTemplate ? "templates" : "boards"}/${board.publicId}`}
+            to={`${isTemplate ? "/templates" : "/boards"}/${board.publicId}` as string}
           >
             <div className="group relative mr-5 flex h-[150px] w-full items-center justify-center rounded-md border border-dashed border-light-400 bg-light-50 shadow-sm hover:bg-light-200 dark:border-dark-600 dark:bg-dark-50 dark:hover:bg-dark-100">
               <PatternedBackground />

@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -32,7 +32,7 @@ export function NewTemplateForm({
   sourceBoardPublicId: string;
   sourceBoardName: string;
 }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { closeModal } = useModal();
   const { showPopup } = usePopup();
 
@@ -58,7 +58,7 @@ export function NewTemplateForm({
           icon: "error",
         });
       } else {
-        router.push(`/templates/${newTemplate.publicId}`);
+        navigate({ to: `/templates/${newTemplate.publicId}` });
         showPopup({
           header: "Template created",
           message: "Template created successfully",

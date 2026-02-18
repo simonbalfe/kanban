@@ -1,7 +1,6 @@
-import Link from "next/link";
-import { useRouter } from "next/router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { Button } from "@headlessui/react";
-import { useTheme } from "next-themes";
+import { useTheme } from "~/providers/theme";
 import { useEffect, useState } from "react";
 import {
   TbLayoutSidebarLeftCollapse,
@@ -35,7 +34,7 @@ export default function SideNavigation({
   isLoading,
   onCloseSideNav,
 }: SideNavigationProps) {
-  const router = useRouter();
+  const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isInitialised, setIsInitialised] = useState(false);
 
@@ -56,7 +55,7 @@ export default function SideNavigation({
     }
   }, [isCollapsed, isInitialised]);
 
-  const { pathname } = router;
+  const pathname = location.pathname;
 
   const { resolvedTheme } = useTheme();
 
@@ -95,7 +94,7 @@ export default function SideNavigation({
         <div>
           <div className="hidden h-[45px] items-center justify-between pb-3 md:flex">
             {!isCollapsed && (
-              <Link href="/" className="block">
+              <Link to="/" className="block">
                 <h1 className="pl-2 text-[16px] font-bold tracking-tight text-neutral-900 dark:text-dark-1000">
                   kan.bn
                 </h1>

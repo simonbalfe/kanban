@@ -1,5 +1,5 @@
-import { useTheme } from "next-themes";
-import { useRef, useState } from "react";
+import { useTheme } from "~/providers/theme";
+import { useEffect, useRef, useState } from "react";
 import {
   TbLayoutSidebarLeftCollapse,
   TbLayoutSidebarLeftExpand,
@@ -88,98 +88,101 @@ function Dashboard({
 
   const isDarkMode = resolvedTheme === "dark";
 
+  useEffect(() => {
+    const el = document.documentElement;
+    el.style.height = "100vh";
+    el.style.overflow = "hidden";
+    el.style.minWidth = "320px";
+    el.style.backgroundColor = !isDarkMode
+      ? "hsl(0deg 0% 97.3%)"
+      : "#1c1c1c";
+    return () => {
+      el.style.height = "";
+      el.style.overflow = "";
+      el.style.minWidth = "";
+      el.style.backgroundColor = "";
+    };
+  }, [isDarkMode]);
+
   return (
-    <>
-      <style jsx global>{`
-        html {
-          height: 100vh;
-          overflow: hidden;
-          min-width: 320px;
-          background-color: ${!isDarkMode ? "hsl(0deg 0% 97.3%)" : "#1c1c1c"};
-        }
-      `}</style>
-      <div className="relative flex h-screen flex-col bg-light-50 dark:bg-dark-50 md:bg-light-100 md:p-3 md:dark:bg-dark-100">
-        {/* Mobile Header */}
-        <div className="flex h-12 items-center justify-between border-b border-light-300 bg-light-50 px-3 dark:border-dark-300 dark:bg-dark-50 md:hidden">
+    <div className="relative flex h-screen flex-col bg-light-50 dark:bg-dark-50 md:bg-light-100 md:p-3 md:dark:bg-dark-100">
+      <div className="flex h-12 items-center justify-between border-b border-light-300 bg-light-50 px-3 dark:border-dark-300 dark:bg-dark-50 md:hidden">
+        <button
+          ref={sideNavButtonRef}
+          onClick={toggleSideNav}
+          className="rounded p-1.5 transition-all hover:bg-light-200 dark:hover:bg-dark-100"
+        >
+          {isSideNavOpen ? (
+            <TbLayoutSidebarLeftCollapse
+              size={20}
+              className="text-light-900 dark:text-dark-900"
+            />
+          ) : (
+            <TbLayoutSidebarLeftExpand
+              size={20}
+              className="text-light-900 dark:text-dark-900"
+            />
+          )}
+        </button>
+
+        {hasRightPanel && (
           <button
-            ref={sideNavButtonRef}
-            onClick={toggleSideNav}
+            ref={rightPanelButtonRef}
+            onClick={toggleRightPanel}
             className="rounded p-1.5 transition-all hover:bg-light-200 dark:hover:bg-dark-100"
           >
-            {isSideNavOpen ? (
-              <TbLayoutSidebarLeftCollapse
+            {isRightPanelOpen ? (
+              <TbLayoutSidebarRightCollapse
                 size={20}
                 className="text-light-900 dark:text-dark-900"
               />
             ) : (
-              <TbLayoutSidebarLeftExpand
+              <TbLayoutSidebarRightExpand
                 size={20}
                 className="text-light-900 dark:text-dark-900"
               />
             )}
           </button>
+        )}
+      </div>
 
-          {hasRightPanel && (
-            <button
-              ref={rightPanelButtonRef}
-              onClick={toggleRightPanel}
-              className="rounded p-1.5 transition-all hover:bg-light-200 dark:hover:bg-dark-100"
-            >
-              {isRightPanelOpen ? (
-                <TbLayoutSidebarRightCollapse
-                  size={20}
-                  className="text-light-900 dark:text-dark-900"
-                />
-              ) : (
-                <TbLayoutSidebarRightExpand
-                  size={20}
-                  className="text-light-900 dark:text-dark-900"
-                />
-              )}
-            </button>
-          )}
+      <div className="flex h-[calc(100dvh-4.5rem)] min-h-0 w-full md:h-[calc(100dvh-1.5rem)]">
+        <div
+          ref={sideNavRef}
+          className={`fixed top-12 z-40 h-[calc(100dvh-3rem)] w-[calc(100vw-1.5rem)] transform transition-transform duration-300 ease-in-out md:relative md:top-0 md:h-full md:w-auto md:translate-x-0 ${isSideNavOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} `}
+        >
+          <SideNavigation
+            user={{
+              displayName: user?.name ?? undefined,
+              email: user?.email ?? "",
+              image: user?.image ?? undefined,
+            }}
+            isLoading={userLoading}
+            onCloseSideNav={closeSideNav}
+          />
         </div>
 
-        <div className="flex h-[calc(100dvh-4.5rem)] min-h-0 w-full md:h-[calc(100dvh-1.5rem)]">
-          <div
-            ref={sideNavRef}
-            className={`fixed top-12 z-40 h-[calc(100dvh-3rem)] w-[calc(100vw-1.5rem)] transform transition-transform duration-300 ease-in-out md:relative md:top-0 md:h-full md:w-auto md:translate-x-0 ${isSideNavOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} `}
-          >
-            <SideNavigation
-              user={{
-                displayName: user?.name ?? undefined,
-                email: user?.email ?? "",
-                image: user?.image ?? undefined,
-              }}
-              isLoading={userLoading}
-              onCloseSideNav={closeSideNav}
-            />
-          </div>
+        <div className="relative h-full min-h-0 w-full overflow-hidden md:rounded-lg md:border md:border-light-300 md:bg-light-50 md:dark:border-dark-300 md:dark:bg-dark-50">
+          <div className="relative flex h-full min-h-0 w-full overflow-hidden">
+            <div className="h-full w-full overflow-y-auto">{children}</div>
 
-          <div className="relative h-full min-h-0 w-full overflow-hidden md:rounded-lg md:border md:border-light-300 md:bg-light-50 md:dark:border-dark-300 md:dark:bg-dark-50">
-            <div className="relative flex h-full min-h-0 w-full overflow-hidden">
-              <div className="h-full w-full overflow-y-auto">{children}</div>
+            {hasRightPanel && rightPanel && (
+              <div
+                ref={rightPanelRef}
+                className={`fixed right-0 top-12 z-40 h-[calc(100dvh-3rem)] w-80 transform border-l border-light-300 bg-light-200 transition-transform duration-300 ease-in-out dark:border-dark-300 dark:bg-dark-100 md:hidden ${
+                  isRightPanelOpen ? "translate-x-0" : "translate-x-full"
+                }`}
+              >
+                <div className="h-full">{rightPanel}</div>
+              </div>
+            )}
 
-              {/* Mobile Right Panel */}
-              {hasRightPanel && rightPanel && (
-                <div
-                  ref={rightPanelRef}
-                  className={`fixed right-0 top-12 z-40 h-[calc(100dvh-3rem)] w-80 transform border-l border-light-300 bg-light-200 transition-transform duration-300 ease-in-out dark:border-dark-300 dark:bg-dark-100 md:hidden ${
-                    isRightPanelOpen ? "translate-x-0" : "translate-x-full"
-                  }`}
-                >
-                  <div className="h-full">{rightPanel}</div>
-                </div>
-              )}
-
-              {/* Desktop Right Panel */}
-              {hasRightPanel && rightPanel && (
-                <div className="hidden md:block">{rightPanel}</div>
-              )}
-            </div>
+            {hasRightPanel && rightPanel && (
+              <div className="hidden md:block">{rightPanel}</div>
+            )}
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

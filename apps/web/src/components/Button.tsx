@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { twMerge } from "tailwind-merge";
 
 import LoadingSpinner from "./LoadingSpinner";
@@ -116,12 +116,28 @@ const Button = ({
   );
 
   if (href) {
+    const isExternal =
+      href.startsWith("http") ||
+      href.startsWith("mailto:") ||
+      href.startsWith("//");
+
+    if (isExternal) {
+      return (
+        <a
+          href={href}
+          className={classes}
+          target={openInNewTab ? "_blank" : undefined}
+          rel={openInNewTab ? "noopener noreferrer" : undefined}
+        >
+          {content}
+        </a>
+      );
+    }
+
     return (
       <Link
-        href={href}
+        to={href}
         className={classes}
-        target={openInNewTab ? "_blank" : undefined}
-        rel={openInNewTab ? "noopener noreferrer" : undefined}
         {...(props as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
       >
         {content}

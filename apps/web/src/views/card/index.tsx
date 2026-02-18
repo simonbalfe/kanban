@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { useRouter } from "next/router";
+import { Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -30,15 +29,13 @@ interface FormValues {
 }
 
 export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
-  const router = useRouter();
+  const params = useParams({ strict: false }) as Record<string, string>;
   const isAdminOrMember = true;
   const { data: currentUser } = useQuery({
     queryKey: apiKeys.user.getUser(),
     queryFn: api.user.getUser,
   });
-  const cardId = Array.isArray(router.query.cardId)
-    ? router.query.cardId[0]
-    : router.query.cardId;
+  const cardId = params.cardId;
 
   const cardByIdInput = { cardPublicId: cardId ?? "" };
   const { data: card } = useQuery({
@@ -109,7 +106,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
 }
 
 export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
-  const router = useRouter();
+  const params = useParams({ strict: false }) as Record<string, string>;
   const queryClient = useQueryClient();
   const {
     modalContentType,
@@ -129,9 +126,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
     null,
   );
 
-  const cardId = Array.isArray(router.query.cardId)
-    ? router.query.cardId[0]
-    : router.query.cardId;
+  const cardId = params.cardId;
 
   const cardByIdInput = { cardPublicId: cardId ?? "" };
   const cardByIdQueryKey = apiKeys.card.byId(cardByIdInput);
@@ -207,7 +202,6 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
     });
   };
 
-  // this adds the new created label to selected labels
   useEffect(() => {
     const newLabelId = modalStates.NEW_LABEL_CREATED;
     if (newLabelId && cardId) {
@@ -225,7 +219,6 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
     }
   }, [modalStates.NEW_LABEL_CREATED, card, cardId]);
 
-  // Open the new item form after creating a new checklist
   useEffect(() => {
     if (!card) return;
     const state = getModalState("ADD_CHECKLIST");
@@ -236,7 +229,6 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
     }
   }, [card, getModalState, clearModalState]);
 
-  // Auto-resize title textarea
   useEffect(() => {
     const titleTextarea = document.getElementById(
       "title",
@@ -267,7 +259,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
               <div className="flex items-center gap-1">
                 <Link
                   className="whitespace-nowrap text-sm font-bold leading-[1.5rem] text-light-900 dark:text-dark-950"
-                  href={`${isTemplate ? "/templates" : "/boards"}/${board?.publicId}`}
+                  to={`${isTemplate ? "/templates" : "/boards"}/${board?.publicId}` as string}
                 >
                   {board?.name}
                 </Link>
@@ -280,7 +272,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                   cardCreatedBy={card?.createdBy}
                 />
                 <Link
-                  href={`/${isTemplate ? "templates" : "boards"}/${boardId}`}
+                  to={`/${isTemplate ? "templates" : "boards"}/${boardId}` as string}
                   className="flex h-7 w-7 items-center justify-center rounded-[5px] text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-200"
                   aria-label={"Close"}
                 >

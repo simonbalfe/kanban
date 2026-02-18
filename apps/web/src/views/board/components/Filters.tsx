@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import {
   HiMiniXMark,
   HiOutlineClock,
@@ -51,22 +51,23 @@ const Filters = ({
   lists: List[];
   isLoading: boolean;
 }) => {
-  const router = useRouter();
+  const search = useSearch({ strict: false }) as Record<string, any>;
+  const navigate = useNavigate();
 
   const clearFilters = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
     try {
-      await router.push({
-        pathname: router.pathname,
-        query: {
-          ...router.query,
+      await navigate({
+        to: ".",
+        search: (prev: Record<string, unknown>) => ({
+          ...prev,
           members: [],
           labels: [],
           lists: [],
           dueDate: [],
-        },
+        }),
       });
     } catch (error) {
       console.error(error);
@@ -79,7 +80,7 @@ const Filters = ({
       member.user?.name ?? null,
       member.user?.email ?? null,
     ),
-    selected: !!router.query.members?.includes(member.publicId),
+    selected: !!formatToArray(search.members).includes(member.publicId),
     leftIcon: (
       <Avatar
         size="xs"
@@ -95,46 +96,46 @@ const Filters = ({
   const formattedLabels = labels.map((label) => ({
     key: label.publicId,
     value: label.name,
-    selected: !!router.query.labels?.includes(label.publicId),
+    selected: !!formatToArray(search.labels).includes(label.publicId),
     leftIcon: <LabelIcon colourCode={label.colourCode} />,
   }));
 
   const formattedLists = lists.map((list) => ({
     key: list.publicId,
     value: list.name,
-    selected: !!router.query.lists?.includes(list.publicId),
+    selected: !!formatToArray(search.lists).includes(list.publicId),
   }));
 
   const dueDateItems = [
     {
       key: "overdue",
       value: "Overdue",
-      selected: !!router.query.dueDate?.includes("overdue"),
+      selected: !!formatToArray(search.dueDate).includes("overdue"),
     },
     {
       key: "today",
       value: "Due today",
-      selected: !!router.query.dueDate?.includes("today"),
+      selected: !!formatToArray(search.dueDate).includes("today"),
     },
     {
       key: "tomorrow",
       value: "Due tomorrow",
-      selected: !!router.query.dueDate?.includes("tomorrow"),
+      selected: !!formatToArray(search.dueDate).includes("tomorrow"),
     },
     {
       key: "next-week",
       value: "Due next week",
-      selected: !!router.query.dueDate?.includes("next-week"),
+      selected: !!formatToArray(search.dueDate).includes("next-week"),
     },
     {
       key: "next-month",
       value: "Due next month",
-      selected: !!router.query.dueDate?.includes("next-month"),
+      selected: !!formatToArray(search.dueDate).includes("next-month"),
     },
     {
       key: "no-due-date",
       value: "No dates",
-      selected: !!router.query.dueDate?.includes("no-due-date"),
+      selected: !!formatToArray(search.dueDate).includes("no-due-date"),
     },
   ];
 
@@ -178,19 +179,16 @@ const Filters = ({
     item: { key: string },
   ) => {
     if (groupKey === null) return;
-    const currentQuery = router.query[groupKey] ?? [];
-    const formattedCurrentQuery = Array.isArray(currentQuery)
-      ? currentQuery
-      : [currentQuery];
+    const currentQuery = formatToArray(search[groupKey]);
 
-    const updatedQuery = formattedCurrentQuery.includes(item.key)
-      ? formattedCurrentQuery.filter((key) => key !== item.key)
-      : [...formattedCurrentQuery, item.key];
+    const updatedQuery = currentQuery.includes(item.key)
+      ? currentQuery.filter((key) => key !== item.key)
+      : [...currentQuery, item.key];
 
     try {
-      await router.push({
-        pathname: router.pathname,
-        query: { ...router.query, [groupKey]: updatedQuery },
+      await navigate({
+        to: ".",
+        search: (prev: Record<string, unknown>) => ({ ...prev, [groupKey]: updatedQuery }),
       });
     } catch (error) {
       console.error(error);
@@ -198,10 +196,10 @@ const Filters = ({
   };
 
   const numOfFilters = [
-    ...formatToArray(router.query.members),
-    ...formatToArray(router.query.labels),
-    ...formatToArray(router.query.lists),
-    ...formatToArray(router.query.dueDate),
+    ...formatToArray(search.members),
+    ...formatToArray(search.labels),
+    ...formatToArray(search.lists),
+    ...formatToArray(search.dueDate),
   ].length;
 
   return (
