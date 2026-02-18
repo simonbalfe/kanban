@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Button } from "@headlessui/react";
-import { t } from "@lingui/core/macro";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import {
@@ -71,7 +70,7 @@ export default function SideNavigation({
     keyboardShortcut: KeyboardShortcut;
   }[] = [
     {
-      name: t`Boards`,
+      name: "Boards",
       href: "/boards",
       icon: isDarkMode ? boardsIconDark : boardsIconLight,
       keyboardShortcut: {
@@ -79,11 +78,11 @@ export default function SideNavigation({
         strokes: [{ key: "G" }, { key: "B" }],
         action: () => router.push("/boards"),
         group: "NAVIGATION",
-        description: t`Go to boards`,
+        description: "Go to boards",
       },
     },
     {
-      name: t`Templates`,
+      name: "Templates",
       href: "/templates",
       icon: isDarkMode ? templatesIconDark : templatesIconLight,
       keyboardShortcut: {
@@ -91,11 +90,11 @@ export default function SideNavigation({
         strokes: [{ key: "G" }, { key: "T" }],
         action: () => router.push("/templates"),
         group: "NAVIGATION",
-        description: t`Go to templates`,
+        description: "Go to templates",
       },
     },
     {
-      name: t`Settings`,
+      name: "Settings",
       href: "/settings",
       icon: isDarkMode ? settingsIconDark : settingsIconLight,
       keyboardShortcut: {
@@ -103,7 +102,7 @@ export default function SideNavigation({
         strokes: [{ key: "G" }, { key: "S" }],
         action: () => router.push("/settings"),
         group: "NAVIGATION",
-        description: t`Go to settings`,
+        description: "Go to settings",
       },
     },
   ];

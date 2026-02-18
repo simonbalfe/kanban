@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { t } from "@lingui/core/macro";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { HiXMark } from "react-icons/hi2";
@@ -79,7 +78,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
   return (
     <div className="h-full w-[360px] border-l-[1px] border-light-300 bg-light-50 p-8 text-light-900 dark:border-dark-300 dark:bg-dark-50 dark:text-dark-900">
       <div className="mb-4 flex w-full flex-row pt-[18px]">
-        <p className="my-2 mb-2 w-[100px] text-sm font-medium">{t`List`}</p>
+        <p className="my-2 mb-2 w-[100px] text-sm font-medium">{"List"}</p>
         <ListSelector
           cardPublicId={cardId ?? ""}
           lists={formattedLists}
@@ -88,7 +87,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
         />
       </div>
       <div className="mb-4 flex w-full flex-row">
-        <p className="my-2 mb-2 w-[100px] text-sm font-medium">{t`Labels`}</p>
+        <p className="my-2 mb-2 w-[100px] text-sm font-medium">{"Labels"}</p>
         <LabelSelector
           cardPublicId={cardId ?? ""}
           labels={formattedLabels}
@@ -97,7 +96,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
         />
       </div>
       <div className="mb-4 flex w-full flex-row">
-        <p className="my-2 mb-2 w-[100px] text-sm font-medium">{t`Due date`}</p>
+        <p className="my-2 mb-2 w-[100px] text-sm font-medium">{"Due date"}</p>
         <DueDateSelector
           cardPublicId={cardId ?? ""}
           dueDate={card?.dueDate}
@@ -149,8 +148,8 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
   const updateCard = api.card.update.useMutation({
     onError: () => {
       showPopup({
-        header: t`Unable to update card`,
-        message: t`Please try again later, or contact customer support.`,
+        header: "Unable to update card",
+        message: "Please try again later, or contact customer support.",
         icon: "error",
       });
     },
@@ -162,8 +161,8 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
   const addOrRemoveLabel = api.card.addOrRemoveLabel.useMutation({
     onError: () => {
       showPopup({
-        header: t`Unable to add label`,
-        message: t`Please try again later, or contact customer support.`,
+        header: "Unable to add label",
+        message: "Please try again later, or contact customer support.",
         icon: "error",
       });
     },
@@ -236,7 +235,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
   return (
     <>
       <PageHead
-        title={t`${card?.title ?? t`Card`} | ${board?.name ?? t`Board`}`}
+        title={`${card?.title ?? "Card"} | ${board?.name ?? "Board"}`}
       />
       <div className="flex h-full flex-1 flex-col overflow-hidden">
         <div className="flex w-full items-center justify-between border-b-[1px] border-light-300 bg-light-50 px-8 py-2 dark:border-dark-300 dark:bg-dark-50">
@@ -265,7 +264,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                 <Link
                   href={`/${isTemplate ? "templates" : "boards"}/${boardId}`}
                   className="flex h-7 w-7 items-center justify-center rounded-[5px] text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-200"
-                  aria-label={t`Close`}
+                  aria-label={"Close"}
                 >
                   <HiXMark className="h-5 w-5" />
                 </Link>
@@ -274,7 +273,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
           )}
           {!card && !isLoading && (
             <p className="block p-0 py-0 font-bold leading-[1.5rem] tracking-tight text-light-900 dark:text-dark-900 sm:text-[1rem]">
-              {t`Card not found`}
+              {"Card not found"}
             </p>
           )}
         </div>
@@ -311,7 +310,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                 )}
                 {!card && !isLoading && (
                   <p className="block p-0 py-0 font-bold leading-[2.3rem] tracking-tight text-neutral-900 dark:text-dark-1000 sm:text-[1.2rem]">
-                    {t`Card not found`}
+                    {"Card not found"}
                   </p>
                 )}
               </div>
@@ -366,7 +365,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                   )}
                   <div className="border-t-[1px] border-light-300 pt-12 dark:border-dark-300">
                     <h2 className="text-md pb-4 font-medium text-light-1000 dark:text-dark-1000">
-                      {t`Activity`}
+                      {"Activity"}
                     </h2>
                     <div>
                       <ActivityList

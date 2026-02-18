@@ -1,4 +1,3 @@
-import { t } from "@lingui/core/macro";
 import { useRef, useState } from "react";
 import { HiOutlinePaperClip } from "react-icons/hi";
 import { HiCheckBadge } from "react-icons/hi2";
@@ -42,14 +41,14 @@ export function AttachmentUpload({ cardPublicId }: { cardPublicId: string }) {
 
       await invalidateCard(utils, cardPublicId);
       showPopup({
-        header: t`Attachment uploaded`,
-        message: t`Your file has been uploaded successfully.`,
+        header: "Attachment uploaded",
+        message: "Your file has been uploaded successfully.",
         icon: "success",
       });
     } catch {
       showPopup({
-        header: t`Upload failed`,
-        message: t`Failed to upload attachment. Please try again.`,
+        header: "Upload failed",
+        message: "Failed to upload attachment. Please try again.",
         icon: "error",
       });
       setUploading(false);

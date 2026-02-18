@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Menu, Transition } from "@headlessui/react";
-import { t } from "@lingui/core/macro";
 import { useTheme } from "next-themes";
 import { Fragment } from "react";
 import { twMerge } from "tailwind-merge";
@@ -125,7 +124,7 @@ export default function UserMenu({
           <div className="flex flex-col text-neutral-900 dark:text-dark-1000">
             <div className="p-1">
               <div className="flex w-full items-center px-3 py-2 text-left text-xs">
-                <span>{t`Theme`}</span>
+                <span>{"Theme"}</span>
               </div>
               <Menu.Item>
                 <button
@@ -138,7 +137,7 @@ export default function UserMenu({
                       "mr-4 h-[6px] w-[6px] rounded-full bg-light-900 dark:bg-dark-900",
                     )}
                   />
-                  {t`System`}
+                  {"System"}
                 </button>
               </Menu.Item>
               <Menu.Item>
@@ -152,7 +151,7 @@ export default function UserMenu({
                       "mr-4 h-[6px] w-[6px] rounded-full bg-light-900 dark:bg-dark-900",
                     )}
                   />
-                  {t`Dark`}
+                  {"Dark"}
                 </button>
               </Menu.Item>
               <Menu.Item>
@@ -166,7 +165,7 @@ export default function UserMenu({
                       "mr-4 h-[6px] w-[6px] rounded-full bg-light-900 dark:bg-dark-900",
                     )}
                   />
-                  {t`Light`}
+                  {"Light"}
                 </button>
               </Menu.Item>
             </div>
@@ -181,7 +180,7 @@ export default function UserMenu({
                   }}
                   className="flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
-                  {t`Shortcuts`}
+                  {"Shortcuts"}
                 </button>
               </Menu.Item>
               <Menu.Item>
@@ -192,7 +191,7 @@ export default function UserMenu({
                   onClick={handleLinkClick}
                   className="flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
-                  {t`Support`}
+                  {"Support"}
                 </Link>
               </Menu.Item>
               <Menu.Item>
@@ -203,7 +202,7 @@ export default function UserMenu({
                   onClick={handleLinkClick}
                   className="flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
-                  {t`Documentation`}
+                  {"Documentation"}
                 </Link>
               </Menu.Item>
             </div>
@@ -213,7 +212,7 @@ export default function UserMenu({
                   onClick={handleLogout}
                   className="flex w-full items-center rounded-[5px] px-3 py-2 text-left text-xs hover:bg-light-200 dark:hover:bg-dark-400"
                 >
-                  {t`Logout`}
+                  {"Logout"}
                 </button>
               </Menu.Item>
             </div>

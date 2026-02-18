@@ -1,4 +1,3 @@
-import { t } from "@lingui/core/macro";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -75,8 +74,8 @@ const Comment = ({
     },
     onError: () => {
       showPopup({
-        header: t`Unable to update comment`,
-        message: t`Please try again later, or contact customer support.`,
+        header: "Unable to update comment",
+        message: "Please try again later, or contact customer support.",
         icon: "error",
       });
     },
@@ -94,7 +93,7 @@ const Comment = ({
     ...(isAuthor && isAdminOrMember
       ? [
           {
-            label: t`Edit comment`,
+            label: "Edit comment",
             action: () => setIsEditing(true),
             icon: <HiPencil className="h-[16px] w-[16px] text-dark-900" />,
           },
@@ -103,7 +102,7 @@ const Comment = ({
     ...((isAuthor || isAdminOrMember)
       ? [
           {
-            label: t`Delete comment`,
+            label: "Delete comment",
             action: () => openModal("DELETE_COMMENT", publicId),
             icon: <HiTrash className="h-[16px] w-[16px] text-dark-900" />,
           },
@@ -136,7 +135,7 @@ const Comment = ({
             </span>
             {isEdited && (
               <span className="text-light-900 dark:text-dark-800">
-                {t` (edited)`}
+                {" (edited)"}
               </span>
             )}
           </p>
@@ -168,7 +167,7 @@ const Comment = ({
               onChange={(value) => setValue("comment", value)}
               workspaceMembers={workspaceMembers}
   
-              placeholder={t`Add comment... (type '/' to open commands or '@' to mention)`}
+              placeholder={"Add comment... (type '/' to open commands or '@' to mention)"}
               disableHeadings={true}
             />
           </div>
@@ -178,14 +177,14 @@ const Comment = ({
               variant="ghost"
               onClick={() => setIsEditing(false)}
             >
-              {t`Cancel`}
+              {"Cancel"}
             </Button>
             <Button
               isLoading={updateCommentMutation.isPending}
               type="submit"
               size="sm"
             >
-              {t`Save`}
+              {"Save"}
             </Button>
           </div>
         </form>

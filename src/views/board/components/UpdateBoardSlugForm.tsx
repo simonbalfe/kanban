@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { t } from "@lingui/core/macro";
 import { env } from "next-runtime-env";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -37,11 +36,11 @@ export function UpdateBoardSlugForm({
     slug: z
       .string()
       .min(3, {
-        message: t`Board URL must be at least 3 characters long`,
+        message: "Board URL must be at least 3 characters long",
       })
-      .max(60, { message: t`Board URL cannot exceed 60 characters` })
+      .max(60, { message: "Board URL cannot exceed 60 characters" })
       .regex(/^(?![-]+$)[a-zA-Z0-9-]+$/, {
-        message: t`Board URL can only contain letters, numbers, and hyphens`,
+        message: "Board URL can only contain letters, numbers, and hyphens",
       }),
   });
 
@@ -67,8 +66,8 @@ export function UpdateBoardSlugForm({
   const updateBoardSlug = api.board.update.useMutation({
     onError: () => {
       showPopup({
-        header: t`Unable to update board URL`,
-        message: t`Please try again later, or contact customer support.`,
+        header: "Unable to update board URL",
+        message: "Please try again later, or contact customer support.",
         icon: "error",
       });
     },
@@ -111,7 +110,7 @@ export function UpdateBoardSlugForm({
       <div className="px-5 pt-5">
         <div className="flex w-full items-center justify-between pb-4">
           <h2 className="text-sm font-bold text-neutral-900 dark:text-dark-1000">
-            {t`Edit board URL`}
+            {"Edit board URL"}
           </h2>
           <button
             type="button"
@@ -131,7 +130,7 @@ export function UpdateBoardSlugForm({
           errorMessage={
             errors.slug?.message ||
             (isBoardSlugAvailable?.isReserved
-              ? t`This board URL has already been taken`
+              ? "This board URL has already been taken"
               : undefined)
           }
           prefix={`${env("NEXT_PUBLIC_BASE_URL")}/`}
@@ -163,7 +162,7 @@ export function UpdateBoardSlugForm({
               checkBoardSlugAvailability.isLoading
             }
           >
-            {t`Update`}
+            {"Update"}
           </Button>
         </div>
       </div>

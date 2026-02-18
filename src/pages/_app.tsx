@@ -1,6 +1,4 @@
 import "~/styles/globals.css";
-import "~/utils/i18n";
-
 import type { NextPage, Viewport } from "next";
 import type { AppProps, AppType } from "next/app";
 import type { ReactElement, ReactNode } from "react";
@@ -9,7 +7,6 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 
 import { KeyboardShortcutProvider } from "~/providers/keyboard-shortcuts";
-import { LinguiProviderWrapper } from "~/providers/lingui";
 import { ModalProvider } from "~/providers/modal";
 import { PopupProvider } from "~/providers/popup";
 import { api } from "~/utils/api";
@@ -45,15 +42,13 @@ function AppContent({ Component, pageProps }: AppPropsWithLayout) {
 
   return (
     <KeyboardShortcutProvider>
-      <LinguiProviderWrapper>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <ModalProvider>
-            <PopupProvider>
-              {getLayout(<Component {...pageProps} />)}
-            </PopupProvider>
-          </ModalProvider>
-        </ThemeProvider>
-      </LinguiProviderWrapper>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ModalProvider>
+          <PopupProvider>
+            {getLayout(<Component {...pageProps} />)}
+          </PopupProvider>
+        </ModalProvider>
+      </ThemeProvider>
     </KeyboardShortcutProvider>
   );
 }

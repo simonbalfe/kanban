@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { t } from "@lingui/core/macro";
 import { Draggable } from "react-beautiful-dnd";
 import { useForm } from "react-hook-form";
 import {
@@ -111,7 +110,7 @@ export default function List({
             <div className="flex items-center">
               <Tooltip
                 content={
-                  !isAdminOrMember ? t`You don't have permission` : undefined
+                  !isAdminOrMember ? "You don't have permission" : undefined
                 }
               >
                 <button
@@ -130,7 +129,7 @@ export default function List({
                   ...(isAdminOrMember
                     ? [
                         {
-                          label: t`Add a card`,
+                          label: "Add a card",
                           action: () => openNewCardForm(list.publicId),
                           icon: (
                             <HiOutlineSquaresPlus className="h-[18px] w-[18px] text-dark-900" />
@@ -141,7 +140,7 @@ export default function List({
                   ...(isAdminOrMember || isCreator
                     ? [
                         {
-                          label: t`Delete list`,
+                          label: "Delete list",
                           action: handleOpenDeleteListConfirmation,
                           icon: (
                             <HiOutlineTrash className="h-[18px] w-[18px] text-dark-900" />

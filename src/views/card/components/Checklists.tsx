@@ -1,5 +1,4 @@
 import type { DropResult } from "react-beautiful-dnd";
-import { t } from "@lingui/core/macro";
 import { DragDropContext, Draggable } from "react-beautiful-dnd";
 import { HiPlus, HiXMark } from "react-icons/hi2";
 
@@ -77,8 +76,8 @@ export default function Checklists({
       if (ctx?.previous)
         utils.card.byId.setData({ cardPublicId }, ctx.previous);
       showPopup({
-        header: t`Unable to reorder checklist item`,
-        message: t`Please try again later, or contact customer support.`,
+        header: "Unable to reorder checklist item",
+        message: "Please try again later, or contact customer support.",
         icon: "error",
       });
     },

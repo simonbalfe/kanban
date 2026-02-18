@@ -2,7 +2,6 @@ import type { DropResult } from "react-beautiful-dnd";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/router";
-import { t } from "@lingui/core/macro";
 import { keepPreviousData } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { DragDropContext, Draggable } from "react-beautiful-dnd";
@@ -65,7 +64,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
       type: "PRESS",
       stroke: { key: "C" },
       action: () => boardId && isAdminOrMember && openNewListForm(boardId),
-      description: t`Create new list`,
+      description: "Create new list",
       group: "ACTIONS",
     });
 
@@ -168,8 +167,8 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     onError: (_error, _newList, context) => {
       utils.board.byId.setData(queryParams, context?.previousState);
       showPopup({
-        header: t`Unable to update list`,
-        message: t`Please try again later, or contact customer support.`,
+        header: "Unable to update list",
+        message: "Please try again later, or contact customer support.",
         icon: "error",
       });
     },
@@ -224,8 +223,8 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     onError: (_error, _newList, context) => {
       utils.board.byId.setData(queryParams, context?.previousState);
       showPopup({
-        header: t`Unable to update card`,
-        message: t`Please try again later, or contact customer support.`,
+        header: "Unable to update card",
+        message: "Please try again later, or contact customer support.",
         icon: "error",
       });
     },
@@ -373,7 +372,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
   return (
     <>
       <PageHead
-        title={`${boardData?.name ?? (isTemplate ? t`Board` : t`Template`)}`}
+        title={`${boardData?.name ?? (isTemplate ? "Board" : "Template")}`}
       />
       <div className="relative flex h-full flex-col">
         <PatternedBackground />
@@ -400,7 +399,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
           )}
           {!boardData && !isLoading && (
             <p className="order-2 block p-0 py-0 font-bold leading-[2.3rem] tracking-tight text-neutral-900 dark:text-dark-1000 sm:text-[1.2rem] md:order-1">
-              {t`${isTemplate ? "Template" : "Board"} not found`}
+              {`${isTemplate ? "Template" : "Board"} not found`}
             </p>
           )}
           <div className="order-1 mb-4 flex items-center justify-end space-x-2 md:order-2 md:mb-0">
@@ -409,7 +408,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                 <span className="mr-2">
                   <HiOutlineRectangleStack />
                 </span>
-                {t`Template`}
+                {"Template"}
               </div>
             )}
             {!isTemplate && (
@@ -434,7 +433,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
             <Tooltip
               content={
                 !isAdminOrMember
-                  ? t`You don't have permission`
+                  ? "You don't have permission"
                   : createListShortcutTooltipContent
               }
             >
@@ -450,7 +449,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                 }}
                 disabled={!boardData || !isAdminOrMember}
               >
-                {t`New list`}
+                {"New list"}
               </Button>
             </Tooltip>
             <BoardDropdown
@@ -478,17 +477,17 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                   <div className="flex flex-col items-center">
                     <HiOutlineSquare3Stack3D className="h-10 w-10 text-light-800 dark:text-dark-800" />
                     <p className="mb-2 mt-4 text-[14px] font-bold text-light-1000 dark:text-dark-950">
-                      {t`No lists`}
+                      {"No lists"}
                     </p>
                     <p className="text-[14px] text-light-900 dark:text-dark-900">
                       {isAdminOrMember
-                        ? t`Get started by creating a new list`
-                        : t`No lists have been created yet`}
+                        ? "Get started by creating a new list"
+                        : "No lists have been created yet"}
                     </p>
                   </div>
                   <Tooltip
                     content={
-                      !isAdminOrMember ? t`You don't have permission` : undefined
+                      !isAdminOrMember ? "You don't have permission" : undefined
                     }
                   >
                     <Button
@@ -497,7 +496,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                       }}
                       disabled={!isAdminOrMember}
                     >
-                      {t`Create new list`}
+                      {"Create new list"}
                     </Button>
                   </Tooltip>
                 </div>

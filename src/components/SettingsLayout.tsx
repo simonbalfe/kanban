@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { t } from "@lingui/core/macro";
 import { HiOutlineUser } from "react-icons/hi2";
 
 interface SettingsLayoutProps {
@@ -15,7 +14,7 @@ export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
     {
       key: "account",
       icon: <HiOutlineUser />,
-      label: t`Account`,
+      label: "Account",
     },
   ];
 
@@ -29,7 +28,7 @@ export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
         <div className="m-auto max-w-[1100px] px-5 py-6 md:px-28 md:py-12">
           <div className="mb-8 flex w-full justify-between">
             <h1 className="font-bold tracking-tight text-neutral-900 dark:text-dark-1000 sm:text-[1.2rem]">
-              {t`Settings`}
+              {"Settings"}
             </h1>
           </div>
 

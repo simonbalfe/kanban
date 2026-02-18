@@ -1,4 +1,3 @@
-import { t } from "@lingui/core/macro";
 import { useEffect, useRef } from "react";
 import ContentEditable from "react-contenteditable";
 import { useForm } from "react-hook-form";
@@ -86,8 +85,8 @@ const NewChecklistItemForm = ({
       if (ctx?.previous)
         utils.card.byId.setData({ cardPublicId }, ctx.previous);
       showPopup({
-        header: t`Unable to add checklist item`,
-        message: t`Please try again later, or contact customer support.`,
+        header: "Unable to add checklist item",
+        message: "Please try again later, or contact customer support.",
         icon: "error",
       });
     },
@@ -138,7 +137,7 @@ const NewChecklistItemForm = ({
           <ContentEditable
             id={`checklist-item-input-${checklistPublicId}`}
             tabIndex={readOnly ? -1 : 0}
-            placeholder={t`Add an item...`}
+            placeholder={"Add an item..."}
             html={title}
             disabled={readOnly}
             onChange={(e) => setValue("title", e.target.value)}

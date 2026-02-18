@@ -6,7 +6,6 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/react";
-import { t } from "@lingui/core/macro";
 import {
   createContext,
   useCallback,
@@ -51,9 +50,9 @@ const ShortcutGroup = {
 type ShortcutGroup = (typeof ShortcutGroup)[keyof typeof ShortcutGroup];
 
 const getShortcutGroupInfo = (): Record<ShortcutGroup, { label: string }> => ({
-  GENERAL: { label: t`General` },
-  NAVIGATION: { label: t`Navigation` },
-  ACTIONS: { label: t`Actions` },
+  GENERAL: { label: "General" },
+  NAVIGATION: { label: "Navigation" },
+  ACTIONS: { label: "Actions" },
 });
 
 interface KeyStroke {
@@ -169,7 +168,7 @@ export function KeyboardShortcutProvider({
         modifiers: ["META"],
       },
       action: () => setIsLegendOpen(true),
-      description: t`Open keyboard shortcuts`,
+      description: "Open keyboard shortcuts",
       group: ShortcutGroup.GENERAL,
     }),
     [setIsLegendOpen],
@@ -318,7 +317,7 @@ export function KeyboardShortcutProvider({
           >
             <div className="flex items-center justify-between border-b border-light-300 px-6 py-4 dark:border-dark-300">
               <DialogTitle className="text-[14px] font-semibold text-neutral-900 dark:text-dark-1000">
-                {t`Keyboard Shortcuts`}
+                {"Keyboard Shortcuts"}
               </DialogTitle>
               <button
                 onClick={() => setIsLegendOpen(false)}
@@ -331,7 +330,7 @@ export function KeyboardShortcutProvider({
             <div className="max-h-[60vh] overflow-y-auto p-6">
               {shortcutsArray.length === 0 ? (
                 <p className="text-center text-sm text-neutral-600 dark:text-dark-600">
-                  {t`No keyboard shortcuts registered.`}
+                  {"No keyboard shortcuts registered."}
                 </p>
               ) : (
                 <div className="space-y-6">

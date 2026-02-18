@@ -1,4 +1,3 @@
-import { t } from "@lingui/core/macro";
 import {
   HiEllipsisHorizontal,
   HiLink,
@@ -37,30 +36,30 @@ export default function CardDropdown({
     try {
       await navigator.clipboard.writeText(url);
       showPopup({
-        header: t`Link copied`,
+        header: "Link copied",
         icon: "success",
-        message: t`Card URL copied to clipboard`,
+        message: "Card URL copied to clipboard",
       });
     } catch (error) {
       console.error(error);
       showPopup({
-        header: t`Unable to copy link`,
+        header: "Unable to copy link",
         icon: "error",
-        message: t`Please try again.`,
+        message: "Please try again.",
       });
     }
   };
 
   const items = [
     {
-      label: t`Copy card link`,
+      label: "Copy card link",
       action: handleCopyCardLink,
       icon: <HiLink className="h-[16px] w-[16px] text-dark-900" />,
     },
     ...(isAdminOrMember
       ? [
           {
-            label: t`Add checklist`,
+            label: "Add checklist",
             action: () => openModal("ADD_CHECKLIST"),
             icon: (
               <HiOutlineCheckCircle className="h-[16px] w-[16px] text-dark-900" />
@@ -71,7 +70,7 @@ export default function CardDropdown({
     ...(isAdminOrMember || isCreator
       ? [
           {
-            label: t`Delete card`,
+            label: "Delete card",
             action: () => openModal("DELETE_CARD"),
             icon: (
               <HiOutlineTrash className="h-[16px] w-[16px] text-dark-900" />

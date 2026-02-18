@@ -1,4 +1,3 @@
-import { t } from "@lingui/core/macro";
 import { useForm } from "react-hook-form";
 import { HiOutlineArrowUp } from "react-icons/hi2";
 
@@ -29,8 +28,8 @@ const NewCommentForm = ({
   const addCommentMutation = api.card.addComment.useMutation({
     onError: (_error, _newList) => {
       showPopup({
-        header: t`Unable to add comment`,
-        message: t`Please try again later, or contact customer support.`,
+        header: "Unable to add comment",
+        message: "Please try again later, or contact customer support.",
         icon: "error",
       });
     },
@@ -60,7 +59,7 @@ const NewCommentForm = ({
         content={watch("comment")}
         onChange={(value) => setValue("comment", value)}
         workspaceMembers={[]}
-        placeholder={t`Add comment... (type '/' to open commands or '@' to mention)`}
+        placeholder={"Add comment... (type '/' to open commands or '@' to mention)"}
         disableHeadings={true}
       />
       <div className="flex justify-end">

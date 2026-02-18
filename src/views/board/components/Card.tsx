@@ -11,7 +11,7 @@ import Avatar from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import CircularProgress from "~/components/CircularProgress";
 import LabelIcon from "~/components/LabelIcon";
-import { useLocalisation } from "~/hooks/useLocalisation";
+import { enGB } from "date-fns/locale";
 import { getAvatarUrl } from "~/utils/helpers";
 
 const Card = ({
@@ -46,7 +46,7 @@ const Card = ({
   attachments?: { publicId: string }[];
   dueDate?: Date | null;
 }) => {
-  const { dateLocale } = useLocalisation();
+  const dateLocale = enGB;
   const showYear = dueDate ? !isSameYear(dueDate, new Date()) : false;
   const isOverdue = dueDate ? isBefore(dueDate, startOfDay(new Date())) : false;
   const completedItems = checklists.reduce((acc, checklist) => {

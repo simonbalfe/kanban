@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { t } from "@lingui/core/macro";
 import { HiOutlineRectangleStack } from "react-icons/hi2";
 import { motion } from "framer-motion";
 import Button from "~/components/Button";
@@ -31,15 +30,15 @@ export function BoardsList({ isTemplate }: { isTemplate?: boolean }) {
         <div className="flex flex-col items-center">
           <HiOutlineRectangleStack className="h-10 w-10 text-light-800 dark:text-dark-800" />
           <p className="mb-2 mt-4 text-[14px] font-bold text-light-1000 dark:text-dark-950">
-            {t`No ${isTemplate ? "templates" : "boards"}`}
+            {`No ${isTemplate ? "templates" : "boards"}`}
           </p>
           <p className="text-[14px] text-light-900 dark:text-dark-900">
-            {t`Get started by creating a new ${isTemplate ? "template" : "board"}`}
+            {`Get started by creating a new ${isTemplate ? "template" : "board"}`}
           </p>
         </div>
         <Tooltip
           content={
-            !isAdminOrMember ? t`You don't have permission` : undefined
+            !isAdminOrMember ? "You don't have permission" : undefined
           }
         >
           <Button
@@ -48,7 +47,7 @@ export function BoardsList({ isTemplate }: { isTemplate?: boolean }) {
             }}
             disabled={!isAdminOrMember}
           >
-            {t`Create new ${isTemplate ? "template" : "board"}`}
+            {`Create new ${isTemplate ? "template" : "board"}`}
           </Button>
         </Tooltip>
       </div>

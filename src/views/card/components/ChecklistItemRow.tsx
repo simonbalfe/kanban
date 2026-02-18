@@ -1,5 +1,4 @@
 import type { DraggableProvided } from "react-beautiful-dnd";
-import { t } from "@lingui/core/macro";
 import { useEffect, useState } from "react";
 import ContentEditable from "react-contenteditable";
 import { HiXMark } from "react-icons/hi2";
@@ -65,8 +64,8 @@ export default function ChecklistItemRow({
       if (ctx?.previous)
         utils.card.byId.setData({ cardPublicId }, ctx.previous);
       showPopup({
-        header: t`Unable to update checklist item`,
-        message: t`Please try again later, or contact customer support.`,
+        header: "Unable to update checklist item",
+        message: "Please try again later, or contact customer support.",
         icon: "error",
       });
     },
@@ -93,8 +92,8 @@ export default function ChecklistItemRow({
       if (ctx?.previous)
         utils.card.byId.setData({ cardPublicId }, ctx.previous);
       showPopup({
-        header: t`Unable to delete checklist item`,
-        message: t`Please try again later, or contact customer support.`,
+        header: "Unable to delete checklist item",
+        message: "Please try again later, or contact customer support.",
         icon: "error",
       });
     },
@@ -197,7 +196,7 @@ export default function ChecklistItemRow({
             "m-0 min-h-[20px] w-full p-0 text-sm leading-[20px] text-light-950 outline-none focus-visible:outline-none dark:text-dark-950",
             viewOnly && "cursor-default",
           )}
-          placeholder={t`Add details...`}
+          placeholder={"Add details..."}
           onKeyDown={(e) => {
             if (viewOnly) return;
             if (e.key === "Enter") {

@@ -1,5 +1,4 @@
 import { Fragment } from "react";
-import { t } from "@lingui/core/macro";
 import { env } from "next-runtime-env";
 import { HiLink } from "react-icons/hi";
 
@@ -40,7 +39,7 @@ const UpdateBoardSlugButton = ({
 
   return (
     <Tooltip
-      content={!canEdit ? t`You don't have permission` : undefined}
+      content={!canEdit ? "You don't have permission" : undefined}
     >
       <button
         onClick={canEdit ? handleOnClick : undefined}
@@ -62,14 +61,14 @@ const UpdateBoardSlugButton = ({
             navigator.clipboard.writeText(boardUrl).then(
               () =>
                 showPopup({
-                  header: t`Link copied`,
+                  header: "Link copied",
                   icon: "success",
-                  message: t`Board URL copied to clipboard`,
+                  message: "Board URL copied to clipboard",
                 }),
             ).catch(() => undefined);
           }}
           className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-light-200 dark:hover:bg-dark-200"
-          aria-label={t`Copy board link`}
+          aria-label={"Copy board link"}
         >
           <HiLink className="h-[13px] w-[13px]" />
         </button>

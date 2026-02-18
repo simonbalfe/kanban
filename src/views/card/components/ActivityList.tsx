@@ -1,6 +1,4 @@
 import type { Locale as DateFnsLocale } from "date-fns";
-import { t } from "@lingui/core/macro";
-import { Trans } from "@lingui/react/macro";
 import { format, formatDistanceToNow, isSameYear } from "date-fns";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -20,7 +18,7 @@ import type {
   GetCardByIdOutput,
 } from "~/server/types";
 import Avatar from "~/components/Avatar";
-import { useLocalisation } from "~/hooks/useLocalisation";
+import { enGB } from "date-fns/locale";
 import { api } from "~/utils/api";
 import { getAvatarUrl } from "~/utils/helpers";
 import Comment from "./Comment";
@@ -48,7 +46,7 @@ const getUserDisplayName = (
 ): string => {
   if (user?.name?.trim()) return user.name;
   if (user?.email) return user.email;
-  return t`Member`;
+  return "Member";
 };
 
 const getActivityText = ({
@@ -81,7 +79,7 @@ const getActivityText = ({
   mergedLabels?: string[];
   attachmentName?: string | null;
 }) => {
-  const displayName = memberName ?? memberEmail ?? t`Member`;
+  const displayName = memberName ?? memberEmail ?? "Member";
   const TextHighlight = ({ children }: { children: React.ReactNode }) => (
     <span className="font-medium text-light-1000 dark:text-dark-1000">
       {children}
@@ -95,10 +93,10 @@ const getActivityText = ({
   ) {
     const labelList = mergedLabels.join(", ");
     return (
-      <Trans>
+      <>
         added {mergedLabels.length} labels:{" "}
         <TextHighlight>{labelList}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
@@ -109,33 +107,33 @@ const getActivityText = ({
   ) {
     const labelList = mergedLabels.join(", ");
     return (
-      <Trans>
+      <>
         removed {mergedLabels.length} labels:{" "}
         <TextHighlight>{labelList}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
   const ACTIVITY_TYPE_MAP = {
-    "card.created": t`created the card`,
-    "card.updated.title": t`updated the title`,
-    "card.updated.description": t`updated the description`,
-    "card.updated.list": t`moved the card to another list`,
-    "card.updated.label.added": t`added a label to the card`,
-    "card.updated.label.removed": t`removed a label from the card`,
-    "card.updated.checklist.added": t`added a checklist`,
-    "card.updated.checklist.renamed": t`renamed a checklist`,
-    "card.updated.checklist.deleted": t`deleted a checklist`,
-    "card.updated.checklist.item.added": t`added a checklist item`,
-    "card.updated.checklist.item.updated": t`updated a checklist item`,
-    "card.updated.checklist.item.completed": t`completed a checklist item`,
-    "card.updated.checklist.item.uncompleted": t`marked a checklist item as incomplete`,
-    "card.updated.checklist.item.deleted": t`deleted a checklist item`,
-    "card.updated.attachment.added": t`added an attachment`,
-    "card.updated.attachment.removed": t`removed an attachment`,
-    "card.updated.dueDate.added": t`set the due date`,
-    "card.updated.dueDate.updated": t`updated the due date`,
-    "card.updated.dueDate.removed": t`removed the due date`,
+    "card.created": "created the card",
+    "card.updated.title": "updated the title",
+    "card.updated.description": "updated the description",
+    "card.updated.list": "moved the card to another list",
+    "card.updated.label.added": "added a label to the card",
+    "card.updated.label.removed": "removed a label from the card",
+    "card.updated.checklist.added": "added a checklist",
+    "card.updated.checklist.renamed": "renamed a checklist",
+    "card.updated.checklist.deleted": "deleted a checklist",
+    "card.updated.checklist.item.added": "added a checklist item",
+    "card.updated.checklist.item.updated": "updated a checklist item",
+    "card.updated.checklist.item.completed": "completed a checklist item",
+    "card.updated.checklist.item.uncompleted": "marked a checklist item as incomplete",
+    "card.updated.checklist.item.deleted": "deleted a checklist item",
+    "card.updated.attachment.added": "added an attachment",
+    "card.updated.attachment.removed": "removed an attachment",
+    "card.updated.dueDate.added": "set the due date",
+    "card.updated.dueDate.updated": "updated the due date",
+    "card.updated.dueDate.removed": "removed the due date",
   } as const;
 
   if (!(type in ACTIVITY_TYPE_MAP)) return null;
@@ -143,103 +141,103 @@ const getActivityText = ({
 
   if (type === "card.updated.title" && toTitle) {
     return (
-      <Trans>
+      <>
         updated the title to <TextHighlight>{truncate(toTitle)}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
   if (type === "card.updated.list" && fromList && toList) {
     return (
-      <Trans>
+      <>
         moved the card from <TextHighlight>{truncate(fromList)}</TextHighlight>{" "}
         to
         <TextHighlight>{truncate(toList)}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
   if (type === "card.updated.label.added" && label) {
     return (
-      <Trans>
+      <>
         added label <TextHighlight>{truncate(label)}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
   if (type === "card.updated.label.removed" && label) {
     return (
-      <Trans>
+      <>
         removed label <TextHighlight>{truncate(label)}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
   if (type === "card.updated.checklist.added" && toTitle) {
     return (
-      <Trans>
+      <>
         added checklist <TextHighlight>{truncate(toTitle)}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
   if (type === "card.updated.checklist.renamed" && toTitle) {
     return (
-      <Trans>
+      <>
         renamed checklist <TextHighlight>{truncate(toTitle)}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
   if (type === "card.updated.checklist.deleted" && fromTitle) {
     return (
-      <Trans>
+      <>
         deleted checklist <TextHighlight>{truncate(fromTitle)}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
   if (type === "card.updated.checklist.item.added" && toTitle) {
     return (
-      <Trans>
+      <>
         added checklist item <TextHighlight>{truncate(toTitle)}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
   if (type === "card.updated.checklist.item.updated" && toTitle) {
     return (
-      <Trans>
+      <>
         renamed checklist item to{" "}
         <TextHighlight>{truncate(toTitle)}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
   if (type === "card.updated.checklist.item.completed" && toTitle) {
     return (
-      <Trans>
+      <>
         completed checklist item{" "}
         <TextHighlight>{truncate(toTitle)}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
   if (type === "card.updated.checklist.item.uncompleted" && toTitle) {
     return (
-      <Trans>
+      <>
         marked checklist item <TextHighlight>{truncate(toTitle)}</TextHighlight>{" "}
         as incomplete
-      </Trans>
+      </>
     );
   }
 
   if (type === "card.updated.checklist.item.deleted" && fromTitle) {
     return (
-      <Trans>
+      <>
         deleted checklist item{" "}
         <TextHighlight>{truncate(fromTitle)}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
@@ -247,9 +245,9 @@ const getActivityText = ({
     const filename = attachmentName ?? toTitle;
     if (!filename) return baseText;
     return (
-      <Trans>
+      <>
         added an attachment <TextHighlight>{truncate(filename)}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
@@ -257,10 +255,10 @@ const getActivityText = ({
     const filename = attachmentName ?? fromTitle;
     if (!filename) return baseText;
     return (
-      <Trans>
+      <>
         removed an attachment{" "}
         <TextHighlight>{truncate(filename)}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
@@ -272,9 +270,9 @@ const getActivityText = ({
       { locale: dateLocale },
     );
     return (
-      <Trans>
+      <>
         changed the due date to <TextHighlight>{formattedDate}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
@@ -286,14 +284,14 @@ const getActivityText = ({
       { locale: dateLocale },
     );
     return (
-      <Trans>
+      <>
         changed the due date to <TextHighlight>{formattedDate}</TextHighlight>
-      </Trans>
+      </>
     );
   }
 
   if (type === "card.updated.dueDate.removed") {
-    return <Trans>removed the due date</Trans>;
+    return <>removed the due date</>;
   }
 
   return baseText;
@@ -349,7 +347,7 @@ const ActivityList = ({
   isAdmin?: boolean;
   isViewOnly?: boolean;
 }) => {
-  const { dateLocale } = useLocalisation();
+  const dateLocale = enGB;
   const { data: currentUser } = api.user.getUser.useQuery();
   const utils = api.useUtils();
   const [allActivities, setAllActivities] = useState<
@@ -546,7 +544,7 @@ const ActivityList = ({
             disabled={isFetching}
             className="text-sm font-medium text-light-900 hover:text-light-1000 disabled:opacity-50 dark:text-dark-800 dark:hover:text-dark-1000"
           >
-            {isFetching ? t`Loading...` : t`Load more activities`}
+            {isFetching ? "Loading..." : "Load more activities"}
           </button>
         </div>
       )}

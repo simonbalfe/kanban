@@ -1,4 +1,3 @@
-import { t } from "@lingui/core/macro";
 import { HiOutlinePlusSmall } from "react-icons/hi2";
 
 import Button from "~/components/Button";
@@ -19,25 +18,25 @@ export default function BoardsPage({ isTemplate }: { isTemplate?: boolean }) {
       type: "PRESS",
       stroke: { key: "C" },
       action: () => isAdminOrMember && openModal("NEW_BOARD"),
-      description: t`Create new ${isTemplate ? "template" : "board"}`,
+      description: `Create new ${isTemplate ? "template" : "board"}`,
       group: "ACTIONS",
     });
 
   return (
     <>
       <PageHead
-        title={t`${isTemplate ? "Templates" : "Boards"}`}
+        title={isTemplate ? "Templates" : "Boards"}
       />
       <div className="m-auto h-full max-w-[1100px] p-6 px-5 md:px-28 md:py-12">
         <div className="relative z-10 mb-8 flex w-full items-center justify-between">
           <h1 className="font-bold tracking-tight text-neutral-900 dark:text-dark-1000 sm:text-[1.2rem]">
-            {t`${isTemplate ? "Templates" : "Boards"}`}
+            {isTemplate ? "Templates" : "Boards"}
           </h1>
           <div className="flex gap-2">
 <Tooltip
               content={
                 !isAdminOrMember
-                  ? t`You don't have permission`
+                  ? "You don't have permission"
                   : createModalShortcutTooltipContent
               }
             >
@@ -52,7 +51,7 @@ export default function BoardsPage({ isTemplate }: { isTemplate?: boolean }) {
                   <HiOutlinePlusSmall aria-hidden="true" className="h-4 w-4" />
                 }
               >
-                {t`New`}
+                {"New"}
               </Button>
             </Tooltip>
           </div>
