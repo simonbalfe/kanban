@@ -21,7 +21,6 @@ import Card from "~/views/board/components/Card";
 import Filters from "~/views/board/components/Filters";
 import { CardModal } from "./CardModal";
 
-const IS_CLOUD = env("NEXT_PUBLIC_KAN_ENV") === "cloud";
 const HIDE_POWERED_BY =
   env("NEXT_PUBLIC_WHITE_LABEL_HIDE_POWERED_BY") === "true";
 
@@ -245,16 +244,7 @@ export default function PublicBoardView() {
             <CopyBoardLink />
           </div>
 
-          {IS_CLOUD && (
-            <Link
-              className="text-lg font-bold tracking-tight text-neutral-900 dark:text-dark-1000"
-              href="/"
-            >
-              kan.bn
-            </Link>
-          )}
-
-          {!IS_CLOUD && !HIDE_POWERED_BY && (
+          {!HIDE_POWERED_BY && (
             <a
               href="https://kan.bn"
               target="_blank"

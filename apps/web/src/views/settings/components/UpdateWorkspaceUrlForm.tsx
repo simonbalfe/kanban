@@ -112,11 +112,7 @@ const UpdateWorkspaceUrlForm = ({
               ? t`This workspace username has already been taken`
               : undefined)
           }
-          prefix={
-            env("NEXT_PUBLIC_KAN_ENV") === "cloud"
-              ? "kan.bn/"
-              : `${env("NEXT_PUBLIC_BASE_URL")}/`
-          }
+          prefix={`${env("NEXT_PUBLIC_BASE_URL")}/`}
           iconRight={
             isWorkspaceSlugAvailable?.isAvailable ? (
               <HiCheck className="h-4 w-4 dark:text-dark-1000" />

@@ -6,10 +6,7 @@ import { HiLink } from "react-icons/hi";
 import { Tooltip } from "~/components/Tooltip";
 import { usePopup } from "~/providers/popup";
 
-const displayBaseUrl =
-  env("NEXT_PUBLIC_KAN_ENV") === "cloud"
-    ? "kan.bn"
-    : env("NEXT_PUBLIC_BASE_URL");
+const displayBaseUrl = env("NEXT_PUBLIC_BASE_URL");
 
 const linkBaseUrl = env("NEXT_PUBLIC_BASE_URL");
 

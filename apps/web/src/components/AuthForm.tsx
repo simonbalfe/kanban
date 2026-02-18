@@ -32,7 +32,6 @@ const EmailSchema = z.object({
 });
 
 export function Auth({ setIsMagicLinkSent, isSignUp }: AuthProps) {
-  const [isCloudEnv, setIsCloudEnv] = useState(false);
   const [isGoogleLoginPending, setIsGoogleLoginPending] = useState(false);
   const [isCredentialsEnabled, setIsCredentialsEnabled] = useState(false);
   const [isEmailSendingEnabled, setIsEmailSendingEnabled] = useState(false);
@@ -49,8 +48,6 @@ export function Auth({ setIsMagicLinkSent, isSignUp }: AuthProps) {
       env("NEXT_PUBLIC_ALLOW_CREDENTIALS")?.toLowerCase() === "true";
     const emailSendingEnabled =
       env("NEXT_PUBLIC_DISABLE_EMAIL")?.toLowerCase() !== "true";
-    const isCloudEnv = env("NEXT_PUBLIC_KAN_ENV") === "cloud";
-    setIsCloudEnv(isCloudEnv);
     setIsEmailSendingEnabled(emailSendingEnabled);
     setIsCredentialsEnabled(credentialsAllowed);
   }, []);
@@ -109,7 +106,7 @@ export function Auth({ setIsMagicLinkSent, isSignUp }: AuthProps) {
         );
       }
     } else {
-      if (isCloudEnv || (isEmailSendingEnabled && !isSignUp)) {
+      if (isEmailSendingEnabled && !isSignUp) {
         await authClient.signIn.magicLink(
           {
             email,
@@ -158,8 +155,8 @@ export function Auth({ setIsMagicLinkSent, isSignUp }: AuthProps) {
   const password = watch("password");
 
   const isMagicLinkAvailable = useMemo(() => {
-    return isCloudEnv || (isEmailSendingEnabled && !isSignUp);
-  }, [isCloudEnv, isEmailSendingEnabled, isSignUp]);
+    return isEmailSendingEnabled && !isSignUp;
+  }, [isEmailSendingEnabled, isSignUp]);
 
   const isMagicLinkMode = useMemo(() => {
     if (!isEmailSendingEnabled || isSignUp) return false;
