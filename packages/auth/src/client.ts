@@ -1,7 +1,6 @@
 import type { BetterAuthClientPlugin } from "better-auth";
 import type { BetterFetchOption } from "better-auth/react";
 import {
-  apiKeyClient,
   genericOAuthClient,
   magicLinkClient,
 } from "better-auth/client/plugins";
@@ -28,7 +27,6 @@ const socialProvidersPluginClient = {
 export const authClient = createAuthClient({
   plugins: [
     magicLinkClient(),
-    apiKeyClient(),
     genericOAuthClient(),
     socialProvidersPluginClient,
   ],

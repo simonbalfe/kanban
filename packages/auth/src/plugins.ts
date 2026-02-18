@@ -1,4 +1,4 @@
-import { apiKey, genericOAuth } from "better-auth/plugins";
+import { genericOAuth } from "better-auth/plugins";
 import { magicLink } from "better-auth/plugins/magic-link";
 
 import type { dbClient } from "@kan/db/client";
@@ -12,14 +12,6 @@ import { socialProvidersPlugin } from "./providers";
 export function createPlugins(db: dbClient) {
   return [
     socialProvidersPlugin(),
-    apiKey({
-      enableSessionForAPIKeys: true,
-      rateLimit: {
-        enabled: true,
-        timeWindow: 1000 * 60, // 1 minute
-        maxRequests: 100, // 100 requests per minute
-      },
-    }),
     magicLink({
       expiresIn: 60 * 60 * 24 * 7, // 7 days
       sendMagicLink: async ({ email, url }) => {

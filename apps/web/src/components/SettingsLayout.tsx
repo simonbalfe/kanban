@@ -10,7 +10,6 @@ import { t } from "@lingui/core/macro";
 import { useEffect, useState } from "react";
 import {
   HiChevronDown,
-  HiOutlineCodeBracketSquare,
   HiOutlineRectangleGroup,
   HiOutlineShieldCheck,
   HiOutlineUser,
@@ -49,12 +48,6 @@ export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
       icon: <HiOutlineShieldCheck />,
       label: t`Permissions`,
       condition: isAdmin,
-    },
-    {
-      key: "api",
-      icon: <HiOutlineCodeBracketSquare />,
-      label: t`API`,
-      condition: true,
     },
   ];
 
