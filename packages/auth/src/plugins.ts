@@ -1,4 +1,3 @@
-import { genericOAuth } from "better-auth/plugins";
 import { magicLink } from "better-auth/plugins/magic-link";
 
 import type { dbClient } from "@kan/db/client";
@@ -7,13 +6,10 @@ import * as userRepo from "@kan/db/repository/user.repo";
 import * as workspaceRepo from "@kan/db/repository/workspace.repo";
 import { sendEmail } from "@kan/email";
 
-import { socialProvidersPlugin } from "./providers";
-
 export function createPlugins(db: dbClient) {
   return [
-    socialProvidersPlugin(),
     magicLink({
-      expiresIn: 60 * 60 * 24 * 7, // 7 days
+      expiresIn: 60 * 60 * 24 * 7,
       sendMagicLink: async ({ email, url }) => {
         const decodedUrl = decodeURIComponent(url);
         console.log("Sending magic link to:", email, "URL:", url);
@@ -81,55 +77,5 @@ export function createPlugins(db: dbClient) {
         }
       },
     }),
-    // Generic OIDC provider
-    ...(process.env.OIDC_CLIENT_ID &&
-    process.env.OIDC_CLIENT_SECRET &&
-    process.env.OIDC_DISCOVERY_URL
-      ? [
-          genericOAuth({
-            config: [
-              {
-                providerId: "oidc",
-                clientId: process.env.OIDC_CLIENT_ID,
-                clientSecret: process.env.OIDC_CLIENT_SECRET,
-                discoveryUrl: process.env.OIDC_DISCOVERY_URL,
-                scopes: ["openid", "email", "profile"],
-                pkce: true,
-                mapProfileToUser: (profile: {
-                  name?: string;
-                  display_name?: string;
-                  preferred_username?: string;
-                  given_name?: string;
-                  family_name?: string;
-                  email?: string;
-                  email_verified?: boolean;
-                  sub?: string;
-                  picture?: string;
-                  avatar?: string;
-                }) => {
-                  console.log("OIDC profile:", profile);
-
-                  const name =
-                    profile.name ??
-                    profile.display_name ??
-                    profile.preferred_username ??
-                    (profile.given_name && profile.family_name
-                      ? `${profile.given_name} ${profile.family_name}`.trim()
-                      : (profile.given_name ?? profile.family_name)) ??
-                    profile.sub ??
-                    "";
-
-                  return {
-                    email: profile.email,
-                    name: name,
-                    emailVerified: profile.email_verified ?? false,
-                    image: profile.picture ?? profile.avatar ?? null,
-                  };
-                },
-              },
-            ],
-          }),
-        ]
-      : []),
   ];
 }

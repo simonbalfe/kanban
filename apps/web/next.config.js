@@ -100,16 +100,4 @@ const config = {
   },
 };
 
-// Only allow external images when OIDC is configured (for OIDC provider avatars)
-if (
-  env("OIDC_CLIENT_ID") &&
-  env("OIDC_CLIENT_SECRET") &&
-  env("OIDC_DISCOVERY_URL")
-) {
-  config.images?.remotePatterns?.push({
-    protocol: "https",
-    hostname: "**",
-  });
-}
-
 export default config;
