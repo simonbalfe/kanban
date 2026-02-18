@@ -23,7 +23,6 @@ import { api } from "~/utils/api";
 import { getAvatarUrl } from "~/utils/helpers";
 import { DeleteMemberConfirmation } from "./components/DeleteMemberConfirmation";
 import { InviteMemberForm } from "./components/InviteMemberForm";
-import { EditMemberPermissionsModal } from "./components/EditMemberPermissionsModal";
 
 export default function MembersPage() {
   const { modalContentType, openModal, isOpen } = useModal();
@@ -37,7 +36,7 @@ export default function MembersPage() {
 
   const { data: session } = authClient.useSession();
 
-  const { canEditMember } = usePermissions();
+  const { isAdmin } = usePermissions();
 
   const utils = api.useUtils();
 
@@ -170,7 +169,7 @@ export default function MembersPage() {
                     {memberRole &&
                       memberRole.charAt(0).toUpperCase() +
                         memberRole.slice(1)}
-                    {canEditMember && session?.user.id !== memberId && (
+                    {isAdmin && session?.user.id !== memberId && (
                       <HiChevronDown className="h-3 w-3" />
                     )}
                   </span>
@@ -208,15 +207,6 @@ export default function MembersPage() {
               {session?.user.id !== memberId && (
                 <Dropdown
                   items={[
-                    {
-                      label: t`Edit permissions`,
-                      action: () =>
-                        openModal(
-                          "EDIT_MEMBER_PERMISSIONS",
-                          memberPublicId,
-                          memberEmail ?? "",
-                        ),
-                    },
                     {
                       label: t`Remove member`,
                       action: () =>
@@ -347,13 +337,6 @@ export default function MembersPage() {
             <DeleteMemberConfirmation />
           </Modal>
 
-          <Modal
-            modalSize="sm"
-            isVisible={isOpen && modalContentType === "EDIT_MEMBER_PERMISSIONS"}
-            centered
-          >
-            <EditMemberPermissionsModal />
-          </Modal>
         </>
       </div>
     </>

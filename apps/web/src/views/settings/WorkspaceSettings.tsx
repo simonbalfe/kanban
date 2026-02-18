@@ -18,7 +18,7 @@ import UpdateWorkspaceUrlForm from "./components/UpdateWorkspaceUrlForm";
 export default function WorkspaceSettings() {
   const { modalContentType, openModal, isOpen } = useModal();
   const { workspace } = useWorkspace();
-  const { canEditWorkspace } = usePermissions();
+  const { isAdmin } = usePermissions();
 
   const { data: workspaceData } = api.workspace.byId.useQuery(
     { workspacePublicId: workspace.publicId },
@@ -36,7 +36,7 @@ export default function WorkspaceSettings() {
         <UpdateWorkspaceNameForm
           workspacePublicId={workspace.publicId}
           workspaceName={workspace.name}
-          disabled={!canEditWorkspace}
+          disabled={!isAdmin}
         />
 
         <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
@@ -45,7 +45,7 @@ export default function WorkspaceSettings() {
         <UpdateWorkspaceUrlForm
           workspacePublicId={workspace.publicId}
           workspaceUrl={workspace.slug ?? ""}
-          disabled={!canEditWorkspace}
+          disabled={!isAdmin}
         />
 
         <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
@@ -54,7 +54,7 @@ export default function WorkspaceSettings() {
         <UpdateWorkspaceDescriptionForm
           workspacePublicId={workspace.publicId}
           workspaceDescription={workspace.description ?? ""}
-          disabled={!canEditWorkspace}
+          disabled={!isAdmin}
         />
 
         <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
@@ -65,7 +65,7 @@ export default function WorkspaceSettings() {
           showEmailsToMembers={Boolean(
             workspaceData?.showEmailsToMembers ?? false,
           )}
-          disabled={!canEditWorkspace}
+          disabled={!isAdmin}
         />
 
         <div className="border-t border-light-300 dark:border-dark-300">

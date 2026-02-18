@@ -44,14 +44,14 @@ export default function List({
   setSelectedPublicListId,
 }: ListProps) {
   const { openModal } = useModal();
-  const { canCreateCard, canEditList, canDeleteList } = usePermissions();
+  const { isAdminOrMember } = usePermissions();
   const { data: session } = authClient.useSession();
   const isCreator = list.createdBy && session?.user.id === list.createdBy;
-  const canEdit = canEditList || isCreator;
-  const canDrag = canEditList || isCreator;
+  const canEdit = isAdminOrMember || isCreator;
+  const canDrag = isAdminOrMember || isCreator;
 
   const openNewCardForm = (publicListId: PublicListId) => {
-    if (!canCreateCard) return;
+    if (!isAdminOrMember) return;
     openModal("NEW_CARD");
     setSelectedPublicListId(publicListId);
   };
@@ -114,13 +114,13 @@ export default function List({
             <div className="flex items-center">
               <Tooltip
                 content={
-                  !canCreateCard ? t`You don't have permission` : undefined
+                  !isAdminOrMember ? t`You don't have permission` : undefined
                 }
               >
                 <button
                   className="mx-1 inline-flex h-fit items-center rounded-md p-1 px-1 text-sm font-semibold text-dark-50 hover:bg-light-400 disabled:opacity-60 disabled:cursor-not-allowed dark:hover:bg-dark-200"
                   onClick={() => openNewCardForm(list.publicId)}
-                  disabled={!canCreateCard}
+                  disabled={!isAdminOrMember}
                 >
                   <HiOutlinePlusSmall
                     className="h-5 w-5 text-dark-900"
@@ -130,7 +130,7 @@ export default function List({
               </Tooltip>
               {(() => {
                 const dropdownItems = [
-                  ...(canCreateCard
+                  ...(isAdminOrMember
                     ? [
                         {
                           label: t`Add a card`,
@@ -141,7 +141,7 @@ export default function List({
                         },
                       ]
                     : []),
-                  ...(canDeleteList || isCreator
+                  ...(isAdminOrMember || isCreator
                     ? [
                         {
                           label: t`Delete list`,

@@ -13,7 +13,7 @@ import { api } from "~/utils/api";
 export function BoardsList({ isTemplate }: { isTemplate?: boolean }) {
   const { workspace } = useWorkspace();
   const { openModal } = useModal();
-  const { canCreateBoard } = usePermissions();
+  const { isAdminOrMember } = usePermissions();
 
   const utils = api.useUtils();
   const updateBoard = api.board.update.useMutation({
@@ -67,14 +67,14 @@ export function BoardsList({ isTemplate }: { isTemplate?: boolean }) {
         </div>
         <Tooltip
           content={
-            !canCreateBoard ? t`You don't have permission` : undefined
+            !isAdminOrMember ? t`You don't have permission` : undefined
           }
         >
           <Button
             onClick={() => {
-              if (canCreateBoard) openModal("NEW_BOARD");
+              if (isAdminOrMember) openModal("NEW_BOARD");
             }}
-            disabled={!canCreateBoard}
+            disabled={!isAdminOrMember}
           >
             {t`Create new ${isTemplate ? "template" : "board"}`}
           </Button>

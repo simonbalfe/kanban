@@ -2,294 +2,133 @@ import { TRPCError } from "@trpc/server";
 
 import type { dbClient } from "@kan/db/client";
 import * as memberRepo from "@kan/db/repository/member.repo";
-import * as permissionRepo from "@kan/db/repository/permission.repo";
-import type { Permission, Role } from "@kan/shared";
-import { canManageRole, getDefaultPermissions } from "@kan/shared";
+import { and, eq, isNull } from "drizzle-orm";
+import { workspaceMembers } from "@kan/db/schema";
 
-/**
- * Get effective permissions for a member by combining role permissions with overrides
- */
-export async function getMemberEffectivePermissions(
-  db: dbClient,
-  workspaceMemberId: number,
-  roleId: number | null,
-  roleName: string,
-): Promise<Permission[]> {
-  let roleDefaults: Set<Permission>;
+type Role = "admin" | "member" | "guest";
 
-  // Get role permissions from database or fallback to code defaults
-  if (roleId) {
-    const dbPermissions = await permissionRepo.getPermissionsByRoleId(
-      db,
-      roleId,
-    );
-    roleDefaults = new Set<Permission>(dbPermissions);
-  } else {
-    const codeDefaults = getDefaultPermissions(roleName as Role);
-    roleDefaults = new Set<Permission>([...codeDefaults]);
-  }
-
-  // Get and apply custom overrides
-  const overrides = await permissionRepo.getMemberPermissionOverrides(
-    db,
-    workspaceMemberId,
-  );
-
-  for (const override of overrides) {
-    if (override.granted) {
-      roleDefaults.add(override.permission as Permission);
-    } else {
-      roleDefaults.delete(override.permission as Permission);
-    }
-  }
-
-  return Array.from(roleDefaults);
-}
-
-/**
- * Check if a member has a specific permission
- */
-export async function memberHasPermission(
-  db: dbClient,
-  workspaceMemberId: number,
-  roleId: number | null,
-  roleName: string,
-  permission: Permission,
-): Promise<boolean> {
-  let hasRoleDefault: boolean;
-
-  // Check role permission from database or fallback to code defaults
-  if (roleId) {
-    const dbPermissions = await permissionRepo.getPermissionsByRoleId(
-      db,
-      roleId,
-    );
-    hasRoleDefault = dbPermissions.includes(permission);
-  } else {
-    const codeDefaults = getDefaultPermissions(roleName as Role);
-    hasRoleDefault = codeDefaults.includes(permission);
-  }
-
-  // Check for override
-  const override = await permissionRepo.getMemberPermissionOverride(
-    db,
-    workspaceMemberId,
-    permission,
-  );
-
-  // Override takes precedence
-  if (override) {
-    return override.granted;
-  }
-
-  return hasRoleDefault;
-}
-
-/**
- * Check if user has a specific permission in a workspace
- */
-export async function hasPermission(
+async function getMemberRole(
   db: dbClient,
   userId: string,
   workspaceId: number,
-  permission: Permission,
-): Promise<boolean> {
-  const member = await permissionRepo.getMemberWithRole(db, userId, workspaceId);
+): Promise<{ id: number; role: Role } | undefined> {
+  const [member] = await db
+    .select({
+      id: workspaceMembers.id,
+      role: workspaceMembers.role,
+    })
+    .from(workspaceMembers)
+    .where(
+      and(
+        eq(workspaceMembers.userId, userId),
+        eq(workspaceMembers.workspaceId, workspaceId),
+        isNull(workspaceMembers.deletedAt),
+      ),
+    )
+    .limit(1);
 
-  if (!member) {
-    return false;
-  }
-
-  return memberHasPermission(
-    db,
-    member.id,
-    member.roleId,
-    member.role,
-    permission,
-  );
+  return member as { id: number; role: Role } | undefined;
 }
 
-/**
- * Get all permissions for a user in a workspace
- */
-export async function getUserPermissions(
+export async function assertMember(
   db: dbClient,
   userId: string,
   workspaceId: number,
-): Promise<{
-  permissions: Permission[];
-  role: string;
-  roleId: number | null;
-} | null> {
-  const member = await permissionRepo.getMemberWithRole(db, userId, workspaceId);
-
-  if (!member) {
-    return null;
-  }
-
-  const permissions = await getMemberEffectivePermissions(
-    db,
-    member.id,
-    member.roleId,
-    member.role,
-  );
-
-  return {
-    permissions,
-    role: member.role,
-    roleId: member.roleId,
-  };
-}
-
-/**
- * Assert user has permission - throws FORBIDDEN if not
- */
-export async function assertPermission(
-  db: dbClient,
-  userId: string,
-  workspaceId: number,
-  permission: Permission,
 ): Promise<void> {
-  const hasIt = await hasPermission(db, userId, workspaceId, permission);
+  const member = await getMemberRole(db, userId, workspaceId);
 
-  if (!hasIt) {
+  if (!member) {
     throw new TRPCError({
-      message: `You do not have permission to perform this action (${permission})`,
+      message: "You are not a member of this workspace",
       code: "FORBIDDEN",
     });
   }
 }
 
-/**
- * Assert user can assign a specific role (based on hierarchy)
- */
-export async function assertCanManageRole(
+export async function assertAdmin(
   db: dbClient,
-  managerUserId: string,
+  userId: string,
   workspaceId: number,
-  targetRoleName: string,
 ): Promise<void> {
-  const managerMember = await permissionRepo.getMemberWithRole(
-    db,
-    managerUserId,
-    workspaceId,
-  );
+  const member = await getMemberRole(db, userId, workspaceId);
 
-  if (!managerMember) {
+  if (!member || member.role !== "admin") {
+    throw new TRPCError({
+      message: "You must be an admin to perform this action",
+      code: "FORBIDDEN",
+    });
+  }
+}
+
+export async function assertCanDelete(
+  db: dbClient,
+  userId: string,
+  workspaceId: number,
+  createdBy: string | null,
+): Promise<void> {
+  const member = await getMemberRole(db, userId, workspaceId);
+
+  if (!member) {
     throw new TRPCError({
       message: "You are not a member of this workspace",
       code: "FORBIDDEN",
     });
   }
 
-  const managerRole = managerMember.role;
+  if (member.role === "admin") return;
+  if (createdBy && createdBy === userId) return;
 
-  if (!canManageRole(managerRole, targetRoleName as Role)) {
+  throw new TRPCError({
+    message: "You do not have permission to delete this",
+    code: "FORBIDDEN",
+  });
+}
+
+export async function assertCanEdit(
+  db: dbClient,
+  userId: string,
+  workspaceId: number,
+  createdBy: string | null,
+): Promise<void> {
+  const member = await getMemberRole(db, userId, workspaceId);
+
+  if (!member) {
     throw new TRPCError({
-      message: `You cannot assign the "${targetRoleName}" role`,
+      message: "You are not a member of this workspace",
       code: "FORBIDDEN",
     });
   }
+
+  if (member.role === "admin" || member.role === "member") return;
+  if (createdBy && createdBy === userId) return;
+
+  throw new TRPCError({
+    message: "You do not have permission to edit this",
+    code: "FORBIDDEN",
+  });
 }
 
-/**
- * Assert user can manage another member based on role hierarchy
- */
 export async function assertCanManageMember(
   db: dbClient,
   managerUserId: string,
   workspaceId: number,
   targetMemberId: number,
 ): Promise<void> {
-  const managerMember = await permissionRepo.getMemberWithRole(
-    db,
-    managerUserId,
-    workspaceId,
-  );
+  const manager = await getMemberRole(db, managerUserId, workspaceId);
 
-  if (!managerMember) {
+  if (!manager || manager.role !== "admin") {
     throw new TRPCError({
-      message: "You are not a member of this workspace",
+      message: "You must be an admin to manage members",
       code: "FORBIDDEN",
     });
   }
 
-  const targetMember = await memberRepo.getById(db, targetMemberId);
+  const target = await memberRepo.getById(db, targetMemberId);
 
-  if (!targetMember) {
+  if (!target) {
     throw new TRPCError({
       message: "Target member not found",
       code: "NOT_FOUND",
     });
   }
-
-  const managerRole = managerMember.role;
-  const targetRole = targetMember.role;
-
-  if (!canManageRole(managerRole, targetRole)) {
-    throw new TRPCError({
-      message: "You cannot manage this member due to role hierarchy",
-      code: "FORBIDDEN",
-    });
-  }
-}
-
-/**
- * Assert user can delete an entity - either has the delete permission OR is the creator
- */
-export async function assertCanDelete(
-  db: dbClient,
-  userId: string,
-  workspaceId: number,
-  permission: Permission,
-  createdBy: string | null,
-): Promise<void> {
-  // Check if user has the general delete permission
-  const hasDeletePermission = await hasPermission(db, userId, workspaceId, permission);
-
-  // If user has permission, allow deletion
-  if (hasDeletePermission) {
-    return;
-  }
-
-  // If user doesn't have permission, check if they are the creator
-  if (createdBy && createdBy === userId) {
-    return;
-  }
-
-  // Neither condition met - deny deletion
-  throw new TRPCError({
-    message: `You do not have permission to delete this entity (${permission})`,
-    code: "FORBIDDEN",
-  });
-}
-
-/**
- * Assert user can edit an entity - either has the edit permission OR is the creator
- */
-export async function assertCanEdit(
-  db: dbClient,
-  userId: string,
-  workspaceId: number,
-  permission: Permission,
-  createdBy: string | null,
-): Promise<void> {
-  // Check if user has the general edit permission
-  const hasEditPermission = await hasPermission(db, userId, workspaceId, permission);
-
-  // If user has permission, allow editing
-  if (hasEditPermission) {
-    return;
-  }
-
-  // If user doesn't have permission, check if they are the creator
-  if (createdBy && createdBy === userId) {
-    return;
-  }
-
-  // Neither condition met - deny editing
-  throw new TRPCError({
-    message: `You do not have permission to edit this entity (${permission})`,
-    code: "FORBIDDEN",
-  });
 }

@@ -12,7 +12,6 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { boards } from "./boards";
-import { workspaceMemberPermissions, workspaceRoles } from "./permissions";
 import { users } from "./users";
 
 export const memberRoles = ["admin", "member", "guest"] as const;
@@ -59,7 +58,6 @@ export const workspaceRelations = relations(workspaces, ({ one, many }) => ({
   }),
   members: many(workspaceMembers),
   boards: many(boards),
-  roles: many(workspaceRoles),
 }));
 
 export const workspaceMembers = pgTable("workspace_members", {
@@ -79,10 +77,6 @@ export const workspaceMembers = pgTable("workspace_members", {
   }),
   // Legacy role enum
   role: memberRoleEnum("role").notNull(),
-  roleId: bigint("roleId", { mode: "number" }).references(
-    () => workspaceRoles.id,
-    { onDelete: "restrict" },
-  ),
   status: memberStatusEnum("status").default("invited").notNull(),
 }).enableRLS();
 
@@ -98,23 +92,6 @@ export const workspaceMembersRelations = relations(
       fields: [workspaceMembers.workspaceId],
       references: [workspaces.id],
       relationName: "workspaceMembersWorkspace",
-    }),
-    workspaceRole: one(workspaceRoles, {
-      fields: [workspaceMembers.roleId],
-      references: [workspaceRoles.id],
-      relationName: "workspaceMemberRole",
-    }),
-    permissions: many(workspaceMemberPermissions),
-  }),
-);
-
-export const workspaceMemberPermissionsRelations = relations(
-  workspaceMemberPermissions,
-  ({ one }) => ({
-    member: one(workspaceMembers, {
-      fields: [workspaceMemberPermissions.workspaceMemberId],
-      references: [workspaceMembers.id],
-      relationName: "memberPermissions",
     }),
   }),
 );

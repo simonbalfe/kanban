@@ -11,7 +11,6 @@ import { useEffect, useState } from "react";
 import {
   HiChevronDown,
   HiOutlineRectangleGroup,
-  HiOutlineShieldCheck,
   HiOutlineUser,
 } from "react-icons/hi2";
 import { usePermissions } from "~/hooks/usePermissions";
@@ -25,10 +24,8 @@ interface SettingsLayoutProps {
 export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
   const router = useRouter();
   const { workspace } = useWorkspace();
-  const { canViewWorkspace } = usePermissions();
+  const { isAdminOrMember } = usePermissions();
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
-
-  const isAdmin = workspace.role === "admin";
 
   const settingsTabs = [
     {
@@ -41,13 +38,7 @@ export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
       key: "workspace",
       icon: <HiOutlineRectangleGroup />,
       label: t`Workspace`,
-      condition: canViewWorkspace,
-    },
-    {
-      key: "permissions",
-      icon: <HiOutlineShieldCheck />,
-      label: t`Permissions`,
-      condition: isAdmin,
+      condition: isAdminOrMember,
     },
   ];
 

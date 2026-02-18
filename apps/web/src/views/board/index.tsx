@@ -63,14 +63,13 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     direction: "horizontal",
   });
 
-  const { canCreateList, canEditList, canEditCard, canEditBoard } =
-    usePermissions();
+  const { isAdminOrMember } = usePermissions();
 
   const { tooltipContent: createListShortcutTooltipContent } =
     useKeyboardShortcut({
       type: "PRESS",
       stroke: { key: "C" },
-      action: () => boardId && canCreateList && openNewListForm(boardId),
+      action: () => boardId && isAdminOrMember && openNewListForm(boardId),
       description: t`Create new list`,
       group: "ACTIONS",
     });
@@ -263,14 +262,14 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
       return;
     }
 
-    if (type === "LIST" && canEditList) {
+    if (type === "LIST" && isAdminOrMember) {
       updateListMutation.mutate({
         listPublicId: draggableId,
         index: destination.index,
       });
     }
 
-    if (type === "CARD" && canEditCard) {
+    if (type === "CARD" && isAdminOrMember) {
       updateCardMutation.mutate({
         cardPublicId: draggableId,
 
@@ -409,8 +408,8 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                 id="name"
                 type="text"
                 {...register("name")}
-                onBlur={canEditBoard ? handleSubmit(onSubmit) : undefined}
-                readOnly={!canEditBoard}
+                onBlur={isAdminOrMember ? handleSubmit(onSubmit) : undefined}
+                readOnly={!isAdminOrMember}
                 className="block border-0 bg-transparent p-0 py-0 font-bold leading-[2.3rem] tracking-tight text-neutral-900 focus:ring-0 focus-visible:outline-none disabled:cursor-not-allowed dark:text-dark-1000 sm:text-[1.2rem]"
               />
             </form>
@@ -438,7 +437,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                   boardSlug={boardData?.slug ?? ""}
                   boardPublicId={boardId ?? ""}
                   visibility={boardData?.visibility ?? "private"}
-                  canEdit={canEditBoard}
+                  canEdit={isAdminOrMember}
                 />
                 <VisibilityButton
                   visibility={boardData?.visibility ?? "private"}
@@ -463,7 +462,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
             )}
             <Tooltip
               content={
-                !canCreateList
+                !isAdminOrMember
                   ? t`You don't have permission`
                   : createListShortcutTooltipContent
               }
@@ -476,9 +475,9 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                   />
                 }
                 onClick={() => {
-                  if (boardId && canCreateList) openNewListForm(boardId);
+                  if (boardId && isAdminOrMember) openNewListForm(boardId);
                 }}
-                disabled={!boardData || !canCreateList}
+                disabled={!boardData || !isAdminOrMember}
               >
                 {t`New list`}
               </Button>
@@ -515,21 +514,21 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                       {t`No lists`}
                     </p>
                     <p className="text-[14px] text-light-900 dark:text-dark-900">
-                      {canCreateList
+                      {isAdminOrMember
                         ? t`Get started by creating a new list`
                         : t`No lists have been created yet`}
                     </p>
                   </div>
                   <Tooltip
                     content={
-                      !canCreateList ? t`You don't have permission` : undefined
+                      !isAdminOrMember ? t`You don't have permission` : undefined
                     }
                   >
                     <Button
                       onClick={() => {
-                        if (boardId && canCreateList) openNewListForm(boardId);
+                        if (boardId && isAdminOrMember) openNewListForm(boardId);
                       }}
-                      disabled={!canCreateList}
+                      disabled={!isAdminOrMember}
                     >
                       {t`Create new list`}
                     </Button>
@@ -573,7 +572,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                                       key={card.publicId}
                                       draggableId={card.publicId}
                                       index={index}
-                                      isDragDisabled={!canEditCard}
+                                      isDragDisabled={!isAdminOrMember}
                                     >
                                       {(provided) => (
                                         <Link

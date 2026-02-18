@@ -28,7 +28,7 @@ export default function BoardDropdown({
   boardName?: string;
 }) {
   const { openModal } = useModal();
-  const { canEditBoard, canDeleteBoard, canCreateBoard } = usePermissions();
+  const { isAdminOrMember } = usePermissions();
   const { showPopup } = usePopup();
   const utils = api.useUtils();
 
@@ -67,7 +67,7 @@ export default function BoardDropdown({
   });
   
   const items = [
-    ...(isTemplate && canCreateBoard
+    ...(isTemplate && isAdminOrMember
       ? [
           {
             label: t`Make template`,
@@ -78,7 +78,7 @@ export default function BoardDropdown({
           },
         ]
       : []),
-    ...(!isTemplate && canEditBoard
+    ...(!isTemplate && isAdminOrMember
       ? [
           {
             label: t`Edit board URL`,
@@ -98,7 +98,7 @@ export default function BoardDropdown({
         <HiOutlineStar className="h-[16px] w-[16px] text-dark-900" />
       ),
     },
-    ...(canDeleteBoard
+    ...(isAdminOrMember
       ? [
           {
             label: isTemplate ? t`Delete template` : t`Delete board`,

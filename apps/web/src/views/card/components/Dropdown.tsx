@@ -26,7 +26,7 @@ export default function CardDropdown({
 }) {
   const { openModal } = useModal();
   const { showPopup } = usePopup();
-  const { canEditCard, canDeleteCard } = usePermissions();
+  const { isAdminOrMember } = usePermissions();
   const { data: session } = authClient.useSession();
   const isCreator = cardCreatedBy && session?.user.id === cardCreatedBy;
 
@@ -59,7 +59,7 @@ export default function CardDropdown({
       action: handleCopyCardLink,
       icon: <HiLink className="h-[16px] w-[16px] text-dark-900" />,
     },
-    ...(canEditCard
+    ...(isAdminOrMember
       ? [
           {
             label: t`Add checklist`,
@@ -70,7 +70,7 @@ export default function CardDropdown({
           },
         ]
       : []),
-    ...(canDeleteCard || isCreator
+    ...(isAdminOrMember || isCreator
       ? [
           {
             label: t`Delete card`,

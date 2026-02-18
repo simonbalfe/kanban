@@ -5,7 +5,7 @@ import * as workspaceRepo from "@kan/db/repository/workspace.repo";
 import { generateUID } from "@kan/shared/utils";
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
-import { assertPermission } from "../utils/permissions";
+import { assertAdmin, assertMember } from "../utils/permissions";
 import { generateAvatarUrl } from "@kan/shared/utils";
 
 export const workspaceRouter = createTRPCRouter({
@@ -73,7 +73,7 @@ export const workspaceRouter = createTRPCRouter({
           message: `Workspace not found`,
           code: "NOT_FOUND",
         });
-      await assertPermission(ctx.db, userId, result.id, "workspace:view");
+      await assertMember(ctx.db, userId, result.id);
 
       // Check if user is an admin
       const userMember = result.members.find(
@@ -184,7 +184,7 @@ export const workspaceRouter = createTRPCRouter({
           message: `Workspace not found`,
           code: "NOT_FOUND",
         });
-      await assertPermission(ctx.db, userId, result.id, "workspace:view");
+      await assertMember(ctx.db, userId, result.id);
 
       return result;
     }),
@@ -297,7 +297,7 @@ export const workspaceRouter = createTRPCRouter({
           message: `Workspace not found`,
           code: "NOT_FOUND",
         });
-      await assertPermission(ctx.db, userId, workspace.id, "workspace:edit");
+      await assertAdmin(ctx.db, userId, workspace.id);
 
       if (input.slug) {
         const isWorkspaceSlugAvailable =
@@ -362,7 +362,7 @@ export const workspaceRouter = createTRPCRouter({
           message: `Workspace not found`,
           code: "NOT_FOUND",
         });
-      await assertPermission(ctx.db, userId, workspace.id, "workspace:delete");
+      await assertAdmin(ctx.db, userId, workspace.id);
 
       const result = await workspaceRepo.hardDelete(
         ctx.db,
@@ -480,7 +480,7 @@ export const workspaceRouter = createTRPCRouter({
           message: `Workspace not found`,
           code: "NOT_FOUND",
         });
-      await assertPermission(ctx.db, userId, workspace.id, "workspace:view");
+      await assertMember(ctx.db, userId, workspace.id);
 
       const result = await workspaceRepo.searchBoardsAndCards(
         ctx.db,

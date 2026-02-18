@@ -16,7 +16,7 @@ import {
 } from "@kan/shared/utils";
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
-import { assertCanDelete, assertCanEdit, assertPermission } from "../utils/permissions";
+import { assertCanDelete, assertCanEdit, assertMember } from "../utils/permissions";
 
 export const boardRouter = createTRPCRouter({
   all: protectedProcedure
@@ -59,7 +59,7 @@ export const boardRouter = createTRPCRouter({
           code: "NOT_FOUND",
         });
 
-      await assertPermission(ctx.db, userId, workspace.id, "board:view");
+      await assertMember(ctx.db, userId, workspace.id);
 
       const result = boardRepo.getAllByWorkspaceId(
         ctx.db,
@@ -123,7 +123,7 @@ export const boardRouter = createTRPCRouter({
           code: "NOT_FOUND",
         });
 
-      await assertPermission(ctx.db, userId, board.workspaceId, "board:view");
+      await assertMember(ctx.db, userId, board.workspaceId);
 
       // Convert semantic string filters to date ranges expected by the repo
       const dueDateFilters = input.dueDateFilters
@@ -316,7 +316,7 @@ export const boardRouter = createTRPCRouter({
           code: "NOT_FOUND",
         });
 
-      await assertPermission(ctx.db, userId, workspace.id, "board:create");
+      await assertMember(ctx.db, userId, workspace.id);
 
       // If sourceBoardPublicId is provided, clone the source board
       if (input.sourceBoardPublicId) {
@@ -489,7 +489,6 @@ export const boardRouter = createTRPCRouter({
         ctx.db,
         userId,
         board.workspaceId,
-        "board:edit",
         board.createdBy ?? null,
       );
 
@@ -581,7 +580,6 @@ export const boardRouter = createTRPCRouter({
         ctx.db,
         userId,
         board.workspaceId,
-        "board:delete",
         board.createdBy ?? null,
       );
 

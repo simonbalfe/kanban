@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { Upload } from "@aws-sdk/lib-storage";
 
 import { createNextApiContext } from "@kan/api/trpc";
-import { assertPermission } from "@kan/api/utils/permissions";
+import { assertMember } from "@kan/api/utils/permissions";
 import { withRateLimit } from "@kan/api/utils/rateLimit";
 import * as cardRepo from "@kan/db/repository/card.repo";
 import * as cardActivityRepo from "@kan/db/repository/cardActivity.repo";
@@ -81,7 +81,7 @@ export default withRateLimit(
 
       // Check if user has permission to edit the card
       try {
-        await assertPermission(db, user.id, card.workspaceId, "card:edit");
+        await assertMember(db, user.id, card.workspaceId);
       } catch {
         return res.status(403).json({ error: "Permission denied" });
       }

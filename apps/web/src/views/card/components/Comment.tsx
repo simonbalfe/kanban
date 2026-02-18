@@ -49,7 +49,7 @@ const Comment = ({
   const utils = api.useUtils();
   const { showPopup } = usePopup();
   const { openModal } = useModal();
-  const { canEditComment, canDeleteComment } = usePermissions();
+  const { isAdminOrMember } = usePermissions();
   const { handleSubmit, setValue, watch } = useForm<FormValues>({
     defaultValues: {
       comment,
@@ -105,7 +105,7 @@ const Comment = ({
   };
 
   const dropdownItems = [
-    ...(isAuthor && canEditComment
+    ...(isAuthor && isAdminOrMember
       ? [
           {
             label: t`Edit comment`,
@@ -114,7 +114,7 @@ const Comment = ({
           },
         ]
       : []),
-    ...((isAuthor || canDeleteComment)
+    ...((isAuthor || isAdminOrMember)
       ? [
           {
             label: t`Delete comment`,

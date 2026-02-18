@@ -6,7 +6,7 @@ import * as cardRepo from "@kan/db/repository/card.repo";
 import * as labelRepo from "@kan/db/repository/label.repo";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { assertPermission } from "../utils/permissions";
+import { assertMember } from "../utils/permissions";
 
 const labelSchema = z.object({
   publicId: z.string(),
@@ -47,7 +47,7 @@ export const labelRouter = createTRPCRouter({
           message: `Label with public ID ${input.labelPublicId} not found`,
           code: "NOT_FOUND",
         });
-      await assertPermission(ctx.db, userId, label.workspaceId, "board:view");
+      await assertMember(ctx.db, userId, label.workspaceId);
 
       const result = await labelRepo.getByPublicId(ctx.db, input.labelPublicId);
 
@@ -101,7 +101,7 @@ export const labelRouter = createTRPCRouter({
           message: `Board with public ID ${input.boardPublicId} not found`,
           code: "NOT_FOUND",
         });
-      await assertPermission(ctx.db, userId, board.workspaceId, "board:edit");
+      await assertMember(ctx.db, userId, board.workspaceId);
 
       const result = await labelRepo.create(ctx.db, {
         name: input.name,
@@ -160,7 +160,7 @@ export const labelRouter = createTRPCRouter({
           message: `Label with public ID ${input.labelPublicId} not found`,
           code: "NOT_FOUND",
         });
-      await assertPermission(ctx.db, userId, label.workspaceId, "board:edit");
+      await assertMember(ctx.db, userId, label.workspaceId);
 
       const result = await labelRepo.update(ctx.db, input);
 
@@ -208,7 +208,7 @@ export const labelRouter = createTRPCRouter({
           message: `Label with public ID ${input.labelPublicId} not found`,
           code: "NOT_FOUND",
         });
-      await assertPermission(ctx.db, userId, label.workspaceId, "board:edit");
+      await assertMember(ctx.db, userId, label.workspaceId);
 
       await cardRepo.hardDeleteAllCardLabelRelationships(ctx.db, label.id);
 

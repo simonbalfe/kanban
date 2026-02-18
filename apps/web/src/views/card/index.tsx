@@ -47,7 +47,7 @@ interface FormValues {
 
 export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
   const router = useRouter();
-  const { canEditCard } = usePermissions();
+  const { isAdminOrMember } = usePermissions();
   const { data: session } = authClient.useSession();
   const cardId = Array.isArray(router.query.cardId)
     ? router.query.cardId[0]
@@ -59,7 +59,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
   );
 
   const isCreator = card?.createdBy && session?.user.id === card.createdBy;
-  const canEdit = canEditCard || isCreator;
+  const canEdit = isAdminOrMember || isCreator;
 
   const board = card?.list.board;
   const labels = board?.labels;
@@ -174,7 +174,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
   } = useModal();
   const { showPopup } = usePopup();
   const { workspace } = useWorkspace();
-  const { canEditCard } = usePermissions();
+  const { isAdminOrMember } = usePermissions();
   const { data: session } = authClient.useSession();
   const [activeChecklistForm, setActiveChecklistForm] = useState<string | null>(
     null,
@@ -190,7 +190,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
   );
 
   const isCreator = card?.createdBy && session?.user.id === card.createdBy;
-  const canEdit = canEditCard || isCreator;
+  const canEdit = isAdminOrMember || isCreator;
 
   const refetchCard = async () => {
     if (cardId) await utils.card.byId.refetch({ cardPublicId: cardId });

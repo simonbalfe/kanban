@@ -23,7 +23,7 @@ const NewCommentForm = ({
 }) => {
   const utils = api.useUtils();
   const { showPopup } = usePopup();
-  const { canCreateComment } = usePermissions();
+  const { isAdminOrMember } = usePermissions();
   const { handleSubmit, setValue, watch, reset } = useForm<FormValues>({
     values: {
       comment: "",
@@ -51,7 +51,7 @@ const NewCommentForm = ({
     });
   };
 
-  if (!canCreateComment) {
+  if (!isAdminOrMember) {
     return null;
   }
 

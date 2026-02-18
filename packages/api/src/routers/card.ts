@@ -10,7 +10,7 @@ import * as workspaceRepo from "@kan/db/repository/workspace.repo";
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { mergeActivities } from "../utils/activities";
-import { assertCanDelete, assertCanEdit, assertPermission } from "../utils/permissions";
+import { assertCanDelete, assertCanEdit, assertMember } from "../utils/permissions";
 import { generateAttachmentUrl, generateAvatarUrl } from "@kan/shared/utils";
 
 export const cardRouter = createTRPCRouter({
@@ -57,7 +57,7 @@ export const cardRouter = createTRPCRouter({
           code: "NOT_FOUND",
         });
 
-      await assertPermission(ctx.db, userId, list.workspaceId, "card:create");
+      await assertMember(ctx.db, userId, list.workspaceId);
 
       const newCard = await cardRepo.create(ctx.db, {
         title: input.title,
@@ -193,7 +193,7 @@ export const cardRouter = createTRPCRouter({
           code: "NOT_FOUND",
         });
 
-      await assertPermission(ctx.db, userId, card.workspaceId, "comment:create");
+      await assertMember(ctx.db, userId, card.workspaceId);
 
       const newComment = await cardCommentRepo.create(ctx.db, {
         comment: input.comment,
@@ -271,7 +271,6 @@ export const cardRouter = createTRPCRouter({
         ctx.db,
         userId,
         card.workspaceId,
-        "comment:edit",
         existingComment.createdBy,
       );
 
@@ -349,7 +348,6 @@ export const cardRouter = createTRPCRouter({
         ctx.db,
         userId,
         card.workspaceId,
-        "comment:delete",
         existingComment.createdBy,
       );
 
@@ -412,7 +410,7 @@ export const cardRouter = createTRPCRouter({
           code: "NOT_FOUND",
         });
 
-      await assertPermission(ctx.db, userId, card.workspaceId, "card:edit");
+      await assertMember(ctx.db, userId, card.workspaceId);
 
       const label = await labelRepo.getByPublicId(ctx.db, input.labelPublicId);
 
@@ -504,7 +502,7 @@ export const cardRouter = createTRPCRouter({
           code: "NOT_FOUND",
         });
 
-      await assertPermission(ctx.db, userId, card.workspaceId, "card:edit");
+      await assertMember(ctx.db, userId, card.workspaceId);
 
       const member = await workspaceRepo.getMemberByPublicId(
         ctx.db,
@@ -616,7 +614,7 @@ export const cardRouter = createTRPCRouter({
             code: "UNAUTHORIZED",
           });
 
-        await assertPermission(ctx.db, userId, card.workspaceId, "card:view");
+        await assertMember(ctx.db, userId, card.workspaceId);
       }
 
       const result = await cardRepo.getWithListAndMembersByPublicId(
@@ -734,7 +732,7 @@ export const cardRouter = createTRPCRouter({
             code: "UNAUTHORIZED",
           });
 
-        await assertPermission(ctx.db, userId, card.workspaceId, "card:view");
+        await assertMember(ctx.db, userId, card.workspaceId);
       }
 
       const cursor = input.cursor ? new Date(input.cursor) : undefined;
@@ -833,7 +831,6 @@ export const cardRouter = createTRPCRouter({
         ctx.db,
         userId,
         card.workspaceId,
-        "card:edit",
         card.createdBy,
       );
 
@@ -1010,7 +1007,6 @@ export const cardRouter = createTRPCRouter({
         ctx.db,
         userId,
         card.workspaceId,
-        "card:delete",
         card.createdBy,
       );
 

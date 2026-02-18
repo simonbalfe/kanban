@@ -27,7 +27,6 @@ export const create = async (
     workspaceId: number;
     createdBy: string;
     role: MemberRole;
-    roleId?: number | null;
     status: MemberStatus;
   },
 ) => {
@@ -40,7 +39,6 @@ export const create = async (
       workspaceId: memberInput.workspaceId,
       createdBy: memberInput.createdBy,
       role: memberInput.role,
-      roleId: memberInput.roleId ?? null,
       status: memberInput.status,
     })
     .returning({
@@ -177,14 +175,12 @@ export const updateRole = async (
   args: {
     memberId: number;
     role: MemberRole;
-    roleId: number | null;
   },
 ) => {
   const [result] = await db
     .update(workspaceMembers)
     .set({
       role: args.role,
-      roleId: args.roleId,
       updatedAt: new Date(),
     })
     .where(eq(workspaceMembers.id, args.memberId))

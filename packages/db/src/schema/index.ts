@@ -9,4 +9,3 @@ export * from "./lists";
 export * from "./users";
 export * from "./workspaces";
 export * from "./workspaceInviteLinks";
-export * from "./permissions";

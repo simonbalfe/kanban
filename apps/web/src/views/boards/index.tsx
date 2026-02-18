@@ -17,13 +17,13 @@ import { NewBoardForm } from "./components/NewBoardForm";
 export default function BoardsPage({ isTemplate }: { isTemplate?: boolean }) {
   const { openModal, modalContentType, isOpen } = useModal();
   const { workspace } = useWorkspace();
-  const { canCreateBoard } = usePermissions();
+  const { isAdminOrMember } = usePermissions();
 
   const { tooltipContent: createModalShortcutTooltipContent } =
     useKeyboardShortcut({
       type: "PRESS",
       stroke: { key: "C" },
-      action: () => canCreateBoard && openModal("NEW_BOARD"),
+      action: () => isAdminOrMember && openModal("NEW_BOARD"),
       description: t`Create new ${isTemplate ? "template" : "board"}`,
       group: "ACTIONS",
     });
@@ -41,7 +41,7 @@ export default function BoardsPage({ isTemplate }: { isTemplate?: boolean }) {
           <div className="flex gap-2">
 <Tooltip
               content={
-                !canCreateBoard
+                !isAdminOrMember
                   ? t`You don't have permission`
                   : createModalShortcutTooltipContent
               }
@@ -50,9 +50,9 @@ export default function BoardsPage({ isTemplate }: { isTemplate?: boolean }) {
                 type="button"
                 variant="primary"
                 onClick={() => {
-                  if (canCreateBoard) openModal("NEW_BOARD");
+                  if (isAdminOrMember) openModal("NEW_BOARD");
                 }}
-                disabled={!canCreateBoard}
+                disabled={!isAdminOrMember}
                 iconLeft={
                   <HiOutlinePlusSmall aria-hidden="true" className="h-4 w-4" />
                 }

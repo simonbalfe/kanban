@@ -31,7 +31,7 @@ const VisibilityButton = ({
   isAdmin: boolean;
 }) => {
   const { showPopup } = usePopup();
-  const { canEditBoard } = usePermissions();
+  const { isAdminOrMember } = usePermissions();
   const utils = api.useUtils();
   const [stateVisibility, setStateVisibility] = useState<"public" | "private">(
     visibility,
@@ -63,7 +63,7 @@ const VisibilityButton = ({
     },
   });
 
-  const canEdit = canEditBoard || isAdmin;
+  const canEdit = isAdminOrMember || isAdmin;
 
   return (
     <div className="relative">

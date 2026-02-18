@@ -4,16 +4,15 @@ import { z } from "zod";
 
 import * as inviteLinkRepo from "@kan/db/repository/inviteLink.repo";
 import * as memberRepo from "@kan/db/repository/member.repo";
-import * as permissionRepo from "@kan/db/repository/permission.repo";
 import * as userRepo from "@kan/db/repository/user.repo";
 import * as workspaceRepo from "@kan/db/repository/workspace.repo";
 import { generateUID } from "@kan/shared";
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import {
+  assertAdmin,
   assertCanManageMember,
-  assertCanManageRole,
-  assertPermission,
+  assertMember,
 } from "../utils/permissions";
 
 export const memberRouter = createTRPCRouter({
@@ -55,7 +54,7 @@ export const memberRouter = createTRPCRouter({
           code: "NOT_FOUND",
         });
 
-      await assertPermission(ctx.db, userId, workspace.id, "member:invite");
+      await assertAdmin(ctx.db, userId, workspace.id);
 
       const isInvitedEmailAlreadyMember = workspace.members.some(
         (member) => member.email === input.email,
@@ -70,20 +69,12 @@ export const memberRouter = createTRPCRouter({
 
       const existingUser = await userRepo.getByEmail(ctx.db, input.email);
 
-      // Get the workspace role to set roleId
-      const memberRole = await permissionRepo.getRoleByWorkspaceIdAndName(
-        ctx.db,
-        workspace.id,
-        "member",
-      );
-
       const invite = await memberRepo.create(ctx.db, {
         workspaceId: workspace.id,
         email: input.email,
         userId: existingUser?.id ?? null,
         createdBy: userId,
         role: "member",
-        roleId: memberRole?.id ?? null,
         status: "invited",
       });
 
@@ -156,7 +147,7 @@ export const memberRouter = createTRPCRouter({
           code: "NOT_FOUND",
         });
 
-      await assertPermission(ctx.db, userId, workspace.id, "member:remove");
+      await assertAdmin(ctx.db, userId, workspace.id);
 
       const member = await memberRepo.getByPublicId(
         ctx.db,
@@ -229,7 +220,7 @@ export const memberRouter = createTRPCRouter({
         });
 
       // Check if user can view members
-      await assertPermission(ctx.db, userId, workspace.id, "member:view");
+      await assertMember(ctx.db, userId, workspace.id);
 
       // Get active invite link for this workspace
       const activeInviteLink = await inviteLinkRepo.getActiveForWorkspace(
@@ -297,7 +288,7 @@ export const memberRouter = createTRPCRouter({
         });
 
       // Check if user can edit members (admin-equivalent)
-      await assertPermission(ctx.db, userId, workspace.id, "member:edit");
+      await assertAdmin(ctx.db, userId, workspace.id);
 
       // Deactivate any existing active invite links
       await inviteLinkRepo.deactivateAllActiveForWorkspace(ctx.db, {
@@ -374,7 +365,7 @@ export const memberRouter = createTRPCRouter({
         });
 
       // Check if user can edit members (admin-equivalent)
-      await assertPermission(ctx.db, userId, workspace.id, "member:edit");
+      await assertAdmin(ctx.db, userId, workspace.id);
 
       // Deactivate all active invite links
       await inviteLinkRepo.deactivateAllActiveForWorkspace(ctx.db, {
@@ -502,20 +493,12 @@ export const memberRouter = createTRPCRouter({
           code: "NOT_FOUND",
         });
 
-      // Get the workspace role to set roleId
-      const memberRole = await permissionRepo.getRoleByWorkspaceIdAndName(
-        ctx.db,
-        invite.workspaceId,
-        "member",
-      );
-
       await memberRepo.create(ctx.db, {
         workspaceId: invite.workspaceId,
         email: user.email,
         userId: user.id,
         createdBy: user.id,
         role: "member",
-        roleId: memberRole?.id ?? null,
         status: "active",
       });
 
@@ -571,7 +554,7 @@ export const memberRouter = createTRPCRouter({
         });
       }
 
-      await assertPermission(ctx.db, userId, workspace.id, "member:edit");
+      await assertAdmin(ctx.db, userId, workspace.id);
 
       const member = await memberRepo.getByPublicId(
         ctx.db,
@@ -586,19 +569,10 @@ export const memberRouter = createTRPCRouter({
       }
 
       await assertCanManageMember(ctx.db, userId, workspace.id, member.id);
-      await assertCanManageRole(ctx.db, userId, workspace.id, input.role);
-
-      // Get the workspace role to set roleId
-      const workspaceRole = await permissionRepo.getRoleByWorkspaceIdAndName(
-        ctx.db,
-        workspace.id,
-        input.role,
-      );
 
       await memberRepo.updateRole(ctx.db, {
         memberId: member.id,
         role: input.role,
-        roleId: workspaceRole?.id ?? null,
       });
 
       return {
