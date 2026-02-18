@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  bigint,
   bigserial,
   index,
   pgEnum,
@@ -45,7 +46,7 @@ export const boards = pgTable(
     }),
     visibility: boardVisibilityEnum("visibility").notNull().default("private"),
     type: boardTypeEnum("type").notNull().default("regular"),
-    sourceBoardId: bigserial("sourceBoardId", { mode: "number" }),
+    sourceBoardId: bigint("sourceBoardId", { mode: "number" }),
   },
   (table) => [
     index("board_visibility_idx").on(table.visibility),

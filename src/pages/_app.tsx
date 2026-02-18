@@ -6,7 +6,6 @@ import dynamic from "next/dynamic";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 
-import { KeyboardShortcutProvider } from "~/providers/keyboard-shortcuts";
 import { ModalProvider } from "~/providers/modal";
 import { PopupProvider } from "~/providers/popup";
 import { api } from "~/utils/api";
@@ -41,15 +40,13 @@ function AppContent({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout = Component.getLayout ?? ((page) => page);
 
   return (
-    <KeyboardShortcutProvider>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <ModalProvider>
-          <PopupProvider>
-            {getLayout(<Component {...pageProps} />)}
-          </PopupProvider>
-        </ModalProvider>
-      </ThemeProvider>
-    </KeyboardShortcutProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ModalProvider>
+        <PopupProvider>
+          {getLayout(<Component {...pageProps} />)}
+        </PopupProvider>
+      </ModalProvider>
+    </ThemeProvider>
   );
 }
 

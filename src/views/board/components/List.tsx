@@ -48,8 +48,8 @@ export default function List({
 
   const openNewCardForm = (publicListId: PublicListId) => {
     if (!isAdminOrMember) return;
-    openModal("NEW_CARD");
     setSelectedPublicListId(publicListId);
+    openModal("NEW_CARD");
   };
 
   const updateList = api.list.update.useMutation();

@@ -9,7 +9,6 @@ import {
 } from "react-icons/tb";
 import { twMerge } from "tailwind-merge";
 
-import type { KeyboardShortcut } from "~/providers/keyboard-shortcuts";
 import boardsIconDark from "~/assets/boards-dark.json";
 import boardsIconLight from "~/assets/boards-light.json";
 import settingsIconDark from "~/assets/settings-dark.json";
@@ -63,47 +62,21 @@ export default function SideNavigation({
 
   const isDarkMode = resolvedTheme === "dark";
 
-  const navigation: {
-    name: string;
-    href: string;
-    icon: object;
-    keyboardShortcut: KeyboardShortcut;
-  }[] = [
+  const navigation = [
     {
       name: "Boards",
       href: "/boards",
       icon: isDarkMode ? boardsIconDark : boardsIconLight,
-      keyboardShortcut: {
-        type: "SEQUENCE",
-        strokes: [{ key: "G" }, { key: "B" }],
-        action: () => router.push("/boards"),
-        group: "NAVIGATION",
-        description: "Go to boards",
-      },
     },
     {
       name: "Templates",
       href: "/templates",
       icon: isDarkMode ? templatesIconDark : templatesIconLight,
-      keyboardShortcut: {
-        type: "SEQUENCE",
-        strokes: [{ key: "G" }, { key: "T" }],
-        action: () => router.push("/templates"),
-        group: "NAVIGATION",
-        description: "Go to templates",
-      },
     },
     {
       name: "Settings",
       href: "/settings",
       icon: isDarkMode ? settingsIconDark : settingsIconLight,
-      keyboardShortcut: {
-        type: "SEQUENCE",
-        strokes: [{ key: "G" }, { key: "S" }],
-        action: () => router.push("/settings"),
-        group: "NAVIGATION",
-        description: "Go to settings",
-      },
     },
   ];
 
@@ -160,7 +133,6 @@ export default function SideNavigation({
                   json={item.icon}
                   isCollapsed={isCollapsed}
                   onCloseSideNav={onCloseSideNav}
-                  keyboardShortcut={item.keyboardShortcut}
                 />
               </li>
             ))}

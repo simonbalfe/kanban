@@ -12,8 +12,6 @@ import {
 
 import type { dbClient } from "~/db/client";
 import {
-  cardActivities,
-  cardAttachments,
   cards,
   cardsToLabels,
   checklistItems,
@@ -94,13 +92,6 @@ export const create = async (
       .returning({ id: cards.id, listId: cards.listId, publicId: cards.publicId });
 
     if (!result[0]) throw new Error("Unable to create card");
-
-    await tx.insert(cardActivities).values({
-      publicId: generateUID(),
-      cardId: result[0].id,
-      type: "card.created",
-      createdBy: cardInput.createdBy,
-    });
 
     const countExpr = sql<number>`COUNT(*)`.mapWith(Number);
 
@@ -257,17 +248,6 @@ export const getWithListAndMembersByPublicId = async (
           },
         },
       },
-      attachments: {
-        columns: {
-          publicId: true,
-          contentType: true,
-          s3Key: true,
-          originalFilename: true,
-          size: true,
-        },
-        where: isNull(cardAttachments.deletedAt),
-        orderBy: asc(cardAttachments.createdAt),
-      },
       checklists: {
         columns: {
           publicId: true,
@@ -321,74 +301,16 @@ export const getWithListAndMembersByPublicId = async (
           },
         },
       },
-      activities: {
-        columns: {
-          publicId: true,
-          type: true,
-          createdAt: true,
-          fromIndex: true,
-          toIndex: true,
-          fromTitle: true,
-          toTitle: true,
-          fromDescription: true,
-          toDescription: true,
-          fromDueDate: true,
-          toDueDate: true,
-        },
-        with: {
-          fromList: {
-            columns: {
-              publicId: true,
-              name: true,
-              index: true,
-            },
-          },
-          toList: {
-            columns: {
-              publicId: true,
-              name: true,
-              index: true,
-            },
-          },
-          label: {
-            columns: {
-              publicId: true,
-              name: true,
-            },
-          },
-          user: {
-            columns: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          comment: {
-            columns: {
-              publicId: true,
-              comment: true,
-              createdBy: true,
-              updatedAt: true,
-              deletedAt: true,
-            },
-          },
-        },
-      },
     },
     where: and(eq(cards.publicId, cardPublicId), isNull(cards.deletedAt)),
   });
 
   if (!card) return null;
 
-  const formattedResult = {
+  return {
     ...card,
     labels: card.labels.map((label) => label.label),
-    activities: card.activities.filter(
-      (activity) => !activity.comment?.deletedAt,
-    ),
   };
-
-  return formattedResult;
 };
 
 export const reorder = async (

@@ -32,13 +32,15 @@ export function LabelForm({
   isEdit?: boolean;
 }) {
   const { closeModal, entityId, openModal, setModalState } = useModal();
+  const trimmedEntityId = entityId.trim();
+  const canFetchLabel = Boolean(isEdit && trimmedEntityId.length >= 12);
 
   const label = api.label.byPublicId.useQuery(
     {
-      labelPublicId: entityId,
+      labelPublicId: canFetchLabel ? trimmedEntityId : "000000000000",
     },
     {
-      enabled: isEdit && !!entityId,
+      enabled: canFetchLabel,
     },
   );
 
@@ -90,8 +92,12 @@ export function LabelForm({
     if (!values.colour.code) return;
 
     if (isEdit) {
+      if (!canFetchLabel || !label.data?.publicId) {
+        return;
+      }
+
       updateLabel.mutate({
-        labelPublicId: label.data?.publicId ?? "",
+        labelPublicId: label.data.publicId,
         name: values.name,
         colourCode: values.colour.code,
       });
@@ -222,7 +228,7 @@ export function LabelForm({
             <Button
               type="button"
               variant="secondary"
-              onClick={() => openModal("DELETE_LABEL", entityId)}
+              onClick={() => openModal("DELETE_LABEL", label.data?.publicId)}
             >
               {"Delete"}
             </Button>

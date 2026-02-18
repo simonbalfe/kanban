@@ -3,7 +3,6 @@ import {
   bigint,
   bigserial,
   integer,
-  pgEnum,
   pgTable,
   primaryKey,
   text,
@@ -12,42 +11,10 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-import { boards } from "./boards";
 import { checklists } from "./checklists";
 import { labels } from "./labels";
 import { lists } from "./lists";
 import { users } from "./users";
-
-export const activityTypes = [
-  "card.created",
-  "card.updated.title",
-  "card.updated.description",
-  "card.updated.index",
-  "card.updated.list",
-  "card.updated.label.added",
-  "card.updated.label.removed",
-  "card.updated.comment.added",
-  "card.updated.comment.updated",
-  "card.updated.comment.deleted",
-  "card.updated.checklist.added",
-  "card.updated.checklist.renamed",
-  "card.updated.checklist.deleted",
-  "card.updated.checklist.item.added",
-  "card.updated.checklist.item.updated",
-  "card.updated.checklist.item.completed",
-  "card.updated.checklist.item.uncompleted",
-  "card.updated.checklist.item.deleted",
-  "card.updated.attachment.added",
-  "card.updated.attachment.removed",
-  "card.updated.dueDate.added",
-  "card.updated.dueDate.updated",
-  "card.updated.dueDate.removed",
-  "card.archived",
-] as const;
-
-export type ActivityType = (typeof activityTypes)[number];
-
-export const activityTypeEnum = pgEnum("card_activity_type", activityTypes);
 
 export const cards = pgTable("card", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
@@ -87,93 +54,7 @@ export const cardsRelations = relations(cards, ({ one, many }) => ({
     relationName: "cardsDeletedByUser",
   }),
   labels: many(cardsToLabels),
-  comments: many(comments),
-  activities: many(cardActivities),
   checklists: many(checklists),
-  attachments: many(cardAttachments),
-}));
-
-export const cardActivities = pgTable("card_activity", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
-  publicId: varchar("publicId", { length: 12 }).notNull().unique(),
-  type: activityTypeEnum("type").notNull(),
-  cardId: bigint("cardId", { mode: "number" })
-    .notNull()
-    .references(() => cards.id, { onDelete: "cascade" }),
-  fromIndex: integer("fromIndex"),
-  toIndex: integer("toIndex"),
-  fromListId: bigint("fromListId", { mode: "number" }).references(
-    () => lists.id,
-    { onDelete: "cascade" },
-  ),
-  toListId: bigint("toListId", { mode: "number" }).references(() => lists.id, {
-    onDelete: "cascade",
-  }),
-  labelId: bigint("labelId", { mode: "number" }).references(() => labels.id, {
-    onDelete: "cascade",
-  }),
-  fromTitle: text("fromTitle"),
-  toTitle: text("toTitle"),
-  fromDescription: text("fromDescription"),
-  toDescription: text("toDescription"),
-  createdBy: uuid("createdBy").references(() => users.id, {
-    onDelete: "set null",
-  }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  commentId: bigint("commentId", { mode: "number" }).references(
-    () => comments.id,
-    { onDelete: "cascade" },
-  ),
-  fromComment: text("fromComment"),
-  toComment: text("toComment"),
-  fromDueDate: timestamp("fromDueDate"),
-  toDueDate: timestamp("toDueDate"),
-  sourceBoardId: bigint("sourceBoardId", { mode: "number" }).references(
-    () => boards.id,
-    { onDelete: "set null" },
-  ),
-  attachmentId: bigint("attachmentId", { mode: "number" }).references(
-    () => cardAttachments.id,
-    { onDelete: "cascade" },
-  ),
-}).enableRLS();
-
-export const cardActivitiesRelations = relations(cardActivities, ({ one }) => ({
-  card: one(cards, {
-    fields: [cardActivities.cardId],
-    references: [cards.id],
-    relationName: "cardActivitiesCard",
-  }),
-  fromList: one(lists, {
-    fields: [cardActivities.fromListId],
-    references: [lists.id],
-    relationName: "cardActivitiesFromList",
-  }),
-  toList: one(lists, {
-    fields: [cardActivities.toListId],
-    references: [lists.id],
-    relationName: "cardActivitiesToList",
-  }),
-  label: one(labels, {
-    fields: [cardActivities.labelId],
-    references: [labels.id],
-    relationName: "cardActivitiesLabel",
-  }),
-  user: one(users, {
-    fields: [cardActivities.createdBy],
-    references: [users.id],
-    relationName: "cardActivitiesUser",
-  }),
-  comment: one(comments, {
-    fields: [cardActivities.commentId],
-    references: [comments.id],
-    relationName: "cardActivitiesComment",
-  }),
-  attachment: one(cardAttachments, {
-    fields: [cardActivities.attachmentId],
-    references: [cardAttachments.id],
-    relationName: "cardActivitiesAttachment",
-  }),
 }));
 
 export const cardsToLabels = pgTable(
@@ -201,73 +82,3 @@ export const cardToLabelsRelations = relations(cardsToLabels, ({ one }) => ({
     relationName: "cardToLabelsLabel",
   }),
 }));
-
-export const comments = pgTable("card_comments", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
-  publicId: varchar("publicId", { length: 12 }).notNull().unique(),
-  comment: text("comment").notNull(),
-  cardId: bigint("cardId", { mode: "number" })
-    .notNull()
-    .references(() => cards.id, { onDelete: "cascade" }),
-  createdBy: uuid("createdBy").references(() => users.id, {
-    onDelete: "set null",
-  }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt"),
-  deletedAt: timestamp("deletedAt"),
-  deletedBy: uuid("deletedBy").references(() => users.id, {
-    onDelete: "set null",
-  }),
-}).enableRLS();
-
-export const commentsRelations = relations(comments, ({ one }) => ({
-  card: one(cards, {
-    fields: [comments.cardId],
-    references: [cards.id],
-    relationName: "commentsCard",
-  }),
-  createdBy: one(users, {
-    fields: [comments.createdBy],
-    references: [users.id],
-    relationName: "commentsCreatedByUser",
-  }),
-  deletedBy: one(users, {
-    fields: [comments.deletedBy],
-    references: [users.id],
-    relationName: "commentsDeletedByUser",
-  }),
-}));
-
-export const cardAttachments = pgTable("card_attachment", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
-  publicId: varchar("publicId", { length: 12 }).notNull().unique(),
-  cardId: bigint("cardId", { mode: "number" })
-    .notNull()
-    .references(() => cards.id, { onDelete: "cascade" }),
-  filename: varchar("filename", { length: 255 }).notNull(),
-  originalFilename: varchar("originalFilename", { length: 255 }).notNull(),
-  contentType: varchar("contentType", { length: 100 }).notNull(),
-  size: bigint("size", { mode: "number" }).notNull(),
-  s3Key: varchar("s3Key", { length: 500 }).notNull(),
-  createdBy: uuid("createdBy").references(() => users.id, {
-    onDelete: "set null",
-  }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  deletedAt: timestamp("deletedAt"),
-}).enableRLS();
-
-export const cardAttachmentsRelations = relations(
-  cardAttachments,
-  ({ one }) => ({
-    card: one(cards, {
-      fields: [cardAttachments.cardId],
-      references: [cards.id],
-      relationName: "cardAttachmentsCard",
-    }),
-    createdBy: one(users, {
-      fields: [cardAttachments.createdBy],
-      references: [users.id],
-      relationName: "cardAttachmentsCreatedByUser",
-    }),
-  }),
-);

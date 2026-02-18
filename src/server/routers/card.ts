@@ -2,14 +2,10 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import * as cardRepo from "~/db/repository/card.repo";
-import * as cardActivityRepo from "~/db/repository/cardActivity.repo";
-import * as cardCommentRepo from "~/db/repository/cardComment.repo";
 import * as labelRepo from "~/db/repository/label.repo";
 import * as listRepo from "~/db/repository/list.repo";
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
-import { mergeActivities } from "../utils/activities";
-import { generateAttachmentUrl, generateAvatarUrl } from "~/lib/shared/utils";
 
 export const cardRouter = createTRPCRouter({
   create: protectedProcedure
@@ -98,219 +94,9 @@ export const cardRouter = createTRPCRouter({
             message: `Failed to create card label relationships`,
             code: "INTERNAL_SERVER_ERROR",
           });
-
-        const cardActivitesInsert = cardLabels.map((cardLabel) => ({
-          type: "card.updated.label.added" as const,
-          cardId: cardLabel.cardId,
-          labelId: cardLabel.labelId,
-          createdBy: userId,
-        }));
-
-        await cardActivityRepo.bulkCreate(ctx.db, cardActivitesInsert);
       }
 
       return newCard;
-    }),
-  addComment: protectedProcedure
-    .meta({
-      openapi: {
-        summary: "Add a comment to a card",
-        method: "POST",
-        path: "/cards/{cardPublicId}/comments",
-        description: "Adds a comment to a card",
-        tags: ["Cards"],
-        protect: true,
-      },
-    })
-    .input(
-      z.object({
-        cardPublicId: z.string().min(12),
-        comment: z.string().min(1),
-      }),
-    )
-    .output(z.custom<Awaited<ReturnType<typeof cardCommentRepo.create>>>())
-    .mutation(async ({ ctx, input }) => {
-      const userId = ctx.user?.id;
-
-      if (!userId)
-        throw new TRPCError({
-          message: `User not authenticated`,
-          code: "UNAUTHORIZED",
-        });
-
-      const card = await cardRepo.getCardIdByPublicId(
-        ctx.db,
-        input.cardPublicId,
-      );
-
-      if (!card)
-        throw new TRPCError({
-          message: `Card with public ID ${input.cardPublicId} not found`,
-          code: "NOT_FOUND",
-        });
-
-      const newComment = await cardCommentRepo.create(ctx.db, {
-        comment: input.comment,
-        createdBy: userId,
-        cardId: card.id,
-      });
-
-      if (!newComment?.id)
-        throw new TRPCError({
-          message: `Failed to create comment`,
-          code: "INTERNAL_SERVER_ERROR",
-        });
-
-      await cardActivityRepo.create(ctx.db, {
-        type: "card.updated.comment.added" as const,
-        cardId: card.id,
-        commentId: newComment.id,
-        toComment: newComment.comment,
-        createdBy: userId,
-      });
-
-      return newComment;
-    }),
-  updateComment: protectedProcedure
-    .meta({
-      openapi: {
-        summary: "Update a comment",
-        method: "PUT",
-        path: "/cards/{cardPublicId}/comments/{commentPublicId}",
-        description: "Updates a comment",
-        tags: ["Cards"],
-        protect: true,
-      },
-    })
-    .input(
-      z.object({
-        cardPublicId: z.string().min(12),
-        commentPublicId: z.string().min(12),
-        comment: z.string().min(1),
-      }),
-    )
-    .output(z.custom<Awaited<ReturnType<typeof cardCommentRepo.update>>>())
-    .mutation(async ({ ctx, input }) => {
-      const userId = ctx.user?.id;
-
-      if (!userId)
-        throw new TRPCError({
-          message: `User not authenticated`,
-          code: "UNAUTHORIZED",
-        });
-
-      const card = await cardRepo.getCardIdByPublicId(
-        ctx.db,
-        input.cardPublicId,
-      );
-
-      if (!card)
-        throw new TRPCError({
-          message: `Card with public ID ${input.cardPublicId} not found`,
-          code: "NOT_FOUND",
-        });
-
-      const existingComment = await cardCommentRepo.getByPublicId(
-        ctx.db,
-        input.commentPublicId,
-      );
-
-      if (!existingComment)
-        throw new TRPCError({
-          message: `Comment with public ID ${input.commentPublicId} not found`,
-          code: "NOT_FOUND",
-        });
-
-      const updatedComment = await cardCommentRepo.update(ctx.db, {
-        id: existingComment.id,
-        comment: input.comment,
-      });
-
-      if (!updatedComment?.id)
-        throw new TRPCError({
-          message: `Failed to update comment`,
-          code: "INTERNAL_SERVER_ERROR",
-        });
-
-      await cardActivityRepo.create(ctx.db, {
-        type: "card.updated.comment.updated" as const,
-        cardId: card.id,
-        commentId: updatedComment.id,
-        fromComment: existingComment.comment,
-        toComment: updatedComment.comment,
-        createdBy: userId,
-      });
-
-      return updatedComment;
-    }),
-  deleteComment: protectedProcedure
-    .meta({
-      openapi: {
-        summary: "Delete a comment",
-        method: "DELETE",
-        path: "/cards/{cardPublicId}/comments/{commentPublicId}",
-        description: "Deletes a comment",
-        tags: ["Cards"],
-      },
-    })
-    .input(
-      z.object({
-        cardPublicId: z.string().min(12),
-        commentPublicId: z.string().min(12),
-      }),
-    )
-    .output(z.custom<Awaited<ReturnType<typeof cardCommentRepo.softDelete>>>())
-    .mutation(async ({ ctx, input }) => {
-      const userId = ctx.user?.id;
-
-      if (!userId)
-        throw new TRPCError({
-          message: `User not authenticated`,
-          code: "UNAUTHORIZED",
-        });
-
-      const card = await cardRepo.getCardIdByPublicId(
-        ctx.db,
-        input.cardPublicId,
-      );
-
-      if (!card)
-        throw new TRPCError({
-          message: `Card with public ID ${input.cardPublicId} not found`,
-          code: "NOT_FOUND",
-        });
-
-      const existingComment = await cardCommentRepo.getByPublicId(
-        ctx.db,
-        input.commentPublicId,
-      );
-
-      if (!existingComment)
-        throw new TRPCError({
-          message: `Comment with public ID ${input.commentPublicId} not found`,
-          code: "NOT_FOUND",
-        });
-
-      const deletedComment = await cardCommentRepo.softDelete(ctx.db, {
-        commentId: existingComment.id,
-        deletedAt: new Date(),
-        deletedBy: userId,
-      });
-
-      if (!deletedComment)
-        throw new TRPCError({
-          message: `Failed to delete comment`,
-          code: "INTERNAL_SERVER_ERROR",
-        });
-
-      await cardActivityRepo.create(ctx.db, {
-        type: "card.updated.comment.deleted" as const,
-        cardId: card.id,
-        commentId: existingComment.id,
-        createdBy: userId,
-      });
-
-      return deletedComment;
     }),
   addOrRemoveLabel: protectedProcedure
     .meta({
@@ -375,13 +161,6 @@ export const cardRouter = createTRPCRouter({
             code: "INTERNAL_SERVER_ERROR",
           });
 
-        await cardActivityRepo.create(ctx.db, {
-          type: "card.updated.label.removed" as const,
-          cardId: card.id,
-          labelId: label.id,
-          createdBy: userId,
-        });
-
         return { newLabel: false };
       }
 
@@ -393,13 +172,6 @@ export const cardRouter = createTRPCRouter({
           message: `Failed to add label to card`,
           code: "INTERNAL_SERVER_ERROR",
         });
-
-      await cardActivityRepo.create(ctx.db, {
-        type: "card.updated.label.added" as const,
-        cardId: card.id,
-        labelId: label.id,
-        createdBy: userId,
-      });
 
       return { newLabel: true };
     }),
@@ -416,21 +188,9 @@ export const cardRouter = createTRPCRouter({
     .input(z.object({ cardPublicId: z.string().min(12) }))
     .output(
       z.custom<
-        Omit<
-          NonNullable<
-            Awaited<ReturnType<typeof cardRepo.getWithListAndMembersByPublicId>>
-          >,
-          "attachments"
-        > & {
-          attachments: {
-            publicId: string;
-            contentType: string;
-            s3Key: string;
-            originalFilename: string | null;
-            size?: number | null;
-            url: string | null;
-          }[];
-        }
+        NonNullable<
+          Awaited<ReturnType<typeof cardRepo.getWithListAndMembersByPublicId>>
+        >
       >(),
     )
     .query(async ({ ctx, input }) => {
@@ -466,113 +226,7 @@ export const cardRouter = createTRPCRouter({
           code: "NOT_FOUND",
         });
 
-      const attachmentsWithUrls = await Promise.all(
-        result.attachments.map(async (attachment) => {
-          const url = await generateAttachmentUrl(attachment.s3Key);
-          return {
-            publicId: attachment.publicId,
-            contentType: attachment.contentType,
-            s3Key: attachment.s3Key,
-            originalFilename: attachment.originalFilename,
-            size: attachment.size,
-            url,
-          };
-        }),
-      );
-
-      return {
-        ...result,
-        attachments: attachmentsWithUrls,
-      };
-    }),
-  getActivities: publicProcedure
-    .meta({
-      openapi: {
-        summary: "Get paginated card activities",
-        method: "GET",
-        path: "/cards/{cardPublicId}/activities",
-        description:
-          "Retrieves paginated activities for a card with merged frequent changes",
-        tags: ["Cards"],
-      },
-    })
-    .input(
-      z.object({
-        cardPublicId: z.string().min(12),
-        limit: z.number().min(1).max(100).optional().default(10),
-        cursor: z.string().datetime().optional(),
-      }),
-    )
-    .output(
-      z.object({
-        activities: z.array(
-          z.custom<
-            NonNullable<
-              Awaited<
-                ReturnType<typeof cardActivityRepo.getPaginatedActivities>
-              >
-            >["activities"][number]
-          >(),
-        ),
-        hasMore: z.boolean(),
-        nextCursor: z.string().datetime().nullable(),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const card = await cardRepo.getCardIdByPublicId(
-        ctx.db,
-        input.cardPublicId,
-      );
-
-      if (!card)
-        throw new TRPCError({
-          message: `Card with public ID ${input.cardPublicId} not found`,
-          code: "NOT_FOUND",
-        });
-
-      if (card.boardVisibility === "private") {
-        const userId = ctx.user?.id;
-
-        if (!userId)
-          throw new TRPCError({
-            message: `User not authenticated`,
-            code: "UNAUTHORIZED",
-          });
-      }
-
-      const cursor = input.cursor ? new Date(input.cursor) : undefined;
-      const result = await cardActivityRepo.getPaginatedActivities(
-        ctx.db,
-        card.id,
-        {
-          limit: input.limit,
-          cursor,
-        },
-      );
-
-      const activitiesWithAvatarUrls = await Promise.all(
-        result.activities.map(async (activity) => {
-          const updatedActivity = { ...activity };
-
-          if (activity.user?.image) {
-            const userAvatarUrl = await generateAvatarUrl(activity.user.image);
-            updatedActivity.user = {
-              ...activity.user,
-              image: userAvatarUrl,
-            };
-          }
-
-          return updatedActivity;
-        }),
-      );
-
-      const mergedActivities = mergeActivities(activitiesWithAvatarUrls);
-
-      return {
-        activities: mergedActivities,
-        hasMore: result.hasMore,
-        nextCursor: result.nextCursor?.toISOString() ?? null,
-      };
+      return result;
     }),
   update: protectedProcedure
     .meta({
@@ -655,8 +309,6 @@ export const cardRouter = createTRPCRouter({
           }
         | undefined;
 
-      const previousDueDate = existingCard.dueDate;
-
       if (input.title || input.description || input.dueDate !== undefined) {
         result = await cardRepo.update(
           ctx.db,
@@ -682,69 +334,6 @@ export const cardRouter = createTRPCRouter({
           message: `Failed to update card`,
           code: "INTERNAL_SERVER_ERROR",
         });
-
-      const activities = [];
-
-      if (input.title && existingCard.title !== input.title) {
-        activities.push({
-          type: "card.updated.title" as const,
-          cardId: result.id,
-          createdBy: userId,
-          fromTitle: existingCard.title,
-          toTitle: input.title,
-        });
-      }
-
-      if (input.description && existingCard.description !== input.description) {
-        activities.push({
-          type: "card.updated.description" as const,
-          cardId: result.id,
-          createdBy: userId,
-          fromDescription: existingCard.description ?? undefined,
-          toDescription: input.description,
-        });
-
-      }
-
-      if (
-        input.dueDate !== undefined &&
-        previousDueDate?.getTime() !== input.dueDate?.getTime()
-      ) {
-        let activityType:
-          | "card.updated.dueDate.added"
-          | "card.updated.dueDate.updated"
-          | "card.updated.dueDate.removed";
-
-        if (!previousDueDate) {
-          activityType = "card.updated.dueDate.added";
-        } else if (!input.dueDate) {
-          activityType = "card.updated.dueDate.removed";
-        } else {
-          activityType = "card.updated.dueDate.updated";
-        }
-
-        activities.push({
-          type: activityType,
-          cardId: result.id,
-          createdBy: userId,
-          fromDueDate: previousDueDate ?? undefined,
-          toDueDate: input.dueDate ?? undefined,
-        });
-      }
-
-      if (newListId && existingCard.listId !== newListId) {
-        activities.push({
-          type: "card.updated.list" as const,
-          cardId: result.id,
-          createdBy: userId,
-          fromListId: existingCard.listId,
-          toListId: newListId,
-        });
-      }
-
-      if (activities.length > 0) {
-        await cardActivityRepo.bulkCreate(ctx.db, activities);
-      }
 
       return result;
     }),
@@ -791,12 +380,6 @@ export const cardRouter = createTRPCRouter({
         cardId: card.id,
         deletedAt,
         deletedBy: userId,
-      });
-
-      await cardActivityRepo.create(ctx.db, {
-        type: "card.archived",
-        cardId: card.id,
-        createdBy: userId,
       });
 
       return { success: true };

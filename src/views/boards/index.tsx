@@ -4,7 +4,6 @@ import Button from "~/components/Button";
 import Modal from "~/components/modal";
 import { PageHead } from "~/components/PageHead";
 import { Tooltip } from "~/components/Tooltip";
-import { useKeyboardShortcut } from "~/providers/keyboard-shortcuts";
 import { useModal } from "~/providers/modal";
 import { BoardsList } from "./components/BoardsList";
 import { NewBoardForm } from "./components/NewBoardForm";
@@ -12,15 +11,6 @@ import { NewBoardForm } from "./components/NewBoardForm";
 export default function BoardsPage({ isTemplate }: { isTemplate?: boolean }) {
   const { openModal, modalContentType, isOpen } = useModal();
   const isAdminOrMember = true;
-
-  const { tooltipContent: createModalShortcutTooltipContent } =
-    useKeyboardShortcut({
-      type: "PRESS",
-      stroke: { key: "C" },
-      action: () => isAdminOrMember && openModal("NEW_BOARD"),
-      description: `Create new ${isTemplate ? "template" : "board"}`,
-      group: "ACTIONS",
-    });
 
   return (
     <>
@@ -37,7 +27,7 @@ export default function BoardsPage({ isTemplate }: { isTemplate?: boolean }) {
               content={
                 !isAdminOrMember
                   ? "You don't have permission"
-                  : createModalShortcutTooltipContent
+                  : `Create new ${isTemplate ? "template" : "board"}`
               }
             >
               <Button

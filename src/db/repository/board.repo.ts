@@ -16,13 +16,10 @@ import type { dbClient } from "~/db/client";
 import type { BoardVisibilityStatus } from "~/db/schema";
 import {
   boards,
-  cardActivities,
-  cardAttachments,
   cards,
   cardsToLabels,
   checklistItems,
   checklists,
-  comments,
   labels,
   lists,
 } from "~/db/schema";
@@ -196,13 +193,6 @@ export const getByPublicId = async (
                   },
                 },
               },
-              attachments: {
-                columns: {
-                  publicId: true,
-                },
-                where: isNull(cardAttachments.deletedAt),
-                orderBy: asc(cardAttachments.createdAt),
-              },
               checklists: {
                 columns: {
                   publicId: true,
@@ -223,13 +213,6 @@ export const getByPublicId = async (
                     orderBy: asc(checklistItems.index),
                   },
                 },
-              },
-              comments: {
-                columns: {
-                  publicId: true,
-                },
-                where: isNull(comments.deletedAt),
-                limit: 1,
               },
             },
             where: and(
@@ -356,20 +339,6 @@ export const getBySlug = async (
                     },
                   },
                 },
-              },
-              attachments: {
-                columns: {
-                  publicId: true,
-                },
-                where: isNull(cardAttachments.deletedAt),
-                orderBy: asc(cardAttachments.createdAt),
-              },
-              comments: {
-                columns: {
-                  publicId: true,
-                },
-                where: isNull(comments.deletedAt),
-                limit: 1,
               },
               checklists: {
                 columns: {
@@ -710,14 +679,6 @@ export const createFromSnapshot = async (
 
         if (!createdCard) throw new Error("Failed to create card");
 
-        await tx.insert(cardActivities).values({
-          publicId: generateUID(),
-          type: "card.created",
-          cardId: createdCard.id,
-          createdBy: args.createdBy,
-          sourceBoardId: args.sourceBoardId,
-        });
-
         if (card.labels.length) {
           const cardLabels: { cardId: number; labelId: number }[] = [];
           for (const label of card.labels) {
@@ -727,16 +688,6 @@ export const createFromSnapshot = async (
           }
           if (cardLabels.length) {
             await tx.insert(cardsToLabels).values(cardLabels);
-
-            const labelActivities = cardLabels.map((cardLabel) => ({
-              publicId: generateUID(),
-              type: "card.updated.label.added" as const,
-              cardId: cardLabel.cardId,
-              labelId: cardLabel.labelId,
-              createdBy: args.createdBy,
-              sourceBoardId: args.sourceBoardId,
-            }));
-            await tx.insert(cardActivities).values(labelActivities);
           }
         }
 
@@ -758,15 +709,6 @@ export const createFromSnapshot = async (
 
             if (!createdChecklist) continue;
 
-            await tx.insert(cardActivities).values({
-              publicId: generateUID(),
-              type: "card.updated.checklist.added",
-              cardId: createdCard.id,
-              toTitle: checklist.name,
-              createdBy: args.createdBy,
-              sourceBoardId: args.sourceBoardId,
-            });
-
             if (checklist.items.length) {
               const itemValues = [...checklist.items]
                 .sort((a, b) => a.index - b.index)
@@ -781,16 +723,6 @@ export const createFromSnapshot = async (
 
               if (itemValues.length) {
                 await tx.insert(checklistItems).values(itemValues);
-
-                const itemActivities = itemValues.map((item) => ({
-                  publicId: generateUID(),
-                  type: "card.updated.checklist.item.added" as const,
-                  cardId: createdCard.id,
-                  toTitle: item.title,
-                  createdBy: args.createdBy,
-                  sourceBoardId: args.sourceBoardId,
-                }));
-                await tx.insert(cardActivities).values(itemActivities);
               }
             }
           }

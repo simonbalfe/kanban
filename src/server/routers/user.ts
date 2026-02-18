@@ -4,7 +4,6 @@ import { z } from "zod";
 import * as userRepo from "~/db/repository/user.repo";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { generateAvatarUrl } from "~/lib/shared/utils";
 
 export const userRouter = createTRPCRouter({
   getUser: protectedProcedure
@@ -46,12 +45,7 @@ export const userRouter = createTRPCRouter({
         });
       }
 
-      const imageUrl = await generateAvatarUrl(result.image);
-
-      return {
-        ...result,
-        image: imageUrl,
-      };
+      return result;
     }),
   update: protectedProcedure
     .meta({
@@ -95,12 +89,6 @@ export const userRouter = createTRPCRouter({
         });
       }
 
-      // Generate presigned URL for avatar
-      const imageUrl = await generateAvatarUrl(result.image);
-
-      return {
-        ...result,
-        image: imageUrl,
-      };
+      return result;
     }),
 });

@@ -1,15 +1,10 @@
-import { HeadBucketCommand } from "@aws-sdk/client-s3";
 import { TRPCError } from "@trpc/server";
 import { sql } from "drizzle-orm";
-import { env } from "next-runtime-env";
 import { z } from "zod";
 
 import type { dbClient } from "~/db/client";
 import * as boardRepo from "~/db/repository/board.repo";
 import * as cardRepo from "~/db/repository/card.repo";
-import * as cardActivityRepo from "~/db/repository/cardActivity.repo";
-import * as cardAttachmentRepo from "~/db/repository/cardAttachment.repo";
-import * as cardCommentRepo from "~/db/repository/cardComment.repo";
 import * as checklistRepo from "~/db/repository/checklist.repo";
 import * as labelRepo from "~/db/repository/label.repo";
 import * as listRepo from "~/db/repository/list.repo";
@@ -20,39 +15,12 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "../trpc";
-import { createS3Client } from "~/lib/shared/utils";
 
 const checkDatabaseConnection = async (db: dbClient) => {
   try {
     await db.execute(sql`SELECT 1`);
     return true;
   } catch {
-    return false;
-  }
-};
-
-const checkS3Connection = async () => {
-  try {
-    // Check if S3 is configured
-    if (
-      !process.env.S3_ENDPOINT ||
-      !process.env.S3_ACCESS_KEY_ID ||
-      !process.env.S3_SECRET_ACCESS_KEY
-    ) {
-      // S3 is optional, so return true if not configured
-      return true;
-    }
-
-    const client = createS3Client();
-    const avatarBucketName = env("NEXT_PUBLIC_AVATAR_BUCKET_NAME");
-    const attachmentsBucketName = env("NEXT_PUBLIC_ATTACHMENTS_BUCKET_NAME");
-
-    await client.send(new HeadBucketCommand({ Bucket: avatarBucketName }));
-    await client.send(new HeadBucketCommand({ Bucket: attachmentsBucketName }));
-
-    return true;
-  } catch (error) {
-    console.error(error);
     return false;
   }
 };
@@ -75,32 +43,14 @@ export const healthRouter = createTRPCRouter({
       z.object({
         status: z.enum(["ok", "error"]),
         database: z.enum(["ok", "error"]).optional(),
-        storage: z.enum(["ok", "error", "not_configured"]).optional(),
       }),
     )
     .query(async ({ ctx }) => {
       const dbHealthy = await checkDatabaseConnection(ctx.db);
-      const s3Healthy = await checkS3Connection();
-      const s3Configured = !!(
-        process.env.S3_ENDPOINT &&
-        process.env.S3_ACCESS_KEY_ID &&
-        process.env.S3_SECRET_ACCESS_KEY
-      );
-
-      const database = dbHealthy ? "ok" : "error";
-      const storage = !s3Configured
-        ? "not_configured"
-        : s3Healthy
-          ? "ok"
-          : "error";
-
-      // Overall status is "ok" only if database is healthy and (storage is not configured or storage is healthy)
-      const status = dbHealthy && (!s3Configured || s3Healthy) ? "ok" : "error";
 
       return {
-        status,
-        database,
-        storage,
+        status: dbHealthy ? "ok" : "error",
+        database: dbHealthy ? "ok" : "error",
       };
     }),
   stats: protectedProcedure
@@ -122,9 +72,6 @@ export const healthRouter = createTRPCRouter({
         boards: z.number(),
         lists: z.number(),
         cards: z.number(),
-        cardComments: z.number(),
-        cardAttachments: z.number(),
-        cardActivityLogs: z.number(),
         labels: z.number(),
         checklists: z.number(),
         checklistItems: z.number(),
@@ -137,23 +84,17 @@ export const healthRouter = createTRPCRouter({
           boardsCount,
           listsCount,
           cardsCount,
-          cardCommentsCount,
           checklistItemsCount,
           checklistsCount,
           labelsCount,
-          cardAttachmentsCount,
-          cardActivityLogsCount,
         ] = await Promise.all([
           userRepo.getCount(ctx.db),
           boardRepo.getCount(ctx.db),
           listRepo.getCount(ctx.db),
           cardRepo.getCount(ctx.db),
-          cardCommentRepo.getCount(ctx.db),
           checklistRepo.getCountItems(ctx.db),
           checklistRepo.getCount(ctx.db),
           labelRepo.getCount(ctx.db),
-          cardAttachmentRepo.getCount(ctx.db),
-          cardActivityRepo.getCount(ctx.db),
         ]);
 
         return {
@@ -161,12 +102,9 @@ export const healthRouter = createTRPCRouter({
           boards: boardsCount,
           lists: listsCount,
           cards: cardsCount,
-          cardComments: cardCommentsCount,
           checklistItems: checklistItemsCount,
           checklists: checklistsCount,
           labels: labelsCount,
-          cardAttachments: cardAttachmentsCount,
-          cardActivityLogs: cardActivityLogsCount,
         };
       } catch (error) {
         throw new TRPCError({

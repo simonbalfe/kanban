@@ -76,7 +76,8 @@ export function NewCardForm({
       values: formState,
     });
 
-  const labelPublicIds = watch("labelPublicIds") || [];
+  const selectedLabelPublicIds = watch("labelPublicIds", []);
+  const selectedListPublicId = watch("listPublicId");
   const isCreateAnotherEnabled = watch("isCreateAnotherEnabled");
   const position = watch("position");
   const title = watch("title");
@@ -96,13 +97,18 @@ export function NewCardForm({
     enabled: !!boardPublicId,
   });
 
+  useEffect(() => {
+    if (!listPublicId || listPublicId === selectedListPublicId) return;
+    setValue("listPublicId", listPublicId);
+  }, [listPublicId, selectedListPublicId, setValue]);
+
   // this adds the new created label to selected labels
   useEffect(() => {
     const newLabelId = modalStates.NEW_LABEL_CREATED;
-    if (newLabelId !== undefined && !labelPublicIds.includes(newLabelId)) {
-      setValue("labelPublicIds", [...labelPublicIds, newLabelId]);
+    if (newLabelId !== undefined && !selectedLabelPublicIds.includes(newLabelId)) {
+      setValue("labelPublicIds", [...selectedLabelPublicIds, newLabelId]);
     }
-  }, [modalStates, labelPublicIds]);
+  }, [modalStates, selectedLabelPublicIds, setValue]);
 
   // this removes the deleted label from selected labels if it is selected
   useEffect(() => {
@@ -114,15 +120,21 @@ export function NewCardForm({
         clearModalState("NEW_LABEL_CREATED");
       }
 
-      const validLabelIds = labelPublicIds.filter(
+      const validLabelIds = selectedLabelPublicIds.filter(
         (id) => availableLabelIds.includes(id) || id === newLabelId,
       );
 
-      if (validLabelIds.length !== labelPublicIds.length) {
+      if (validLabelIds.length !== selectedLabelPublicIds.length) {
         setValue("labelPublicIds", validLabelIds);
       }
     }
-  }, [boardData?.labels, labelPublicIds, modalStates.NEW_LABEL_CREATED]);
+  }, [
+    boardData?.labels,
+    selectedLabelPublicIds,
+    modalStates.NEW_LABEL_CREATED,
+    clearModalState,
+    setValue,
+  ]);
 
   const createCard = api.card.create.useMutation({
     onMutate: async (args) => {
@@ -134,7 +146,7 @@ export function NewCardForm({
         if (!oldBoard) return oldBoard;
 
         const updatedLists = oldBoard.lists.map((list) => {
-          if (list.publicId === listPublicId) {
+          if (list.publicId === args.listPublicId) {
             const newCard = {
               publicId: `PLACEHOLDER_${generateUID()}`,
               title: args.title,
@@ -144,9 +156,7 @@ export function NewCardForm({
               labels: oldBoard.labels.filter((label) =>
                 args.labelPublicIds.includes(label.publicId),
               ),
-              comments: [] as typeof list.cards[number]["comments"],
               checklists: [] as typeof list.cards[number]["checklists"],
-              attachments: [] as typeof list.cards[number]["attachments"],
               index: position === "start" ? 0 : list.cards.length,
             };
 
@@ -208,17 +218,30 @@ export function NewCardForm({
       key: label.publicId,
       value: label.name,
       leftIcon: <LabelIcon colourCode={label.colourCode} />,
-      selected: labelPublicIds.includes(label.publicId),
+      selected: selectedLabelPublicIds.includes(label.publicId),
     })) ?? [];
 
   const formattedLists =
     boardData?.lists.map((list) => ({
       key: list.publicId,
       value: list.name,
-      selected: list.publicId === watch("listPublicId"),
+      selected: list.publicId === selectedListPublicId,
     })) ?? [];
 
   const onSubmit = (data: NewCardFormInput) => {
+    const availableListIds = new Set(
+      boardData?.lists.map((list) => list.publicId) ?? [],
+    );
+
+    if (!availableListIds.has(data.listPublicId)) {
+      showPopup({
+        header: "Unable to create card",
+        message: "The selected list is no longer available. Please select another list.",
+        icon: "error",
+      });
+      return;
+    }
+
     createCard.mutate({
       title: data.title,
       description: data.description,
@@ -238,11 +261,11 @@ export function NewCardForm({
   };
 
   const handleSelectLabels = (labelPublicId: string): void => {
-    const currentIndex = labelPublicIds.indexOf(labelPublicId);
+    const currentIndex = selectedLabelPublicIds.indexOf(labelPublicId);
     if (currentIndex === -1) {
-      setValue("labelPublicIds", [...labelPublicIds, labelPublicId]);
+      setValue("labelPublicIds", [...selectedLabelPublicIds, labelPublicId]);
     } else {
-      const newLabelPublicIds = [...labelPublicIds];
+      const newLabelPublicIds = [...selectedLabelPublicIds];
       newLabelPublicIds.splice(currentIndex, 1);
       setValue("labelPublicIds", newLabelPublicIds);
     }
@@ -316,18 +339,18 @@ export function NewCardForm({
               createNewItemLabel={"Create new label"}
             >
               <div className="flex h-full w-full items-center rounded-[5px] border-[1px] border-light-600 bg-light-200 px-2 py-1 text-left text-xs text-light-800 hover:bg-light-300 dark:border-dark-600 dark:bg-dark-400 dark:text-dark-1000 dark:hover:bg-dark-500">
-                {!labelPublicIds.length ? (
+                {!selectedLabelPublicIds.length ? (
                   "Labels"
                 ) : (
                   <>
                     <div
                       className={
-                        labelPublicIds.length > 1
+                        selectedLabelPublicIds.length > 1
                           ? "flex -space-x-[2px] overflow-hidden"
                           : "flex items-center"
                       }
                     >
-                      {labelPublicIds.map((labelPublicId) => {
+                      {selectedLabelPublicIds.map((labelPublicId) => {
                         const label = boardData?.labels.find(
                           (label) => label.publicId === labelPublicId,
                         );
@@ -342,16 +365,16 @@ export function NewCardForm({
                             >
                               <circle cx={3} cy={3} r={3} />
                             </svg>
-                            {labelPublicIds.length === 1 && (
+                            {selectedLabelPublicIds.length === 1 && (
                               <div className="ml-1">{label?.name}</div>
                             )}
                           </>
                         );
                       })}
                     </div>
-                    {labelPublicIds.length > 1 && (
+                    {selectedLabelPublicIds.length > 1 && (
                       <div className="ml-1">
-                        <>{`${labelPublicIds.length} labels`}</>
+                        <>{`${selectedLabelPublicIds.length} labels`}</>
                       </div>
                     )}
                   </>

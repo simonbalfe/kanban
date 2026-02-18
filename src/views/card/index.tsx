@@ -12,21 +12,15 @@ import { PageHead } from "~/components/PageHead";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { api } from "~/utils/api";
-import { invalidateCard } from "~/utils/cardInvalidation";
 import { DeleteLabelConfirmation } from "../../components/DeleteLabelConfirmation";
-import ActivityList from "./components/ActivityList";
-import { AttachmentThumbnails } from "./components/AttachmentThumbnails";
-import { AttachmentUpload } from "./components/AttachmentUpload";
 import Checklists from "./components/Checklists";
 import { DeleteCardConfirmation } from "./components/DeleteCardConfirmation";
 import { DeleteChecklistConfirmation } from "./components/DeleteChecklistConfirmation";
-import { DeleteCommentConfirmation } from "./components/DeleteCommentConfirmation";
 import Dropdown from "./components/Dropdown";
 import { DueDateSelector } from "./components/DueDateSelector";
 import LabelSelector from "./components/LabelSelector";
 import ListSelector from "./components/ListSelector";
 import { NewChecklistForm } from "./components/NewChecklistForm";
-import NewCommentForm from "./components/NewCommentForm";
 
 interface FormValues {
   cardId: string;
@@ -154,7 +148,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
       });
     },
     onSettled: async () => {
-      if (cardId) await invalidateCard(utils, cardId);
+      if (cardId) await utils.card.byId.invalidate({ cardPublicId: cardId });
     },
   });
 
@@ -345,43 +339,6 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                     setActiveChecklistForm={setActiveChecklistForm}
                     viewOnly={!canEdit}
                   />
-                  {!isTemplate && (
-                    <>
-                      {card?.attachments.length > 0 && (
-                        <div className="mt-6">
-                          <AttachmentThumbnails
-                            attachments={card.attachments}
-                            cardPublicId={cardId ?? ""}
-                            isReadOnly={!canEdit}
-                          />
-                        </div>
-                      )}
-                      {canEdit && (
-                        <div className="mt-6">
-                          <AttachmentUpload cardPublicId={cardId} />
-                        </div>
-                      )}
-                    </>
-                  )}
-                  <div className="border-t-[1px] border-light-300 pt-12 dark:border-dark-300">
-                    <h2 className="text-md pb-4 font-medium text-light-1000 dark:text-dark-1000">
-                      {"Activity"}
-                    </h2>
-                    <div>
-                      <ActivityList
-                        cardPublicId={cardId}
-                        isLoading={!card}
-                        isAdmin={true}
-                      />
-                    </div>
-                    {!isTemplate && (
-                      <div className="mt-6">
-                        <NewCommentForm
-                          cardPublicId={cardId}
-                        />
-                      </div>
-                    )}
-                  </div>
                 </>
               )}
             </div>
@@ -424,16 +381,6 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
             <DeleteCardConfirmation
               boardPublicId={boardId ?? ""}
               cardPublicId={cardId}
-            />
-          </Modal>
-
-          <Modal
-            modalSize="sm"
-            isVisible={isOpen && modalContentType === "DELETE_COMMENT"}
-          >
-            <DeleteCommentConfirmation
-              cardPublicId={cardId}
-              commentPublicId={entityId}
             />
           </Modal>
 

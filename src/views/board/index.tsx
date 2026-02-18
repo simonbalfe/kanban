@@ -23,7 +23,6 @@ import PatternedBackground from "~/components/PatternedBackground";
 import { StrictModeDroppable as Droppable } from "~/components/StrictModeDroppable";
 import { Tooltip } from "~/components/Tooltip";
 import { useDragToScroll } from "~/hooks/useDragToScroll";
-import { useKeyboardShortcut } from "~/providers/keyboard-shortcuts";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { api } from "~/utils/api";
@@ -58,15 +57,6 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
   });
 
   const isAdminOrMember = true;
-
-  const { tooltipContent: createListShortcutTooltipContent } =
-    useKeyboardShortcut({
-      type: "PRESS",
-      stroke: { key: "C" },
-      action: () => boardId && isAdminOrMember && openNewListForm(boardId),
-      description: "Create new list",
-      group: "ACTIONS",
-    });
 
   const boardId = params?.boardId
     ? Array.isArray(params.boardId)
@@ -434,7 +424,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
               content={
                 !isAdminOrMember
                   ? "You don't have permission"
-                  : createListShortcutTooltipContent
+                  : "Create new list"
               }
             >
               <Button
@@ -575,8 +565,6 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                                             description={
                                               card.description ?? null
                                             }
-                                            comments={card.comments ?? []}
-                                            attachments={card.attachments}
                                             dueDate={card.dueDate ?? null}
                                           />
                                         </Link>

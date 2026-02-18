@@ -1,8 +1,6 @@
 import { format, isBefore, isSameYear, startOfDay } from "date-fns";
-import { HiOutlinePaperClip } from "react-icons/hi";
 import {
   HiBars3BottomLeft,
-  HiChatBubbleLeft,
   HiOutlineClock,
 } from "react-icons/hi2";
 import { twMerge } from "tailwind-merge";
@@ -20,8 +18,6 @@ const Card = ({
   members,
   checklists,
   description,
-  comments,
-  attachments,
   dueDate,
 }: {
   title: string;
@@ -42,8 +38,6 @@ const Card = ({
     }[];
   }[];
   description: string | null;
-  comments: { publicId: string }[];
-  attachments?: { publicId: string }[];
   dueDate?: Date | null;
 }) => {
   const dateLocale = enGB;
@@ -62,7 +56,6 @@ const Card = ({
 
   const hasDescription =
     description && description.replace(/<[^>]*>/g, "").trim().length > 0;
-  const hasAttachments = attachments && attachments.length > 0;
   const hasDueDate = !!dueDate;
 
   return (
@@ -72,9 +65,7 @@ const Card = ({
       members.length ||
       checklists.length > 0 ||
       hasDescription ||
-      comments.length > 0 ||
-      hasDueDate ||
-      hasAttachments ? (
+      hasDueDate ? (
         <div className="mt-2 flex flex-col justify-end">
           <div className="space-x-0.5">
             {labels.map((label) => (
@@ -106,16 +97,6 @@ const Card = ({
                       locale: dateLocale,
                     })}
                   </span>
-                </div>
-              )}
-              {comments.length > 0 && (
-                <div className="flex items-center gap-1 text-light-700 dark:text-dark-800">
-                  <HiChatBubbleLeft className="h-4 w-4" />
-                </div>
-              )}
-              {hasAttachments && (
-                <div className="flex items-center gap-1 text-light-700 dark:text-dark-800">
-                  <HiOutlinePaperClip className="h-4 w-4" />
                 </div>
               )}
             </div>

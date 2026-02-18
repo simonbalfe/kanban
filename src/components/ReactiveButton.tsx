@@ -2,10 +2,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 
-import type { KeyboardShortcut } from "~/providers/keyboard-shortcuts";
 import LottieIcon from "~/components/LottieIcon";
 import { useIsMobile } from "~/hooks/useMediaQuery";
-import { useKeyboardShortcut } from "~/providers/keyboard-shortcuts";
 
 const Button: React.FC<{
   href: string;
@@ -14,20 +12,17 @@ const Button: React.FC<{
   json: object;
   isCollapsed?: boolean;
   onCloseSideNav?: () => void;
-  keyboardShortcut: KeyboardShortcut;
 }> = ({
   href,
   current,
   name,
   json,
   isCollapsed = false,
-  keyboardShortcut,
   onCloseSideNav,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [index, setIndex] = useState(0);
   const isMobile = useIsMobile();
-  const { keys: shortcutKeys } = useKeyboardShortcut(keyboardShortcut);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -65,9 +60,6 @@ const Button: React.FC<{
         <LottieIcon index={index} json={json} isPlaying={isHovered} />
         <span className={twMerge(isCollapsed && "md:hidden")}>{name}</span>
       </div>
-      {!isCollapsed && (
-        <div className="hidden md:group-hover:inline-flex">{shortcutKeys}</div>
-      )}
     </Link>
   );
 };

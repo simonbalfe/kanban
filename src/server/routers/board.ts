@@ -3,7 +3,6 @@ import { z } from "zod";
 
 import * as boardRepo from "~/db/repository/board.repo";
 import * as cardRepo from "~/db/repository/card.repo";
-import * as activityRepo from "~/db/repository/cardActivity.repo";
 import * as labelRepo from "~/db/repository/label.repo";
 import * as listRepo from "~/db/repository/list.repo";
 import { colours } from "~/lib/shared/constants";
@@ -450,28 +449,11 @@ export const boardRouter = createTRPCRouter({
           });
         }
 
-        const deletedCards = await cardRepo.softDeleteAllByListIds(ctx.db, {
+        await cardRepo.softDeleteAllByListIds(ctx.db, {
           listIds,
           deletedAt,
           deletedBy: userId,
         });
-
-        if (!Array.isArray(deletedCards)) {
-          throw new TRPCError({
-            message: `Failed to delete cards`,
-            code: "INTERNAL_SERVER_ERROR",
-          });
-        }
-
-        if (deletedCards.length) {
-          const activities = deletedCards.map((card) => ({
-            type: "card.archived" as const,
-            createdBy: userId,
-            cardId: card.id,
-          }));
-
-          await activityRepo.bulkCreate(ctx.db, activities);
-        }
       }
 
       return { success: true };
