@@ -1,5 +1,4 @@
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
-import type { NextApiRequest } from "next";
 import type { OpenApiMeta } from "trpc-to-openapi";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
@@ -59,14 +58,6 @@ const getDefaultUser = async (db: dbClient): Promise<User> => {
 };
 
 export const createTRPCContext = async ({ req }: CreateNextContextOptions) => {
-  const db = createDrizzleClient();
-  const headers = new Headers(req.headers as Record<string, string>);
-  const user = await getDefaultUser(db);
-
-  return createInnerTRPCContext({ db, user, headers });
-};
-
-export const createNextApiContext = async (req: NextApiRequest) => {
   const db = createDrizzleClient();
   const headers = new Headers(req.headers as Record<string, string>);
   const user = await getDefaultUser(db);
