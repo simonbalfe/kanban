@@ -22,12 +22,10 @@ interface QueryParams {
 
 export function UpdateBoardSlugForm({
   boardPublicId,
-  workspaceSlug,
   boardSlug,
   queryParams,
 }: {
   boardPublicId: string;
-  workspaceSlug: string;
   boardSlug: string;
   queryParams: QueryParams;
 }) {
@@ -136,7 +134,7 @@ export function UpdateBoardSlugForm({
               ? t`This board URL has already been taken`
               : undefined)
           }
-          prefix={`${env("NEXT_PUBLIC_BASE_URL")}/${workspaceSlug}/`}
+          prefix={`${env("NEXT_PUBLIC_BASE_URL")}/`}
           onKeyDown={async (e) => {
             if (e.key === "Enter") {
               e.preventDefault();
@@ -154,13 +152,6 @@ export function UpdateBoardSlugForm({
       </div>
       <div className="mt-12 flex items-center justify-end border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
         <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            href="/settings/workspace"
-            onClick={closeModal}
-          >
-            {t`Edit workspace URL`}
-          </Button>
           <Button
             type="submit"
             isLoading={updateBoardSlug.isPending}

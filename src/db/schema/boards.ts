@@ -1,6 +1,5 @@
 import { relations, sql } from "drizzle-orm";
 import {
-  bigint,
   bigserial,
   index,
   pgEnum,
@@ -15,7 +14,6 @@ import {
 import { labels } from "./labels";
 import { lists } from "./lists";
 import { users } from "./users";
-import { workspaces } from "./workspaces";
 
 export const boardVisibilityStatuses = ["private", "public"] as const;
 export type BoardVisibilityStatus = (typeof boardVisibilityStatuses)[number];
@@ -45,19 +43,16 @@ export const boards = pgTable(
     deletedBy: uuid("deletedBy").references(() => users.id, {
       onDelete: "set null",
     }),
-workspaceId: bigint("workspaceId", { mode: "number" })
-      .notNull()
-      .references(() => workspaces.id, { onDelete: "cascade" }),
     visibility: boardVisibilityEnum("visibility").notNull().default("private"),
     type: boardTypeEnum("type").notNull().default("regular"),
-    sourceBoardId: bigint("sourceBoardId", { mode: "number" }),
+    sourceBoardId: bigserial("sourceBoardId", { mode: "number" }),
   },
   (table) => [
     index("board_visibility_idx").on(table.visibility),
     index("board_type_idx").on(table.type),
     index("board_source_idx").on(table.sourceBoardId),
-    uniqueIndex("unique_slug_per_workspace")
-      .on(table.workspaceId, table.slug)
+    uniqueIndex("unique_slug_per_board")
+      .on(table.slug)
       .where(sql`${table.deletedAt} IS NULL`),
   ],
 ).enableRLS();
@@ -75,10 +70,5 @@ export const boardsRelations = relations(boards, ({ one, many }) => ({
     fields: [boards.deletedBy],
     references: [users.id],
     relationName: "boardDeletedByUser",
-  }),
-workspace: one(workspaces, {
-    fields: [boards.workspaceId],
-    references: [workspaces.id],
-    relationName: "boardWorkspace",
   }),
 }));

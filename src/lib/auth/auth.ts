@@ -6,7 +6,7 @@ import type { dbClient } from "~/db/client";
 import * as schema from "~/db/schema";
 import { sendEmail } from "~/lib/email";
 
-import { createDatabaseHooks, createMiddlewareHooks } from "./hooks";
+import { createDatabaseHooks } from "./hooks";
 import { createPlugins } from "./plugins";
 import { configuredProviders } from "./providers";
 
@@ -52,7 +52,6 @@ export const initAuth = (db: dbClient) => {
     },
     plugins: createPlugins(db),
     databaseHooks: createDatabaseHooks(db),
-    hooks: createMiddlewareHooks(db),
     advanced: {
       cookiePrefix: "kan",
       database: {

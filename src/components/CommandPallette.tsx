@@ -13,30 +13,6 @@ import { useState } from "react";
 import { HiDocumentText, HiFolder, HiMagnifyingGlass } from "react-icons/hi2";
 
 import { useDebounce } from "~/hooks/useDebounce";
-import { useWorkspace } from "~/providers/workspace";
-import { api } from "~/utils/api";
-
-type SearchResult =
-  | {
-      publicId: string;
-      title: string;
-      description: string | null;
-      slug: string;
-      updatedAt: Date | null;
-      createdAt: Date;
-      type: "board";
-    }
-  | {
-      publicId: string;
-      title: string;
-      description: string | null;
-      boardPublicId: string;
-      boardName: string;
-      listName: string;
-      updatedAt: Date | null;
-      createdAt: Date;
-      type: "card";
-    };
 
 export default function CommandPallette({
   isOpen,
@@ -46,34 +22,13 @@ export default function CommandPallette({
   onClose: () => void;
 }) {
   const [query, setQuery] = useState("");
-  const { workspace } = useWorkspace();
   const router = useRouter();
 
-  // Debounce to avoid too many reqs
   const [debouncedQuery] = useDebounce(query, 300);
 
-  const {
-    data: searchResults,
-    isLoading,
-    isFetched,
-    isPlaceholderData,
-  } = api.workspace.search.useQuery(
-    {
-      workspacePublicId: workspace.publicId,
-      query: debouncedQuery,
-    },
-    {
-      enabled: Boolean(workspace.publicId && debouncedQuery.trim().length > 0),
-      placeholderData: (previousData) => previousData,
-    },
-  );
-
-  // Clear results when query is empty, otherwise show search results
-  const results =
-    debouncedQuery.trim().length === 0
-      ? []
-      : ((searchResults ?? []) as SearchResult[]);
-
+  const results: { type: "board" | "card"; publicId: string; title: string; boardName?: string; listName?: string }[] = [];
+  const isLoading = false;
+  const isPlaceholderData = false;
   const hasSearched = Boolean(debouncedQuery.trim().length > 0);
 
   return (
@@ -108,7 +63,6 @@ export default function CommandPallette({
                     if (event.key === "Enter" && results.length > 0) {
                       event.preventDefault();
 
-                      // Find the active option or fallback to first option
                       const targetOption =
                         document.querySelector(
                           '[data-headlessui-state*="active"][role="option"]',
@@ -178,7 +132,6 @@ export default function CommandPallette({
 
               {hasSearched &&
                 !isLoading &&
-                searchResults !== undefined &&
                 results.length === 0 && (
                   <div className="p-4 text-sm text-light-950 dark:text-dark-950">
                     {t`No results found for "${debouncedQuery}".`}

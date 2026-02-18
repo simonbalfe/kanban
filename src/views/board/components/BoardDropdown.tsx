@@ -7,7 +7,6 @@ import {
 } from "react-icons/hi2";
 
 import Dropdown from "~/components/Dropdown";
-import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
 
 export default function BoardDropdown({
@@ -18,7 +17,7 @@ export default function BoardDropdown({
   isLoading: boolean;
 }) {
   const { openModal } = useModal();
-  const { isAdminOrMember } = usePermissions();
+  const isAdminOrMember = true;
 
   const items = [
     ...(isTemplate && isAdminOrMember

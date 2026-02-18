@@ -109,11 +109,7 @@ export const getChecklistByPublicId = async (
         with: {
           list: {
             with: {
-              board: {
-                with: {
-                  workspace: true,
-                },
-              },
+              board: true,
             },
           },
         },
@@ -140,9 +136,7 @@ export const getChecklistItemByPublicIdWithChecklist = async (
             with: {
               list: {
                 with: {
-                  board: {
-                    with: { workspace: true },
-                  },
+                  board: true,
                 },
               },
             },

@@ -9,11 +9,8 @@ import {
   HiXMark,
 } from "react-icons/hi2";
 
-import type { NewCardInput } from "~/server/types";
 import { generateUID } from "~/lib/shared/utils";
 
-import type { WorkspaceMember } from "~/components/Editor";
-import Avatar from "~/components/Avatar";
 import Button from "~/components/Button";
 import CheckboxDropdown from "~/components/CheckboxDropdown";
 import DateSelector from "~/components/DateSelector";
@@ -25,12 +22,16 @@ import { useModalFormState } from "~/hooks/useModalFormState";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { api } from "~/utils/api";
-import { formatMemberDisplayName, getAvatarUrl } from "~/utils/helpers";
 
-type NewCardFormInput = NewCardInput & {
+interface NewCardFormInput {
+  title: string;
+  description: string;
+  listPublicId: string;
+  labelPublicIds: string[];
   isCreateAnotherEnabled: boolean;
+  position: "start" | "end";
   dueDate?: Date | null;
-};
+}
 
 interface QueryParams {
   boardPublicId: string;
@@ -65,7 +66,6 @@ export function NewCardForm({
       description: "",
       listPublicId,
       labelPublicIds: [],
-      memberPublicIds: [],
       isCreateAnotherEnabled: false,
       position: "start",
       dueDate: null,
@@ -79,7 +79,6 @@ export function NewCardForm({
     });
 
   const labelPublicIds = watch("labelPublicIds") || [];
-  const memberPublicIds = watch("memberPublicIds") || [];
   const isCreateAnotherEnabled = watch("isCreateAnotherEnabled");
   const position = watch("position");
   const title = watch("title");
@@ -142,22 +141,14 @@ export function NewCardForm({
               publicId: `PLACEHOLDER_${generateUID()}`,
               title: args.title,
               listId: 2,
-              description: "",
+              description: null,
               dueDate: args.dueDate ?? null,
               labels: oldBoard.labels.filter((label) =>
                 args.labelPublicIds.includes(label.publicId),
               ),
-              members:
-                oldBoard.workspace.members
-                  .filter((member) =>
-                    args.memberPublicIds.includes(member.publicId),
-                  )
-                  .map((member) => ({
-                    ...member,
-                    deletedAt: null,
-                  })) ?? [],
-              _filteredLabels: labelPublicIds.map((id) => ({ publicId: id })),
-              _filteredMembers: memberPublicIds.map((id) => ({ publicId: id })),
+              comments: [] as typeof list.cards[number]["comments"],
+              checklists: [] as typeof list.cards[number]["checklists"],
+              attachments: [] as typeof list.cards[number]["attachments"],
               index: position === "start" ? 0 : list.cards.length,
             };
 
@@ -197,7 +188,6 @@ export function NewCardForm({
           description: "",
           listPublicId: watch("listPublicId"),
           labelPublicIds: [],
-          memberPublicIds: [],
           isCreateAnotherEnabled,
           position,
           dueDate: null,
@@ -230,33 +220,12 @@ export function NewCardForm({
       selected: list.publicId === watch("listPublicId"),
     })) ?? [];
 
-  const formattedMembers =
-    boardData?.workspace.members.map((member) => ({
-      key: member.publicId,
-      value: formatMemberDisplayName(
-        member.user?.name ?? null,
-        member.user?.email ?? member.email,
-      ),
-      selected: memberPublicIds.includes(member.publicId),
-      leftIcon: (
-        <Avatar
-          size="xs"
-          name={member.user?.name ?? ""}
-          imageUrl={
-            member.user?.image ? getAvatarUrl(member.user.image) : undefined
-          }
-          email={member.user?.email ?? member.email}
-        />
-      ),
-    })) ?? [];
-
   const onSubmit = (data: NewCardFormInput) => {
     createCard.mutate({
       title: data.title,
       description: data.description,
       listPublicId: data.listPublicId,
       labelPublicIds: data.labelPublicIds,
-      memberPublicIds: data.memberPublicIds,
       position: data.position,
       dueDate: data.dueDate ?? null,
     });
@@ -268,17 +237,6 @@ export function NewCardForm({
 
   const handleSelectList = (listPublicId: string): void => {
     setValue("listPublicId", listPublicId);
-  };
-
-  const handleSelectMembers = (memberPublicId: string): void => {
-    const currentIndex = memberPublicIds.indexOf(memberPublicId);
-    if (currentIndex === -1) {
-      setValue("memberPublicIds", [...memberPublicIds, memberPublicId]);
-    } else {
-      const newMemberPublicIds = [...memberPublicIds];
-      newMemberPublicIds.splice(currentIndex, 1);
-      setValue("memberPublicIds", newMemberPublicIds);
-    }
   };
 
   const handleSelectLabels = (labelPublicId: string): void => {
@@ -334,21 +292,7 @@ export function NewCardForm({
                 setValue("description", value);
                 saveFormState({ ...formState, description: value });
               }}
-              workspaceMembers={
-                boardData?.workspace.members.map(
-                  (member): WorkspaceMember => ({
-                    publicId: member.publicId,
-                    email: member.email,
-                    user: member.user
-                      ? {
-                          id: member.publicId,
-                          name: member.user.name,
-                          image: member.user.image ?? null,
-                        }
-                      : null,
-                  }),
-                ) ?? []
-              }
+              workspaceMembers={[]}
             />
           </div>
         </div>
@@ -363,46 +307,6 @@ export function NewCardForm({
               </div>
             </CheckboxDropdown>
           </div>
-          {!isTemplate && (
-            <div className="w-fit">
-              <CheckboxDropdown
-                items={formattedMembers}
-                handleSelect={(_groupKey, item) =>
-                  handleSelectMembers(item.key)
-                }
-              >
-                <div className="flex h-full w-full items-center rounded-[5px] border-[1px] border-light-600 bg-light-200 px-2 py-1 text-left text-xs text-light-800 hover:bg-light-300 dark:border-dark-600 dark:bg-dark-400 dark:text-dark-1000 dark:hover:bg-dark-500">
-                  {!memberPublicIds.length ? (
-                    t`Members`
-                  ) : (
-                    <div className="flex -space-x-1 overflow-hidden">
-                      {memberPublicIds.map((memberPublicId) => {
-                        const member = formattedMembers.find(
-                          (member) => member.key === memberPublicId,
-                        );
-
-                        return (
-                          <span
-                            key={member?.key}
-                            className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-gray-400 ring-1 ring-light-200 dark:ring-dark-500"
-                          >
-                            <span className="text-[8px] font-medium leading-none text-white">
-                              {member?.value
-                                .split(" ")
-                                .map((namePart) =>
-                                  namePart.charAt(0).toUpperCase(),
-                                )
-                                .join("")}
-                            </span>
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </CheckboxDropdown>
-            </div>
-          )}
           <div className="w-fit">
             <CheckboxDropdown
               items={formattedLabels}

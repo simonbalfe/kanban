@@ -1,9 +1,7 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { createAuthMiddleware } from "better-auth/api";
 import { env } from "next-runtime-env";
 
 import type { dbClient } from "~/db/client";
-import * as memberRepo from "~/db/repository/member.repo";
 import * as userRepo from "~/db/repository/user.repo";
 import { createS3Client } from "~/lib/shared";
 
@@ -25,19 +23,8 @@ export function createDatabaseHooks(db: dbClient) {
       create: {
         async before(user: BetterAuthUser, _context: unknown) {
           if (env("NEXT_PUBLIC_DISABLE_SIGN_UP")?.toLowerCase() === "true") {
-            const pendingInvitation = await memberRepo.getByEmailAndStatus(
-              db,
-              user.email,
-              "invited",
-            );
-
-            if (!pendingInvitation) {
-              return Promise.resolve(false);
-            }
-
-            // Fall through to any additional checks below
+            return Promise.resolve(false);
           }
-          // Enforce allowed domains (OIDC/social) if configured
           const allowed = process.env.BETTER_AUTH_ALLOWED_DOMAINS?.split(",")
             .map((d) => d.trim().toLowerCase())
             .filter(Boolean);
@@ -88,31 +75,5 @@ export function createDatabaseHooks(db: dbClient) {
         },
       },
     },
-  };
-}
-
-export function createMiddlewareHooks(db: dbClient) {
-  return {
-    after: createAuthMiddleware(async (ctx) => {
-      if (
-        ctx.path === "/magic-link/verify" &&
-        (ctx.query?.callbackURL as string | undefined)?.includes("type=invite")
-      ) {
-        const userId = ctx.context.newSession?.session.userId;
-        const callbackURL = ctx.query?.callbackURL as string | undefined;
-        const memberPublicId = callbackURL?.split("memberPublicId=")[1];
-
-        if (userId && memberPublicId) {
-          const member = await memberRepo.getByPublicId(db, memberPublicId);
-
-          if (member?.id) {
-            await memberRepo.acceptInvite(db, {
-              memberId: member.id,
-              userId,
-            });
-          }
-        }
-      }
-    }),
   };
 }

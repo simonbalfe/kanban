@@ -16,12 +16,10 @@ import {
   cardAttachments,
   cards,
   cardsToLabels,
-  cardToWorkspaceMembers,
   checklistItems,
   checklists,
   labels,
   lists,
-  workspaceMembers,
 } from "~/db/schema";
 import { generateUID } from "~/lib/shared/utils";
 
@@ -117,7 +115,6 @@ export const create = async (
       .having(gt(countExpr, 1));
 
     if (duplicateIndices.length > 0) {
-      // Compact indices for this list to sequential values (0..n-1) preserving order
       await tx.execute(sql`
         WITH ordered AS (
           SELECT id, ROW_NUMBER() OVER (ORDER BY "index", id) - 1 AS new_index
@@ -130,7 +127,6 @@ export const create = async (
         WHERE c.id = o.id;
       `);
 
-      // Last resort: verify fix; rollback if duplicates persist
       const postFixDupes = await tx
         .select({ index: cards.index, count: countExpr })
         .from(cards)
@@ -159,21 +155,6 @@ export const bulkCreateCardLabelRelationships = async (
   const result = await db
     .insert(cardsToLabels)
     .values(cardLabelRelationshipInput)
-    .returning();
-
-  return result;
-};
-
-export const bulkCreateCardWorkspaceMemberRelationships = async (
-  db: dbClient,
-  cardWorkspaceMemberRelationshipInput: {
-    cardId: number;
-    workspaceMemberId: number;
-  }[],
-) => {
-  const result = await db
-    .insert(cardToWorkspaceMembers)
-    .values(cardWorkspaceMemberRelationshipInput)
     .returning();
 
   return result;
@@ -271,7 +252,6 @@ export const bulkCreate = async (
   if (cardInput.length === 0) return [];
 
   return db.transaction(async (tx) => {
-    // Group incoming cards by list to compute safe, sequential indices per list
     const byList = new Map<number, typeof cardInput>();
     for (const item of cardInput) {
       const arr = byList.get(item.listId) ?? [];
@@ -288,7 +268,6 @@ export const bulkCreate = async (
       index: number;
     }[] = [];
 
-    // For each list, append incoming cards after current max index, preserving incoming order
     for (const [listId, items] of byList.entries()) {
       const last = await tx.query.cards.findFirst({
         columns: { index: true },
@@ -315,7 +294,6 @@ export const bulkCreate = async (
       .values(allValuesToInsert)
       .returning({ id: cards.id });
 
-    // Post-insert: compact per list if duplicates exist; then verify
     const countExpr = sql<number>`COUNT(*)`.mapWith(Number);
     for (const listId of byList.keys()) {
       const duplicateIndices = await tx
@@ -382,33 +360,6 @@ export const bulkCreateCardLabelRelationship = async (
     .returning();
 
   return result;
-};
-
-export const getCardMemberRelationship = (
-  db: dbClient,
-  args: { cardId: number; memberId: number },
-) => {
-  return db.query.cardToWorkspaceMembers.findFirst({
-    where: and(
-      eq(cardToWorkspaceMembers.cardId, args.cardId),
-      eq(cardToWorkspaceMembers.workspaceMemberId, args.memberId),
-    ),
-  });
-};
-
-export const createCardMemberRelationship = async (
-  db: dbClient,
-  cardMemberRelationshipInput: { cardId: number; memberId: number },
-) => {
-  const [result] = await db
-    .insert(cardToWorkspaceMembers)
-    .values({
-      cardId: cardMemberRelationshipInput.cardId,
-      workspaceMemberId: cardMemberRelationshipInput.memberId,
-    })
-    .returning();
-
-  return { success: !!result };
 };
 
 export const getWithListAndMembersByPublicId = async (
@@ -496,54 +447,7 @@ export const getWithListAndMembersByPublicId = async (
                 where: isNull(lists.deletedAt),
                 orderBy: asc(lists.index),
               },
-              workspace: {
-                columns: {
-                  publicId: true,
-                },
-                with: {
-                  members: {
-                    columns: {
-                      publicId: true,
-                      email: true,
-                      status: true,
-                    },
-                    with: {
-                      user: {
-                        columns: {
-                          id: true,
-                          name: true,
-                          email: true,
-                          image: true,
-                        },
-                      },
-                    },
-                    where: isNull(workspaceMembers.deletedAt),
-                  },
-                },
-              },
             },
-          },
-        },
-        // https://github.com/drizzle-team/drizzle-orm/issues/2903
-        // where: isNull(lists.deletedAt),
-      },
-      members: {
-        with: {
-          member: {
-            columns: {
-              publicId: true,
-              email: true,
-            },
-            with: {
-              user: {
-                columns: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-            // https://github.com/drizzle-team/drizzle-orm/issues/2903
-            // where: isNull(workspaceMembers.deletedAt),
           },
         },
       },
@@ -582,20 +486,6 @@ export const getWithListAndMembersByPublicId = async (
               name: true,
             },
           },
-          member: {
-            columns: {
-              publicId: true,
-            },
-            with: {
-              user: {
-                columns: {
-                  id: true,
-                  name: true,
-                  email: true,
-                },
-              },
-            },
-          },
           user: {
             columns: {
               id: true,
@@ -611,8 +501,6 @@ export const getWithListAndMembersByPublicId = async (
               updatedAt: true,
               deletedAt: true,
             },
-            // https://github.com/drizzle-team/drizzle-orm/issues/2903
-            // where: isNull(comments.deletedAt),
           },
         },
       },
@@ -625,7 +513,6 @@ export const getWithListAndMembersByPublicId = async (
   const formattedResult = {
     ...card,
     labels: card.labels.map((label) => label.label),
-    members: card.members.map((member) => member.member),
     activities: card.activities.filter(
       (activity) => !activity.comment?.deletedAt,
     ),
@@ -754,7 +641,6 @@ export const reorder = async (
       .having(gt(countExpr, 1));
 
     if (duplicateIndices.length > 0) {
-      // Auto-heal by compacting indices for the affected list(s)
       const affectedListIds = [currentList.id, newList?.id].filter(
         (id): id is number => id !== undefined,
       );
@@ -786,7 +672,6 @@ export const reorder = async (
         `);
       }
 
-      // Verify fix and rollback if necessary
       const postFixDupes = await tx
         .select({ index: cards.index, count: countExpr })
         .from(cards)
@@ -887,23 +772,6 @@ export const softDeleteAllByListIds = async (
   return updatedCards;
 };
 
-export const hardDeleteCardMemberRelationship = async (
-  db: dbClient,
-  args: { cardId: number; memberId: number },
-) => {
-  const [result] = await db
-    .delete(cardToWorkspaceMembers)
-    .where(
-      and(
-        eq(cardToWorkspaceMembers.cardId, args.cardId),
-        eq(cardToWorkspaceMembers.workspaceMemberId, args.memberId),
-      ),
-    )
-    .returning();
-
-  return { success: !!result };
-};
-
 export const hardDeleteCardLabelRelationship = async (
   db: dbClient,
   args: { cardId: number; labelId: number },
@@ -933,7 +801,7 @@ export const hardDeleteAllCardLabelRelationships = async (
   return result;
 };
 
-export const getWorkspaceAndCardIdByCardPublicId = async (
+export const getCardIdByPublicId = async (
   db: dbClient,
   cardPublicId: string,
 ) => {
@@ -946,7 +814,6 @@ export const getWorkspaceAndCardIdByCardPublicId = async (
         with: {
           board: {
             columns: {
-              workspaceId: true,
               visibility: true,
             },
           },
@@ -959,8 +826,7 @@ export const getWorkspaceAndCardIdByCardPublicId = async (
     ? {
         id: result.id,
         createdBy: result.createdBy,
-        workspaceId: result.list.board.workspaceId,
-        workspaceVisibility: result.list.board.visibility,
+        boardVisibility: result.list.board.visibility,
       }
     : null;
 };

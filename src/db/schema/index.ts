@@ -5,4 +5,3 @@ export * from "./checklists";
 export * from "./labels";
 export * from "./lists";
 export * from "./users";
-export * from "./workspaces";

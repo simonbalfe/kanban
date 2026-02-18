@@ -1,5 +1,5 @@
 import { useTheme } from "next-themes";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   TbLayoutSidebarLeftCollapse,
   TbLayoutSidebarLeftExpand,
@@ -10,8 +10,6 @@ import {
 import { authClient } from "~/lib/auth/client";
 
 import { useClickOutside } from "~/hooks/useClickOutside";
-import { useModal } from "~/providers/modal";
-import { useWorkspace, WorkspaceProvider } from "~/providers/workspace";
 import { api } from "~/utils/api";
 import SideNavigation from "./SideNavigation";
 
@@ -27,11 +25,9 @@ export function getDashboardLayout(
   hasRightPanel = false,
 ) {
   return (
-    <WorkspaceProvider>
-      <Dashboard rightPanel={rightPanel} hasRightPanel={hasRightPanel}>
-        {page}
-      </Dashboard>
-    </WorkspaceProvider>
+    <Dashboard rightPanel={rightPanel} hasRightPanel={hasRightPanel}>
+      {page}
+    </Dashboard>
   );
 }
 
@@ -41,8 +37,6 @@ export default function Dashboard({
   hasRightPanel = false,
 }: DashboardProps) {
   const { resolvedTheme } = useTheme();
-  const { openModal } = useModal();
-  const { availableWorkspaces, hasLoaded } = useWorkspace();
 
   const { data: session, isPending: sessionLoading } = authClient.useSession();
   const { data: user, isLoading: userLoading } = api.user.getUser.useQuery(
@@ -95,12 +89,6 @@ export default function Dashboard({
       setIsRightPanelOpen(false);
     }
   });
-
-  useEffect(() => {
-    if (hasLoaded && availableWorkspaces.length === 0) {
-      openModal("NEW_WORKSPACE", undefined, undefined, false);
-    }
-  }, [hasLoaded, availableWorkspaces.length, openModal]);
 
   const isDarkMode = resolvedTheme === "dark";
 

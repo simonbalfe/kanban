@@ -13,9 +13,7 @@ import * as cardCommentRepo from "~/db/repository/cardComment.repo";
 import * as checklistRepo from "~/db/repository/checklist.repo";
 import * as labelRepo from "~/db/repository/label.repo";
 import * as listRepo from "~/db/repository/list.repo";
-import * as memberRepo from "~/db/repository/member.repo";
 import * as userRepo from "~/db/repository/user.repo";
-import * as workspaceRepo from "~/db/repository/workspace.repo";
 
 import {
   adminProtectedProcedure,
@@ -121,7 +119,6 @@ export const healthRouter = createTRPCRouter({
     .output(
       z.object({
         users: z.number(),
-        workspaces: z.number(),
         boards: z.number(),
         lists: z.number(),
         cards: z.number(),
@@ -131,15 +128,12 @@ export const healthRouter = createTRPCRouter({
         labels: z.number(),
         checklists: z.number(),
         checklistItems: z.number(),
-        activeMembers: z.number(),
       }),
     )
     .query(async ({ ctx }) => {
       try {
-        // Execute all count queries in parallel
         const [
           usersCount,
-          workspacesCount,
           boardsCount,
           listsCount,
           cardsCount,
@@ -148,12 +142,9 @@ export const healthRouter = createTRPCRouter({
           checklistsCount,
           labelsCount,
           cardAttachmentsCount,
-          cardActivitiesCount,
-          activeMembersCount,
           cardActivityLogsCount,
         ] = await Promise.all([
           userRepo.getCount(ctx.db),
-          workspaceRepo.getCount(ctx.db),
           boardRepo.getCount(ctx.db),
           listRepo.getCount(ctx.db),
           cardRepo.getCount(ctx.db),
@@ -163,13 +154,10 @@ export const healthRouter = createTRPCRouter({
           labelRepo.getCount(ctx.db),
           cardAttachmentRepo.getCount(ctx.db),
           cardActivityRepo.getCount(ctx.db),
-          memberRepo.getActiveCount(ctx.db),
-          cardActivityRepo.getCount(ctx.db),
         ]);
 
         return {
           users: usersCount,
-          workspaces: workspacesCount,
           boards: boardsCount,
           lists: listsCount,
           cards: cardsCount,
@@ -178,8 +166,6 @@ export const healthRouter = createTRPCRouter({
           checklists: checklistsCount,
           labels: labelsCount,
           cardAttachments: cardAttachmentsCount,
-          cardActivities: cardActivitiesCount,
-          activeMembers: activeMembersCount,
           cardActivityLogs: cardActivityLogsCount,
         };
       } catch (error) {

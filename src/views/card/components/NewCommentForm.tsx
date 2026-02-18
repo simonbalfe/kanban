@@ -3,9 +3,7 @@ import { useForm } from "react-hook-form";
 import { HiOutlineArrowUp } from "react-icons/hi2";
 
 import Editor from "~/components/Editor";
-import type { WorkspaceMember } from "~/components/Editor";
 import LoadingSpinner from "~/components/LoadingSpinner";
-import { usePermissions } from "~/hooks/usePermissions";
 import { usePopup } from "~/providers/popup";
 import { api } from "~/utils/api";
 import { invalidateCard } from "~/utils/cardInvalidation";
@@ -16,14 +14,12 @@ interface FormValues {
 
 const NewCommentForm = ({
   cardPublicId,
-  workspaceMembers,
 }: {
   cardPublicId: string;
-  workspaceMembers: WorkspaceMember[];
 }) => {
   const utils = api.useUtils();
   const { showPopup } = usePopup();
-  const { isAdminOrMember } = usePermissions();
+  const isAdminOrMember = true;
   const { handleSubmit, setValue, watch, reset } = useForm<FormValues>({
     values: {
       comment: "",
@@ -63,7 +59,7 @@ const NewCommentForm = ({
       <Editor
         content={watch("comment")}
         onChange={(value) => setValue("comment", value)}
-        workspaceMembers={workspaceMembers}
+        workspaceMembers={[]}
         placeholder={t`Add comment... (type '/' to open commands or '@' to mention)`}
         disableHeadings={true}
       />

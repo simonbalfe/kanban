@@ -9,7 +9,6 @@ import {
 import { authClient } from "~/lib/auth/client";
 
 import Dropdown from "~/components/Dropdown";
-import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 
@@ -26,7 +25,7 @@ export default function CardDropdown({
 }) {
   const { openModal } = useModal();
   const { showPopup } = usePopup();
-  const { isAdminOrMember } = usePermissions();
+  const isAdminOrMember = true;
   const { data: session } = authClient.useSession();
   const isCreator = cardCreatedBy && session?.user.id === cardCreatedBy;
 

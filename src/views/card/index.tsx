@@ -3,25 +3,19 @@ import { useRouter } from "next/router";
 import { t } from "@lingui/core/macro";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { IoChevronForwardSharp } from "react-icons/io5";
 import { HiXMark } from "react-icons/hi2";
 
 import { authClient } from "~/lib/auth/client";
 
-import Avatar from "~/components/Avatar";
 import Editor from "~/components/Editor";
 import { LabelForm } from "~/components/LabelForm";
 import LabelIcon from "~/components/LabelIcon";
 import Modal from "~/components/modal";
-import { NewWorkspaceForm } from "~/components/NewWorkspaceForm";
 import { PageHead } from "~/components/PageHead";
-import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
-import { useWorkspace } from "~/providers/workspace";
 import { api } from "~/utils/api";
 import { invalidateCard } from "~/utils/cardInvalidation";
-import { formatMemberDisplayName, getAvatarUrl } from "~/utils/helpers";
 import { DeleteLabelConfirmation } from "../../components/DeleteLabelConfirmation";
 import ActivityList from "./components/ActivityList";
 import { AttachmentThumbnails } from "./components/AttachmentThumbnails";
@@ -34,7 +28,6 @@ import Dropdown from "./components/Dropdown";
 import { DueDateSelector } from "./components/DueDateSelector";
 import LabelSelector from "./components/LabelSelector";
 import ListSelector from "./components/ListSelector";
-import MemberSelector from "./components/MemberSelector";
 import { NewChecklistForm } from "./components/NewChecklistForm";
 import NewCommentForm from "./components/NewCommentForm";
 
@@ -46,7 +39,7 @@ interface FormValues {
 
 export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
   const router = useRouter();
-  const { isAdminOrMember } = usePermissions();
+  const isAdminOrMember = true;
   const { data: session } = authClient.useSession();
   const cardId = Array.isArray(router.query.cardId)
     ? router.query.cardId[0]
@@ -62,9 +55,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
 
   const board = card?.list.board;
   const labels = board?.labels;
-  const workspaceMembers = board?.workspace.members;
   const selectedLabels = card?.labels;
-  const selectedMembers = card?.members;
 
   const formattedLabels =
     labels?.map((label) => {
@@ -87,35 +78,6 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
       selected: list.publicId === card?.list.publicId,
     })) ?? [];
 
-  const formattedMembers =
-    workspaceMembers?.map((member) => {
-      const isSelected = selectedMembers?.some(
-        (assignedMember) => assignedMember.publicId === member.publicId,
-      );
-
-      return {
-        key: member.publicId,
-        value: formatMemberDisplayName(
-          member.user?.name ?? null,
-          member.user?.email ?? member.email,
-        ),
-        imageUrl: member.user?.image
-          ? getAvatarUrl(member.user.image)
-          : undefined,
-        selected: isSelected ?? false,
-        leftIcon: (
-          <Avatar
-            size="xs"
-            name={member.user?.name ?? ""}
-            imageUrl={
-              member.user?.image ? getAvatarUrl(member.user.image) : undefined
-            }
-            email={member.user?.email ?? member.email}
-          />
-        ),
-      };
-    }) ?? [];
-
   return (
     <div className="h-full w-[360px] border-l-[1px] border-light-300 bg-light-50 p-8 text-light-900 dark:border-dark-300 dark:bg-dark-50 dark:text-dark-900">
       <div className="mb-4 flex w-full flex-row pt-[18px]">
@@ -136,17 +98,6 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
           disabled={!canEdit}
         />
       </div>
-      {!isTemplate && (
-        <div className="mb-4 flex w-full flex-row">
-          <p className="my-2 mb-2 w-[100px] text-sm font-medium">{t`Members`}</p>
-          <MemberSelector
-            cardPublicId={cardId ?? ""}
-            members={formattedMembers}
-            isLoading={!card}
-            disabled={!canEdit}
-          />
-        </div>
-      )}
       <div className="mb-4 flex w-full flex-row">
         <p className="my-2 mb-2 w-[100px] text-sm font-medium">{t`Due date`}</p>
         <DueDateSelector
@@ -172,8 +123,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
     modalStates,
   } = useModal();
   const { showPopup } = usePopup();
-  const { workspace } = useWorkspace();
-  const { isAdminOrMember } = usePermissions();
+  const isAdminOrMember = true;
   const { data: session } = authClient.useSession();
   const [activeChecklistForm, setActiveChecklistForm] = useState<string | null>(
     null,
@@ -196,23 +146,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
   };
 
   const board = card?.list.board;
-  const workspaceMembers = board?.workspace.members;
   const boardId = board?.publicId;
-
-  const editorWorkspaceMembers =
-    workspaceMembers
-      ?.filter((member) => member.email)
-      .map((member) => ({
-        publicId: member.publicId,
-        email: member.email,
-        user: member.user
-          ? {
-              id: member.user.id,
-              name: member.user.name ?? null,
-              image: member.user.image ?? null,
-            }
-          : null,
-      })) ?? [];
 
   const updateCard = api.card.update.useMutation({
     onError: () => {
@@ -307,7 +241,6 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
         title={t`${card?.title ?? t`Card`} | ${board?.name ?? t`Board`}`}
       />
       <div className="flex h-full flex-1 flex-col overflow-hidden">
-        {/* Full-width top strip with board link and dropdown */}
         <div className="flex w-full items-center justify-between border-b-[1px] border-light-300 bg-light-50 px-8 py-2 dark:border-dark-300 dark:bg-dark-50">
           {!card && isLoading && (
             <div className="flex space-x-2">
@@ -317,13 +250,6 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
           {card && (
             <>
               <div className="flex items-center gap-1">
-                <Link
-                  className="whitespace-nowrapleading-[1.5rem] text-sm font-bold text-light-900 dark:text-dark-950"
-                  href={`${isTemplate ? "/templates" : "/boards"}`}
-                >
-                  {workspace.name}
-                </Link>
-                <IoChevronForwardSharp className="h-[10px] w-[10px] text-light-900 dark:text-dark-900" />
                 <Link
                   className="whitespace-nowrap text-sm font-bold leading-[1.5rem] text-light-900 dark:text-dark-950"
                   href={`${isTemplate ? "/templates" : "/boards"}/${board?.publicId}`}
@@ -409,7 +335,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                           onBlur={
                             canEdit ? () => handleSubmit(onSubmit)() : undefined
                           }
-                          workspaceMembers={workspaceMembers ?? []}
+                          workspaceMembers={[]}
                           readOnly={!canEdit}
                         />
                       </div>
@@ -448,14 +374,13 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                       <ActivityList
                         cardPublicId={cardId}
                         isLoading={!card}
-                        isAdmin={workspace.role === "admin"}
+                        isAdmin={true}
                       />
                     </div>
                     {!isTemplate && (
                       <div className="mt-6">
                         <NewCommentForm
                           cardPublicId={cardId}
-                          workspaceMembers={editorWorkspaceMembers}
                         />
                       </div>
                     )}
@@ -513,13 +438,6 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
               cardPublicId={cardId}
               commentPublicId={entityId}
             />
-          </Modal>
-
-          <Modal
-            modalSize="sm"
-            isVisible={isOpen && modalContentType === "NEW_WORKSPACE"}
-          >
-            <NewWorkspaceForm />
           </Modal>
 
           <Modal

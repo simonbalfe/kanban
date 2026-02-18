@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { Upload } from "@aws-sdk/lib-storage";
 
 import { createNextApiContext } from "~/server/trpc";
-import { assertMember } from "~/server/utils/permissions";
 import { withRateLimit } from "~/server/utils/rateLimit";
 import * as cardRepo from "~/db/repository/card.repo";
 import * as cardActivityRepo from "~/db/repository/cardActivity.repo";
@@ -11,8 +10,7 @@ import { createS3Client, generateUID } from "~/lib/shared/utils";
 
 import { env } from "~/env";
 
-// FIXME: Respect the environment variable: NEXT_API_BODY_SIZE_LIMIT
-const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
+const MAX_SIZE_BYTES = 50 * 1024 * 1024;
 
 export const config = {
   api: {
@@ -69,8 +67,7 @@ export default withRateLimit(
         .replace(/[^a-zA-Z0-9._-]/g, "_")
         .substring(0, 200);
 
-      // Get card and check permissions
-      const card = await cardRepo.getWorkspaceAndCardIdByCardPublicId(
+      const card = await cardRepo.getCardIdByPublicId(
         db,
         cardPublicId,
       );
@@ -79,14 +76,7 @@ export default withRateLimit(
         return res.status(404).json({ error: "Card not found" });
       }
 
-      // Check if user has permission to edit the card
-      try {
-        await assertMember(db, user.id, card.workspaceId);
-      } catch {
-        return res.status(403).json({ error: "Permission denied" });
-      }
-
-      const s3Key = `${card.workspaceId}/${cardPublicId}/${generateUID()}-${sanitizedFilename}`;
+      const s3Key = `${cardPublicId}/${generateUID()}-${sanitizedFilename}`;
 
       const client = createS3Client();
 
@@ -104,7 +94,6 @@ export default withRateLimit(
 
       await upload.done();
 
-      // Create attachment record and log activity
       const attachment = await cardAttachmentRepo.create(db, {
         cardId: card.id,
         filename: sanitizedFilename,

@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { HiXMark } from "react-icons/hi2";
 
-import type { NewListInput } from "~/server/types";
 import { generateUID } from "~/lib/shared/utils";
 
 import Button from "~/components/Button";
@@ -13,9 +12,11 @@ import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { api } from "~/utils/api";
 
-type NewListFormInput = NewListInput & {
+interface NewListFormInput {
+  name: string;
+  boardPublicId: string;
   isCreateAnotherEnabled: boolean;
-};
+}
 
 interface QueryParams {
   boardPublicId: string;
@@ -91,7 +92,7 @@ export function NewListForm({
     if (nameElement) nameElement.focus();
   }, []);
 
-  const onSubmit = (data: NewListInput) => {
+  const onSubmit = (data: NewListFormInput) => {
     const isCreateAnotherEnabled = watch("isCreateAnotherEnabled");
     if (!isCreateAnotherEnabled) closeModal();
     reset({

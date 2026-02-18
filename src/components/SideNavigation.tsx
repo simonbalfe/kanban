@@ -13,16 +13,12 @@ import { twMerge } from "tailwind-merge";
 import type { KeyboardShortcut } from "~/providers/keyboard-shortcuts";
 import boardsIconDark from "~/assets/boards-dark.json";
 import boardsIconLight from "~/assets/boards-light.json";
-import membersIconDark from "~/assets/members-dark.json";
-import membersIconLight from "~/assets/members-light.json";
 import settingsIconDark from "~/assets/settings-dark.json";
 import settingsIconLight from "~/assets/settings-light.json";
 import templatesIconDark from "~/assets/templates-dark.json";
 import templatesIconLight from "~/assets/templates-light.json";
 import ReactiveButton from "~/components/ReactiveButton";
 import UserMenu from "~/components/UserMenu";
-import WorkspaceMenu from "~/components/WorkspaceMenu";
-import { useWorkspace } from "~/providers/workspace";
 
 interface SideNavigationProps {
   user: UserType;
@@ -42,7 +38,6 @@ export default function SideNavigation({
   onCloseSideNav,
 }: SideNavigationProps) {
   const router = useRouter();
-  const { workspace } = useWorkspace();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isInitialised, setIsInitialised] = useState(false);
 
@@ -97,18 +92,6 @@ export default function SideNavigation({
         action: () => router.push("/templates"),
         group: "NAVIGATION",
         description: t`Go to templates`,
-      },
-    },
-    {
-      name: t`Members`,
-      href: "/members",
-      icon: isDarkMode ? membersIconDark : membersIconLight,
-      keyboardShortcut: {
-        type: "SEQUENCE",
-        strokes: [{ key: "G" }, { key: "M" }],
-        action: () => router.push("/members"),
-        group: "NAVIGATION",
-        description: t`Go to members`,
       },
     },
     {
@@ -168,7 +151,6 @@ export default function SideNavigation({
           </div>
           <div className="mx-1 mb-4 hidden w-auto border-b border-light-300 dark:border-dark-400 md:block" />
 
-          <WorkspaceMenu isCollapsed={isCollapsed} />
           <ul role="list" className="space-y-1">
             {navigation.map((item) => (
               <li key={item.name}>

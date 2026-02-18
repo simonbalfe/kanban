@@ -13,8 +13,6 @@ import {
   HiOutlinePlus,
   HiOutlineTag,
   HiOutlineTrash,
-  HiOutlineUserMinus,
-  HiOutlineUserPlus,
 } from "react-icons/hi2";
 
 import type {
@@ -127,8 +125,6 @@ const getActivityText = ({
     "card.updated.list": t`moved the card to another list`,
     "card.updated.label.added": t`added a label to the card`,
     "card.updated.label.removed": t`removed a label from the card`,
-    "card.updated.member.added": t`added a member to the card`,
-    "card.updated.member.removed": t`removed a member from the card`,
     "card.updated.checklist.added": t`added a checklist`,
     "card.updated.checklist.renamed": t`renamed a checklist`,
     "card.updated.checklist.deleted": t`deleted a checklist`,
@@ -161,28 +157,6 @@ const getActivityText = ({
         moved the card from <TextHighlight>{truncate(fromList)}</TextHighlight>{" "}
         to
         <TextHighlight>{truncate(toList)}</TextHighlight>
-      </Trans>
-    );
-  }
-
-  if (type === "card.updated.member.added" && displayName) {
-    if (isSelf) return <Trans>self-assigned the card</Trans>;
-
-    return (
-      <Trans>
-        assigned <TextHighlight>{truncate(displayName)}</TextHighlight> to the
-        card
-      </Trans>
-    );
-  }
-
-  if (type === "card.updated.member.removed" && displayName) {
-    if (isSelf) return <Trans>unassigned themselves from the card</Trans>;
-
-    return (
-      <Trans>
-        unassigned <TextHighlight>{truncate(displayName)}</TextHighlight> from
-        the card
       </Trans>
     );
   }
@@ -334,8 +308,6 @@ const ACTIVITY_ICON_MAP: Partial<Record<ActivityType, React.ReactNode | null>> =
     "card.updated.description": <HiOutlinePencil />,
     "card.updated.label.added": <HiOutlineTag />,
     "card.updated.label.removed": <HiOutlineTag />,
-    "card.updated.member.added": <HiOutlineUserPlus />,
-    "card.updated.member.removed": <HiOutlineUserMinus />,
     "card.updated.checklist.added": <HiOutlinePlus />,
     "card.updated.checklist.renamed": <HiOutlinePencil />,
     "card.updated.checklist.deleted": <HiOutlineTrash />,
@@ -497,9 +469,9 @@ const ActivityList = ({
           toTitle: activity.toTitle,
           fromList: activity.fromList?.name ?? null,
           toList: activity.toList?.name ?? null,
-          memberName: activity.member?.user?.name ?? null,
-          memberEmail: activity.member?.user?.email ?? null,
-          isSelf: activity.member?.user?.id === sessionData?.user.id,
+          memberName: activity.user?.name ?? null,
+          memberEmail: activity.user?.email ?? null,
+          isSelf: activity.user?.id === sessionData?.user.id,
           label: activity.label?.name ?? null,
           fromTitle: activity.fromTitle ?? null,
           fromDueDate: activity.fromDueDate ?? null,
@@ -525,7 +497,6 @@ const ActivityList = ({
               comment={activity.comment?.comment}
               isEdited={!!activity.comment?.updatedAt}
               isAuthor={activity.comment?.createdBy === sessionData?.user.id}
-              isAdmin={isAdmin ?? false}
               isViewOnly={!!isViewOnly}
             />
           );

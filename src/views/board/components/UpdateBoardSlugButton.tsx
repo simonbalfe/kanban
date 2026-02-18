@@ -16,18 +16,12 @@ const pathSeparator = (
 
 const UpdateBoardSlugButton = ({
   handleOnClick,
-  workspaceSlug,
-  boardSlug,
   boardPublicId,
-  visibility,
   isLoading,
   canEdit,
 }: {
   handleOnClick: () => void;
-  workspaceSlug: string;
-  boardSlug: string;
   boardPublicId: string;
-  visibility: "public" | "private";
   isLoading: boolean;
   canEdit: boolean;
 }) => {
@@ -39,16 +33,10 @@ const UpdateBoardSlugButton = ({
     );
   }
 
-  if (!workspaceSlug || !boardSlug || !boardPublicId) return <></>;
+  if (!boardPublicId) return <></>;
 
-  const isPublic = visibility === "public";
-  const boardUrl = isPublic
-    ? `${linkBaseUrl}/${workspaceSlug}/${boardSlug}`
-    : `${linkBaseUrl}/boards/${boardPublicId}`;
-
-  const pathSegments = isPublic
-    ? [displayBaseUrl, workspaceSlug, boardSlug]
-    : [displayBaseUrl, "boards", boardPublicId];
+  const boardUrl = `${linkBaseUrl}/boards/${boardPublicId}`;
+  const pathSegments = [displayBaseUrl, "boards", boardPublicId];
 
   return (
     <Tooltip

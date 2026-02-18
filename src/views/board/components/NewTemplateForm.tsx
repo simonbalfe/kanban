@@ -17,23 +17,19 @@ const schema = z.object({
     .string()
     .min(1, { message: t`Template name is required` })
     .max(100, { message: t`Template name cannot exceed 100 characters` }),
-  workspacePublicId: z.string(),
   sourceBoardPublicId: z.string(),
 });
 
 interface NewBoardInputWithTemplate {
   name: string;
-  workspacePublicId: string;
   sourceBoardPublicId: string;
 }
 
 export function NewTemplateForm({
   sourceBoardPublicId,
-  workspacePublicId,
   sourceBoardName,
 }: {
   sourceBoardPublicId: string;
-  workspacePublicId: string;
   sourceBoardName: string;
 }) {
   const router = useRouter();
@@ -48,7 +44,6 @@ export function NewTemplateForm({
     resolver: zodResolver(schema),
     defaultValues: {
       name: sourceBoardName,
-      workspacePublicId,
       sourceBoardPublicId,
     },
   });
@@ -83,7 +78,6 @@ export function NewTemplateForm({
   const onSubmit = (data: NewBoardInputWithTemplate) => {
     createBoard.mutate({
       name: data.name,
-      workspacePublicId: data.workspacePublicId,
       sourceBoardPublicId: data.sourceBoardPublicId,
       lists: [],
       labels: [],

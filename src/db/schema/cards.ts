@@ -17,7 +17,6 @@ import { checklists } from "./checklists";
 import { labels } from "./labels";
 import { lists } from "./lists";
 import { users } from "./users";
-import { workspaceMembers } from "./workspaces";
 
 export const activityTypes = [
   "card.created",
@@ -27,12 +26,9 @@ export const activityTypes = [
   "card.updated.list",
   "card.updated.label.added",
   "card.updated.label.removed",
-  "card.updated.member.added",
-  "card.updated.member.removed",
   "card.updated.comment.added",
   "card.updated.comment.updated",
   "card.updated.comment.deleted",
-  // Checklist activities
   "card.updated.checklist.added",
   "card.updated.checklist.renamed",
   "card.updated.checklist.deleted",
@@ -71,7 +67,7 @@ export const cards = pgTable("card", {
   listId: bigint("listId", { mode: "number" })
     .notNull()
     .references(() => lists.id, { onDelete: "cascade" }),
-dueDate: timestamp("dueDate"),
+  dueDate: timestamp("dueDate"),
 }).enableRLS();
 
 export const cardsRelations = relations(cards, ({ one, many }) => ({
@@ -91,8 +87,7 @@ export const cardsRelations = relations(cards, ({ one, many }) => ({
     relationName: "cardsDeletedByUser",
   }),
   labels: many(cardsToLabels),
-  members: many(cardToWorkspaceMembers),
-comments: many(comments),
+  comments: many(comments),
   activities: many(cardActivities),
   checklists: many(checklists),
   attachments: many(cardAttachments),
@@ -117,9 +112,6 @@ export const cardActivities = pgTable("card_activity", {
   labelId: bigint("labelId", { mode: "number" }).references(() => labels.id, {
     onDelete: "cascade",
   }),
-  workspaceMemberId: bigint("workspaceMemberId", {
-    mode: "number",
-  }).references(() => workspaceMembers.id, { onDelete: "set null" }),
   fromTitle: text("fromTitle"),
   toTitle: text("toTitle"),
   fromDescription: text("fromDescription"),
@@ -172,11 +164,6 @@ export const cardActivitiesRelations = relations(cardActivities, ({ one }) => ({
     references: [users.id],
     relationName: "cardActivitiesUser",
   }),
-  member: one(workspaceMembers, {
-    fields: [cardActivities.workspaceMemberId],
-    references: [workspaceMembers.id],
-    relationName: "cardActivitiesMember",
-  }),
   comment: one(comments, {
     fields: [cardActivities.commentId],
     references: [comments.id],
@@ -214,35 +201,6 @@ export const cardToLabelsRelations = relations(cardsToLabels, ({ one }) => ({
     relationName: "cardToLabelsLabel",
   }),
 }));
-
-export const cardToWorkspaceMembers = pgTable(
-  "_card_workspace_members",
-  {
-    cardId: bigint("cardId", { mode: "number" })
-      .notNull()
-      .references(() => cards.id, { onDelete: "cascade" }),
-    workspaceMemberId: bigint("workspaceMemberId", { mode: "number" })
-      .notNull()
-      .references(() => workspaceMembers.id, { onDelete: "cascade" }),
-  },
-  (t) => [primaryKey({ columns: [t.cardId, t.workspaceMemberId] })],
-).enableRLS();
-
-export const cardToWorkspaceMembersRelations = relations(
-  cardToWorkspaceMembers,
-  ({ one }) => ({
-    card: one(cards, {
-      fields: [cardToWorkspaceMembers.cardId],
-      references: [cards.id],
-      relationName: "cardToWorkspaceMembersCard",
-    }),
-    member: one(workspaceMembers, {
-      fields: [cardToWorkspaceMembers.workspaceMemberId],
-      references: [workspaceMembers.id],
-      relationName: "cardToWorkspaceMembersMember",
-    }),
-  }),
-);
 
 export const comments = pgTable("card_comments", {
   id: bigserial("id", { mode: "number" }).primaryKey(),

@@ -12,7 +12,6 @@ import Input from "~/components/Input";
 import Toggle from "~/components/Toggle";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
-import { useWorkspace } from "~/providers/workspace";
 import { api } from "~/utils/api";
 import TemplateBoards from "./TemplateBoards";
 
@@ -21,13 +20,11 @@ const schema = z.object({
     .string()
     .min(1, { message: t`Board name is required` })
     .max(100, { message: t`Board name cannot exceed 100 characters` }),
-  workspacePublicId: z.string(),
   template: z.custom<Template | null>(),
 });
 
 interface NewBoardInputWithTemplate {
   name: string;
-  workspacePublicId: string;
   template: Template | null;
 }
 
@@ -36,12 +33,10 @@ export function NewBoardForm({ isTemplate }: { isTemplate?: boolean }) {
   const { closeModal } = useModal();
   const router = useRouter();
   const { showPopup } = usePopup();
-  const { workspace } = useWorkspace();
   const [showTemplates, setShowTemplates] = useState(false);
-  const { data: templates } = api.board.all.useQuery(
-    { workspacePublicId: workspace.publicId ?? "", type: "template" },
-    { enabled: !!workspace.publicId },
-  );
+  const { data: templates } = api.board.all.useQuery({
+    type: "template",
+  });
 
   const formattedTemplates = templates?.map((template) => ({
     id: template.publicId,
@@ -61,7 +56,6 @@ export function NewBoardForm({ isTemplate }: { isTemplate?: boolean }) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
-      workspacePublicId: workspace.publicId || "",
       template: null,
     },
   });
@@ -99,7 +93,6 @@ export function NewBoardForm({ isTemplate }: { isTemplate?: boolean }) {
   const onSubmit = (data: NewBoardInputWithTemplate) => {
     createBoard.mutate({
       name: data.name,
-      workspacePublicId: data.workspacePublicId,
       sourceBoardPublicId: data.template?.sourceBoardPublicId ?? undefined,
       lists: data.template?.lists ?? [],
       labels: data.template?.labels ?? [],

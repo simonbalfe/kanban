@@ -4,7 +4,6 @@ import { env } from "next-runtime-env";
 import Button from "~/components/Button";
 import { LanguageSelector } from "~/components/LanguageSelector";
 import Modal from "~/components/modal";
-import { NewWorkspaceForm } from "~/components/NewWorkspaceForm";
 import { PageHead } from "~/components/PageHead";
 import { useModal } from "~/providers/modal";
 import { api } from "~/utils/api";
@@ -90,7 +89,6 @@ export default function AccountSettings() {
         )}
       </div>
 
-      {/* Account-specific modals */}
       <Modal
         modalSize="sm"
         isVisible={isOpen && modalContentType === "DELETE_ACCOUNT"}
@@ -102,13 +100,6 @@ export default function AccountSettings() {
         isVisible={isOpen && modalContentType === "CHANGE_PASSWORD"}
       >
         <ChangePasswordFormConfirmation />
-      </Modal>
-
-      <Modal
-        modalSize="sm"
-        isVisible={isOpen && modalContentType === "NEW_WORKSPACE"}
-      >
-        <NewWorkspaceForm />
       </Modal>
     </>
   );

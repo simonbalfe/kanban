@@ -11,7 +11,6 @@ import { apikey } from "./auth";
 import { boards } from "./boards";
 import { cards } from "./cards";
 import { lists } from "./lists";
-import { workspaceMembers, workspaces } from "./workspaces";
 
 export const users = pgTable("user", {
   id: uuid("id")
@@ -45,37 +44,5 @@ deletedLists: many(lists, {
   lists: many(lists, {
     relationName: "listsCreatedByUser",
   }),
-  deletedWorkspaces: many(workspaces, {
-    relationName: "workspaceDeletedByUser",
-  }),
-  workspaces: many(workspaces, {
-    relationName: "workspaceCreatedByUser",
-  }),
   apiKeys: many(apikey),
 }));
-
-export const usersToWorkspacesRelations = relations(
-  workspaceMembers,
-  ({ one }) => ({
-    addedBy: one(users, {
-      fields: [workspaceMembers.createdBy],
-      references: [users.id],
-      relationName: "usersToWorkspacesAddedByUser",
-    }),
-    deletedBy: one(users, {
-      fields: [workspaceMembers.deletedBy],
-      references: [users.id],
-      relationName: "usersToWorkspacesDeletedByUser",
-    }),
-    user: one(users, {
-      fields: [workspaceMembers.userId],
-      references: [users.id],
-      relationName: "usersToWorkspacesUser",
-    }),
-    workspace: one(workspaces, {
-      fields: [workspaceMembers.workspaceId],
-      references: [workspaces.id],
-      relationName: "usersToWorkspacesWorkspace",
-    }),
-  }),
-);

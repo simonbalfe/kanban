@@ -133,24 +133,14 @@ export const softDelete = async (
   return result;
 };
 
-export const getWorkspaceAndLabelIdByLabelPublicId = async (
+export const getLabelIdByPublicId = async (
   db: dbClient,
   labelPublicId: string,
 ) => {
   const result = await db.query.labels.findFirst({
     columns: { id: true },
     where: eq(labels.publicId, labelPublicId),
-    with: {
-      board: {
-        columns: { workspaceId: true },
-      },
-    },
   });
 
-  return result
-    ? {
-        id: result.id,
-        workspaceId: result.board.workspaceId,
-      }
-    : null;
+  return result ? { id: result.id } : null;
 };

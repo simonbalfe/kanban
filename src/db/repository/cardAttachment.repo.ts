@@ -70,7 +70,6 @@ export const getByPublicId = (db: dbClient, publicId: string) => {
               board: {
                 columns: {
                   id: true,
-                  workspaceId: true,
                 },
               },
             },

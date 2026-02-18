@@ -13,7 +13,6 @@ import { authClient } from "~/lib/auth/client";
 
 import Dropdown from "~/components/Dropdown";
 import { Tooltip } from "~/components/Tooltip";
-import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
 import { api } from "~/utils/api";
 
@@ -44,7 +43,7 @@ export default function List({
   setSelectedPublicListId,
 }: ListProps) {
   const { openModal } = useModal();
-  const { isAdminOrMember } = usePermissions();
+  const isAdminOrMember = true;
   const { data: session } = authClient.useSession();
   const isCreator = list.createdBy && session?.user.id === list.createdBy;
   const canEdit = isAdminOrMember || isCreator;

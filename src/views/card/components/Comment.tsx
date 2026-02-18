@@ -9,7 +9,6 @@ import Button from "~/components/Button";
 import Editor from "~/components/Editor";
 import type { WorkspaceMember } from "~/components/Editor";
 import Dropdown from "~/components/Dropdown";
-import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { api } from "~/utils/api";
@@ -49,7 +48,7 @@ const Comment = ({
   const utils = api.useUtils();
   const { showPopup } = usePopup();
   const { openModal } = useModal();
-  const { isAdminOrMember } = usePermissions();
+  const isAdminOrMember = true;
   const { handleSubmit, setValue, watch } = useForm<FormValues>({
     defaultValues: {
       comment,
@@ -65,20 +64,7 @@ const Comment = ({
     },
   );
 
-  const workspaceMembers: WorkspaceMember[] =
-    cardData?.list.board.workspace.members
-      .filter((member) => member.email)
-      .map((member) => ({
-        publicId: member.publicId,
-        email: member.email,
-        user: member.user
-          ? {
-              id: member.user.id,
-              name: member.user.name ?? null,
-              image: member.user.image ?? null,
-            }
-          : null,
-      })) ?? [];
+  const workspaceMembers: WorkspaceMember[] = [];
 
   if (!publicId) return null;
 

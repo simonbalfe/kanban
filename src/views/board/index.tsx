@@ -19,17 +19,14 @@ import Button from "~/components/Button";
 import { DeleteLabelConfirmation } from "~/components/DeleteLabelConfirmation";
 import { LabelForm } from "~/components/LabelForm";
 import Modal from "~/components/modal";
-import { NewWorkspaceForm } from "~/components/NewWorkspaceForm";
 import { PageHead } from "~/components/PageHead";
 import PatternedBackground from "~/components/PatternedBackground";
 import { StrictModeDroppable as Droppable } from "~/components/StrictModeDroppable";
 import { Tooltip } from "~/components/Tooltip";
 import { useDragToScroll } from "~/hooks/useDragToScroll";
-import { usePermissions } from "~/hooks/usePermissions";
 import { useKeyboardShortcut } from "~/providers/keyboard-shortcuts";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
-import { useWorkspace } from "~/providers/workspace";
 import { api } from "~/utils/api";
 import { formatToArray } from "~/utils/helpers";
 import BoardDropdown from "./components/BoardDropdown";
@@ -43,7 +40,6 @@ import { NewListForm } from "./components/NewListForm";
 import { NewTemplateForm } from "./components/NewTemplateForm";
 import UpdateBoardSlugButton from "./components/UpdateBoardSlugButton";
 import { UpdateBoardSlugForm } from "./components/UpdateBoardSlugForm";
-import VisibilityButton from "./components/VisibilityButton";
 
 type PublicListId = string;
 
@@ -52,7 +48,6 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
   const router = useRouter();
   const utils = api.useUtils();
   const { showPopup } = usePopup();
-  const { workspace } = useWorkspace();
   const { openModal, modalContentType, entityId, isOpen } = useModal();
   const [selectedPublicListId, setSelectedPublicListId] =
     useState<PublicListId>("");
@@ -63,7 +58,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     direction: "horizontal",
   });
 
-  const { isAdminOrMember } = usePermissions();
+  const isAdminOrMember = true;
 
   const { tooltipContent: createListShortcutTooltipContent } =
     useKeyboardShortcut({
@@ -326,13 +321,6 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 
         <Modal
           modalSize="sm"
-          isVisible={isOpen && modalContentType === "NEW_WORKSPACE"}
-        >
-          <NewWorkspaceForm />
-        </Modal>
-
-        <Modal
-          modalSize="sm"
           isVisible={isOpen && modalContentType === "NEW_LABEL"}
         >
           <LabelForm boardPublicId={boardId ?? ""} refetch={refetchBoard} />
@@ -365,7 +353,6 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
         >
           <UpdateBoardSlugForm
             boardPublicId={boardId ?? ""}
-            workspaceSlug={workspace.slug ?? ""}
             boardSlug={boardData?.slug ?? ""}
             queryParams={queryParams}
           />
@@ -376,7 +363,6 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
           isVisible={isOpen && modalContentType === "CREATE_TEMPLATE"}
         >
           <NewTemplateForm
-            workspacePublicId={workspace.publicId ?? ""}
             sourceBoardPublicId={boardId ?? ""}
             sourceBoardName={boardData?.name ?? ""}
           />
@@ -389,7 +375,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
   return (
     <>
       <PageHead
-        title={`${boardData?.name ?? (isTemplate ? t`Board` : t`Template`)} | ${workspace.name ?? t`Workspace`}`}
+        title={`${boardData?.name ?? (isTemplate ? t`Board` : t`Template`)}`}
       />
       <div className="relative flex h-full flex-col">
         <PatternedBackground />
@@ -433,26 +419,13 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                 <UpdateBoardSlugButton
                   handleOnClick={() => openModal("UPDATE_BOARD_SLUG")}
                   isLoading={isLoading}
-                  workspaceSlug={workspace.slug ?? ""}
-                  boardSlug={boardData?.slug ?? ""}
                   boardPublicId={boardId ?? ""}
-                  visibility={boardData?.visibility ?? "private"}
                   canEdit={isAdminOrMember}
-                />
-                <VisibilityButton
-                  visibility={boardData?.visibility ?? "private"}
-                  boardPublicId={boardId ?? ""}
-                  boardSlug={boardData?.slug ?? ""}
-                  queryParams={queryParams}
-                  isLoading={!boardData}
-                  isAdmin={workspace.role === "admin"}
                 />
                 {boardData && (
                   <Filters
                     labels={boardData.labels}
-                    members={boardData.workspace.members.filter(
-                      (member) => member.user !== null,
-                    )}
+                    members={[]}
                     lists={boardData.allLists}
                     position="left"
                     isLoading={!boardData}
@@ -600,7 +573,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                                           <Card
                                             title={card.title}
                                             labels={card.labels}
-                                            members={card.members}
+                                            members={[]}
                                             checklists={card.checklists ?? []}
                                             description={
                                               card.description ?? null

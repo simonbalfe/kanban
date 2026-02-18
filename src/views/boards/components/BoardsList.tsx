@@ -5,23 +5,16 @@ import { motion } from "framer-motion";
 import Button from "~/components/Button";
 import PatternedBackground from "~/components/PatternedBackground";
 import { Tooltip } from "~/components/Tooltip";
-import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
-import { useWorkspace } from "~/providers/workspace";
 import { api } from "~/utils/api";
 
 export function BoardsList({ isTemplate }: { isTemplate?: boolean }) {
-  const { workspace } = useWorkspace();
   const { openModal } = useModal();
-  const { isAdminOrMember } = usePermissions();
+  const isAdminOrMember = true;
 
-  const { data, isLoading } = api.board.all.useQuery(
-    {
-      workspacePublicId: workspace.publicId,
-      type: isTemplate ? "template" : "regular",
-    },
-    { enabled: workspace.publicId ? true : false },
-  );
+  const { data, isLoading } = api.board.all.useQuery({
+    type: isTemplate ? "template" : "regular",
+  });
 
   if (isLoading)
     return (

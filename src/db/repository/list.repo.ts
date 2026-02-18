@@ -409,27 +409,14 @@ export const softDeleteById = async (
   });
 };
 
-export const getWorkspaceAndListIdByListPublicId = async (
+export const getListIdByPublicId = async (
   db: dbClient,
   listPublicId: string,
 ) => {
   const result = await db.query.lists.findFirst({
     columns: { id: true, createdBy: true },
     where: and(eq(lists.publicId, listPublicId), isNull(lists.deletedAt)),
-    with: {
-      board: {
-        columns: {
-          workspaceId: true,
-        },
-      },
-    },
   });
 
-  return result
-    ? {
-        id: result.id,
-        createdBy: result.createdBy,
-        workspaceId: result.board.workspaceId,
-      }
-    : null;
+  return result ? { id: result.id, createdBy: result.createdBy } : null;
 };

@@ -20,13 +20,11 @@ import {
   cardAttachments,
   cards,
   cardsToLabels,
-  cardToWorkspaceMembers,
   checklistItems,
   checklists,
   comments,
   labels,
   lists,
-  workspaceMembers,
 } from "~/db/schema";
 import { generateUID } from "~/lib/shared/utils";
 
@@ -39,9 +37,8 @@ export const getCount = async (db: dbClient) => {
   return result[0]?.count ?? 0;
 };
 
-export const getAllByWorkspaceId = async (
+export const getAllByUserId = async (
   db: dbClient,
-  workspaceId: number,
   userId: string,
   opts?: { type?: "regular" | "template" },
 ) => {
@@ -68,7 +65,7 @@ export const getAllByWorkspaceId = async (
       },
     },
     where: and(
-      eq(boards.workspaceId, workspaceId),
+      eq(boards.createdBy, userId),
       isNull(boards.deletedAt),
       opts?.type ? eq(boards.type, opts.type) : undefined,
     ),
@@ -136,7 +133,7 @@ export const getByPublicId = async (
 ) => {
   let cardIds: string[] = [];
 
-  if (filters.labels.length > 0 || filters.members.length > 0) {
+  if (filters.labels.length > 0) {
     const filteredCards = await db
       .select({
         publicId: cards.publicId,
@@ -144,25 +141,10 @@ export const getByPublicId = async (
       .from(cards)
       .leftJoin(cardsToLabels, eq(cards.id, cardsToLabels.cardId))
       .leftJoin(labels, eq(cardsToLabels.labelId, labels.id))
-      .leftJoin(
-        cardToWorkspaceMembers,
-        eq(cards.id, cardToWorkspaceMembers.cardId),
-      )
-      .leftJoin(
-        workspaceMembers,
-        eq(cardToWorkspaceMembers.workspaceMemberId, workspaceMembers.id),
-      )
       .where(
         and(
           isNull(cards.deletedAt),
-          or(
-            filters.labels.length > 0
-              ? inArray(labels.publicId, filters.labels)
-              : undefined,
-            filters.members.length > 0
-              ? inArray(workspaceMembers.publicId, filters.members)
-              : undefined,
-          ),
+          inArray(labels.publicId, filters.labels),
         ),
       );
 
@@ -177,30 +159,6 @@ export const getByPublicId = async (
       visibility: true,
     },
     with: {
-      workspace: {
-        columns: {
-          publicId: true,
-        },
-        with: {
-          members: {
-            columns: {
-              publicId: true,
-              email: true,
-              status: true,
-            },
-            with: {
-              user: {
-                columns: {
-                  name: true,
-                  email: true,
-                  image: true,
-                },
-              },
-            },
-            where: isNull(workspaceMembers.deletedAt),
-          },
-        },
-      },
       labels: {
         columns: {
           publicId: true,
@@ -234,26 +192,6 @@ export const getByPublicId = async (
                       publicId: true,
                       name: true,
                       colourCode: true,
-                    },
-                  },
-                },
-              },
-              members: {
-                with: {
-                  member: {
-                    columns: {
-                      publicId: true,
-                      email: true,
-                      deletedAt: true,
-                    },
-                    with: {
-                      user: {
-                        columns: {
-                          name: true,
-                          email: true,
-                          image: true,
-                        },
-                      },
                     },
                   },
                 },
@@ -335,9 +273,6 @@ export const getByPublicId = async (
       cards: list.cards.map((card) => ({
         ...card,
         labels: card.labels.map((label) => label.label),
-        members: card.members
-          .map((member) => member.member)
-          .filter((member) => member.deletedAt === null),
       })),
     })),
   };
@@ -348,7 +283,6 @@ export const getByPublicId = async (
 export const getBySlug = async (
   db: dbClient,
   boardSlug: string,
-  workspaceId: number,
   filters: {
     members: string[];
     labels: string[];
@@ -386,13 +320,6 @@ export const getBySlug = async (
       visibility: true,
     },
     with: {
-      workspace: {
-        columns: {
-          publicId: true,
-          name: true,
-          slug: true,
-        },
-      },
       labels: {
         columns: {
           publicId: true,
@@ -493,7 +420,6 @@ export const getBySlug = async (
     },
     where: and(
       eq(boards.slug, boardSlug),
-      eq(boards.workspaceId, workspaceId),
       isNull(boards.deletedAt),
       eq(boards.visibility, "public"),
     ),
@@ -522,7 +448,6 @@ export const getWithListIdsByPublicId = (
   return db.query.boards.findFirst({
     columns: {
       id: true,
-      workspaceId: true,
       createdBy: true,
     },
     with: {
@@ -543,7 +468,6 @@ export const getWithLatestListIndexByPublicId = (
   return db.query.boards.findFirst({
     columns: {
       id: true,
-      workspaceId: true,
     },
     with: {
       lists: {
@@ -565,7 +489,6 @@ export const create = async (
     publicId?: string;
     name: string;
     createdBy: string;
-    workspaceId: number;
     slug: string;
     type?: "regular" | "template";
     sourceBoardId?: number;
@@ -577,7 +500,6 @@ export const create = async (
       publicId: boardInput.publicId ?? generateUID(),
       name: boardInput.name,
       createdBy: boardInput.createdBy,
-      workspaceId: boardInput.workspaceId,
       slug: boardInput.slug,
       type: boardInput.type ?? "regular",
       sourceBoardId: boardInput.sourceBoardId,
@@ -637,10 +559,10 @@ export const softDelete = async (
   return result;
 };
 
-export const hardDelete = async (db: dbClient, workspaceId: number) => {
+export const hardDelete = async (db: dbClient, boardId: number) => {
   const [result] = await db
     .delete(boards)
-    .where(eq(boards.workspaceId, workspaceId))
+    .where(eq(boards.id, boardId))
     .returning({
       publicId: boards.publicId,
       name: boards.name,
@@ -651,7 +573,7 @@ export const hardDelete = async (db: dbClient, workspaceId: number) => {
 
 export const isSlugUnique = async (
   db: dbClient,
-  args: { slug: string; workspaceId: number },
+  args: { slug: string },
 ) => {
   const result = await db.query.boards.findFirst({
     columns: {
@@ -659,7 +581,6 @@ export const isSlugUnique = async (
     },
     where: and(
       eq(boards.slug, args.slug),
-      eq(boards.workspaceId, args.workspaceId),
       isNull(boards.deletedAt),
     ),
   });
@@ -667,14 +588,13 @@ export const isSlugUnique = async (
   return result === undefined;
 };
 
-export const getWorkspaceAndBoardIdByBoardPublicId = async (
+export const getBoardIdByPublicId = async (
   db: dbClient,
   boardPublicId: string,
 ) => {
   const result = await db.query.boards.findFirst({
     columns: {
       id: true,
-      workspaceId: true,
       createdBy: true,
     },
     where: eq(boards.publicId, boardPublicId),
@@ -686,7 +606,6 @@ export const getWorkspaceAndBoardIdByBoardPublicId = async (
 export const isBoardSlugAvailable = async (
   db: dbClient,
   boardSlug: string,
-  workspaceId: number,
 ) => {
   const result = await db.query.boards.findFirst({
     columns: {
@@ -694,7 +613,6 @@ export const isBoardSlugAvailable = async (
     },
     where: and(
       eq(boards.slug, boardSlug),
-      eq(boards.workspaceId, workspaceId),
       isNull(boards.deletedAt),
     ),
   });
@@ -702,7 +620,6 @@ export const isBoardSlugAvailable = async (
   return result === undefined;
 };
 
-// Create a new board (regular/template) from a full board snapshot
 export const createFromSnapshot = async (
   db: dbClient,
   args: {
@@ -735,7 +652,6 @@ export const createFromSnapshot = async (
         }[];
       }[];
     };
-    workspaceId: number;
     createdBy: string;
     slug: string;
     name?: string;
@@ -751,7 +667,6 @@ export const createFromSnapshot = async (
         name: args.name ?? args.source.name,
         slug: args.slug,
         createdBy: args.createdBy,
-        workspaceId: args.workspaceId,
         type: args.type,
         sourceBoardId: args.sourceBoardId,
       })
@@ -763,7 +678,6 @@ export const createFromSnapshot = async (
 
     if (!newBoard) throw new Error("Failed to create board");
 
-    // Labels
     const srcLabels = args.source.labels;
     const labelMap = new Map<string, number>();
 
@@ -791,7 +705,6 @@ export const createFromSnapshot = async (
       }
     }
 
-    // Lists
     const listIndexToId = new Map<number, number>();
     const srcLists = [...args.source.lists].sort((a, b) => a.index - b.index);
     if (srcLists.length) {
@@ -811,7 +724,6 @@ export const createFromSnapshot = async (
       for (const list of insertedLists) listIndexToId.set(list.index, list.id);
     }
 
-    // Cards, card-labels, checklists
     for (const list of srcLists) {
       const newListId = listIndexToId.get(list.index);
       if (!newListId) continue;
@@ -832,7 +744,6 @@ export const createFromSnapshot = async (
 
         if (!createdCard) throw new Error("Failed to create card");
 
-        // Create card.created activity
         await tx.insert(cardActivities).values({
           publicId: generateUID(),
           type: "card.created",
@@ -851,7 +762,6 @@ export const createFromSnapshot = async (
           if (cardLabels.length) {
             await tx.insert(cardsToLabels).values(cardLabels);
 
-            // Create card.updated.label.added activities for each label
             const labelActivities = cardLabels.map((cardLabel) => ({
               publicId: generateUID(),
               type: "card.updated.label.added" as const,
@@ -882,7 +792,6 @@ export const createFromSnapshot = async (
 
             if (!createdChecklist) continue;
 
-            // Create card.updated.checklist.added activity
             await tx.insert(cardActivities).values({
               publicId: generateUID(),
               type: "card.updated.checklist.added",
@@ -907,7 +816,6 @@ export const createFromSnapshot = async (
               if (itemValues.length) {
                 await tx.insert(checklistItems).values(itemValues);
 
-                // Create card.updated.checklist.item.added activities for each item
                 const itemActivities = itemValues.map((item) => ({
                   publicId: generateUID(),
                   type: "card.updated.checklist.item.added" as const,
@@ -927,4 +835,3 @@ export const createFromSnapshot = async (
     return newBoard;
   });
 };
-

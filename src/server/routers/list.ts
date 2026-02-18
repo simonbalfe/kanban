@@ -7,7 +7,6 @@ import * as activityRepo from "~/db/repository/cardActivity.repo";
 import * as listRepo from "~/db/repository/list.repo";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { assertCanDelete, assertCanEdit, assertPermission } from "../utils/permissions";
 
 export const listRouter = createTRPCRouter({
   create: protectedProcedure
@@ -37,7 +36,7 @@ export const listRouter = createTRPCRouter({
           code: "UNAUTHORIZED",
         });
 
-      const board = await boardRepo.getWorkspaceAndBoardIdByBoardPublicId(
+      const board = await boardRepo.getBoardIdByPublicId(
         ctx.db,
         input.boardPublicId,
       );
@@ -47,8 +46,6 @@ export const listRouter = createTRPCRouter({
           message: `Board with public ID ${input.boardPublicId} not found`,
           code: "NOT_FOUND",
         });
-
-      await assertPermission(ctx.db, userId, board.workspaceId, "list:create");
 
       const result = await listRepo.create(ctx.db, {
         name: input.name,
@@ -90,7 +87,7 @@ export const listRouter = createTRPCRouter({
           code: "UNAUTHORIZED",
         });
 
-      const list = await listRepo.getWorkspaceAndListIdByListPublicId(
+      const list = await listRepo.getListIdByPublicId(
         ctx.db,
         input.listPublicId,
       );
@@ -100,14 +97,6 @@ export const listRouter = createTRPCRouter({
           message: `List with public ID ${input.listPublicId} not found`,
           code: "NOT_FOUND",
         });
-
-      await assertCanDelete(
-        ctx.db,
-        userId,
-        list.workspaceId,
-        "list:delete",
-        list.createdBy,
-      );
 
       const deletedAt = new Date();
 
@@ -178,7 +167,7 @@ export const listRouter = createTRPCRouter({
           code: "UNAUTHORIZED",
         });
 
-      const list = await listRepo.getWorkspaceAndListIdByListPublicId(
+      const list = await listRepo.getListIdByPublicId(
         ctx.db,
         input.listPublicId,
       );
@@ -188,14 +177,6 @@ export const listRouter = createTRPCRouter({
           message: `List with public ID ${input.listPublicId} not found`,
           code: "NOT_FOUND",
         });
-
-      await assertCanEdit(
-        ctx.db,
-        userId,
-        list.workspaceId,
-        "list:edit",
-        list.createdBy,
-      );
 
       let result: { name: string; publicId: string } | undefined;
 

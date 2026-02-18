@@ -3,20 +3,16 @@ import { HiOutlinePlusSmall } from "react-icons/hi2";
 
 import Button from "~/components/Button";
 import Modal from "~/components/modal";
-import { NewWorkspaceForm } from "~/components/NewWorkspaceForm";
 import { PageHead } from "~/components/PageHead";
 import { Tooltip } from "~/components/Tooltip";
-import { usePermissions } from "~/hooks/usePermissions";
 import { useKeyboardShortcut } from "~/providers/keyboard-shortcuts";
 import { useModal } from "~/providers/modal";
-import { useWorkspace } from "~/providers/workspace";
 import { BoardsList } from "./components/BoardsList";
 import { NewBoardForm } from "./components/NewBoardForm";
 
 export default function BoardsPage({ isTemplate }: { isTemplate?: boolean }) {
   const { openModal, modalContentType, isOpen } = useModal();
-  const { workspace } = useWorkspace();
-  const { isAdminOrMember } = usePermissions();
+  const isAdminOrMember = true;
 
   const { tooltipContent: createModalShortcutTooltipContent } =
     useKeyboardShortcut({
@@ -30,7 +26,7 @@ export default function BoardsPage({ isTemplate }: { isTemplate?: boolean }) {
   return (
     <>
       <PageHead
-        title={t`${isTemplate ? "Templates" : "Boards"} | ${workspace.name ?? t`Workspace`}`}
+        title={t`${isTemplate ? "Templates" : "Boards"}`}
       />
       <div className="m-auto h-full max-w-[1100px] p-6 px-5 md:px-28 md:py-12">
         <div className="relative z-10 mb-8 flex w-full items-center justify-between">
@@ -62,21 +58,12 @@ export default function BoardsPage({ isTemplate }: { isTemplate?: boolean }) {
           </div>
         </div>
 
-        <>
-<Modal
-            modalSize="sm"
-            isVisible={isOpen && modalContentType === "NEW_BOARD"}
-          >
-            <NewBoardForm isTemplate={!!isTemplate} />
-          </Modal>
-
-<Modal
-            modalSize="sm"
-            isVisible={isOpen && modalContentType === "NEW_WORKSPACE"}
-          >
-            <NewWorkspaceForm />
-          </Modal>
-        </>
+        <Modal
+          modalSize="sm"
+          isVisible={isOpen && modalContentType === "NEW_BOARD"}
+        >
+          <NewBoardForm isTemplate={!!isTemplate} />
+        </Modal>
 
         <div className="flex h-full flex-row">
           <BoardsList isTemplate={!!isTemplate} />

@@ -21,7 +21,6 @@ export const create = async (
     fromListId?: number;
     toListId?: number;
     labelId?: number;
-    workspaceMemberId?: number;
     fromTitle?: string;
     toTitle?: string;
     fromDescription?: string;
@@ -47,7 +46,6 @@ export const create = async (
       fromIndex: activityInput.fromIndex,
       toIndex: activityInput.toIndex,
       labelId: activityInput.labelId,
-      workspaceMemberId: activityInput.workspaceMemberId,
       fromTitle: activityInput.fromTitle,
       toTitle: activityInput.toTitle,
       fromDescription: activityInput.fromDescription,
@@ -76,7 +74,6 @@ export const bulkCreate = async (
     fromListId?: number;
     toListId?: number;
     labelId?: number;
-    workspaceMemberId?: number;
     fromTitle?: string;
     toTitle?: string;
     fromDescription?: string;
@@ -160,21 +157,6 @@ export const getPaginatedActivities = async (
         columns: {
           publicId: true,
           name: true,
-        },
-      },
-      member: {
-        columns: {
-          publicId: true,
-        },
-        with: {
-          user: {
-            columns: {
-              id: true,
-              name: true,
-              email: true,
-              image: true,
-            },
-          },
         },
       },
       user: {

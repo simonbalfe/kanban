@@ -4,11 +4,9 @@ import { z } from "zod";
 import * as cardRepo from "~/db/repository/card.repo";
 import * as cardActivityRepo from "~/db/repository/cardActivity.repo";
 import * as cardAttachmentRepo from "~/db/repository/cardAttachment.repo";
-import * as workspaceRepo from "~/db/repository/workspace.repo";
 import { generateUID } from "~/lib/shared/utils";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { assertMember } from "../utils/permissions";
 import { deleteObject, generateUploadUrl } from "~/lib/shared/utils";
 
 export const attachmentRouter = createTRPCRouter({
@@ -32,7 +30,7 @@ export const attachmentRouter = createTRPCRouter({
         size: z
           .number()
           .positive()
-          .max(50 * 1024 * 1024), // 50MB max
+          .max(50 * 1024 * 1024),
       }),
     )
     .output(z.object({ url: z.string(), key: z.string() }))
@@ -45,7 +43,7 @@ export const attachmentRouter = createTRPCRouter({
           code: "UNAUTHORIZED",
         });
 
-      const card = await cardRepo.getWorkspaceAndCardIdByCardPublicId(
+      const card = await cardRepo.getCardIdByPublicId(
         ctx.db,
         input.cardPublicId,
       );
@@ -53,15 +51,6 @@ export const attachmentRouter = createTRPCRouter({
       if (!card)
         throw new TRPCError({
           message: `Card with public ID ${input.cardPublicId} not found`,
-          code: "NOT_FOUND",
-        });
-      await assertMember(ctx.db, userId, card.workspaceId);
-
-      // Get workspace publicId
-      const workspace = await workspaceRepo.getById(ctx.db, card.workspaceId);
-      if (!workspace)
-        throw new TRPCError({
-          message: `Workspace not found`,
           code: "NOT_FOUND",
         });
 
@@ -72,18 +61,17 @@ export const attachmentRouter = createTRPCRouter({
           code: "INTERNAL_SERVER_ERROR",
         });
 
-      // Sanitize filename
       const sanitizedFilename = input.filename
         .replace(/[^a-zA-Z0-9._-]/g, "_")
         .substring(0, 200);
 
-      const s3Key = `${workspace.publicId}/${input.cardPublicId}/${generateUID()}-${sanitizedFilename}`;
+      const s3Key = `${input.cardPublicId}/${generateUID()}-${sanitizedFilename}`;
 
       const url = await generateUploadUrl(
         bucket,
         s3Key,
         input.contentType,
-        3600, // 1 hour
+        3600,
       );
 
       return { url, key: s3Key };
@@ -120,7 +108,7 @@ export const attachmentRouter = createTRPCRouter({
           code: "UNAUTHORIZED",
         });
 
-      const card = await cardRepo.getWorkspaceAndCardIdByCardPublicId(
+      const card = await cardRepo.getCardIdByPublicId(
         ctx.db,
         input.cardPublicId,
       );
@@ -130,7 +118,6 @@ export const attachmentRouter = createTRPCRouter({
           message: `Card with public ID ${input.cardPublicId} not found`,
           code: "NOT_FOUND",
         });
-      await assertMember(ctx.db, userId, card.workspaceId);
 
       const attachment = await cardAttachmentRepo.create(ctx.db, {
         cardId: card.id,
@@ -191,9 +178,6 @@ export const attachmentRouter = createTRPCRouter({
           message: `Attachment with public ID ${input.attachmentPublicId} not found`,
           code: "NOT_FOUND",
         });
-
-      const workspaceId = attachment.card.list.board.workspaceId;
-      await assertMember(ctx.db, userId, workspaceId);
 
       const bucket = process.env.NEXT_PUBLIC_ATTACHMENTS_BUCKET_NAME;
       if (bucket) {
