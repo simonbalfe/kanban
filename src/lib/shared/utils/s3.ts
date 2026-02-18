@@ -43,7 +43,7 @@ export async function generateUploadUrl(
   );
 }
 
-export async function generateDownloadUrl(
+async function generateDownloadUrl(
   bucket: string,
   key: string,
   expiresIn = 3600,

@@ -31,7 +31,7 @@ export function getDashboardLayout(
   );
 }
 
-export default function Dashboard({
+function Dashboard({
   children,
   rightPanel,
   hasRightPanel = false,

@@ -8,5 +8,3 @@ export const colours: { name: string; code: string }[] = [
   { name: "Red", code: "#dc2626" },
   { name: "Pink", code: "#db2777" },
 ] as const;
-
-export type Colour = (typeof colours)[number];

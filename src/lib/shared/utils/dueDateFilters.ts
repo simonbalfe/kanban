@@ -1,6 +1,6 @@
 import { addDays, endOfDay, startOfDay } from "date-fns";
 
-export type DueDateFilterKey =
+type DueDateFilterKey =
   | "overdue"
   | "today"
   | "tomorrow"
@@ -8,7 +8,7 @@ export type DueDateFilterKey =
   | "next-month"
   | "no-due-date";
 
-export interface DueDateFilter {
+interface DueDateFilter {
   startDate?: Date;
   endDate?: Date;
   hasNoDueDate?: boolean;

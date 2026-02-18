@@ -22,10 +22,3 @@ export function getRedisClient(): Redis | null {
   return redisClient;
 }
 
-export async function closeRedisClient(): Promise<void> {
-  if (redisClient) {
-    await redisClient.quit();
-    redisClient = null;
-  }
-}
-

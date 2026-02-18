@@ -6,7 +6,7 @@ import {
 
 import { getRedisClient } from "~/db/redis";
 
-export interface RateLimitOptions {
+interface RateLimitOptions {
   points?: number;
   duration?: number;
   identifier?: (req: NextApiRequest) => string | Promise<string>;

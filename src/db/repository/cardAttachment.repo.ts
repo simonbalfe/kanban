@@ -80,16 +80,6 @@ export const getByPublicId = (db: dbClient, publicId: string) => {
   });
 };
 
-export const getAllByCardId = (db: dbClient, cardId: number) => {
-  return db.query.cardAttachments.findMany({
-    where: and(
-      eq(cardAttachments.cardId, cardId),
-      isNull(cardAttachments.deletedAt),
-    ),
-    orderBy: (attachments, { desc }) => [desc(attachments.createdAt)],
-  });
-};
-
 export const softDelete = async (
   db: dbClient,
   args: {

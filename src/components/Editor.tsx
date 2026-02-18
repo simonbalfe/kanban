@@ -55,14 +55,14 @@ declare module "@tiptap/core" {
   }
 }
 
-export interface SlashCommandItem {
+interface SlashCommandItem {
   title: string;
   icon?: React.ReactNode;
   command?: (props: { editor: TiptapEditor; range: TiptapRange }) => void;
   disabled?: boolean;
 }
 
-export interface SlashCommandsOptions {
+interface SlashCommandsOptions {
   suggestion?: Partial<SuggestionOptions>;
   commandItems?: SlashCommandItem[];
   options?: any;
@@ -74,7 +74,7 @@ function filterSlashCommandItems(items: SlashCommandItem[], query: string) {
   );
 }
 
-export interface RenderSuggestionsProps {
+interface RenderSuggestionsProps {
   editor: TiptapEditor;
   clientRect: () => DOMRect;
   items: SlashCommandItem[];
@@ -380,11 +380,6 @@ const SlashCommands = Extension.create<SlashCommandsOptions>({
     ];
   },
 });
-
-export interface SlashNodeAttrs {
-  id: string | null;
-  label?: string | null;
-}
 
 const getCommandItems = (disableHeadings: boolean): SlashCommandItem[] => {
   const headingCommands: SlashCommandItem[] = disableHeadings

@@ -191,27 +191,6 @@ export const update = async (
   return result;
 };
 
-export const getCardWithListByPublicId = (
-  db: dbClient,
-  cardPublicId: string,
-) => {
-  return db.query.cards.findFirst({
-    columns: {
-      id: true,
-      index: true,
-    },
-    with: {
-      list: {
-        columns: {
-          id: true,
-          boardId: true,
-        },
-      },
-    },
-    where: and(eq(cards.publicId, cardPublicId), isNull(cards.deletedAt)),
-  });
-};
-
 export const getByPublicId = (db: dbClient, cardPublicId: string) => {
   return db.query.cards.findFirst({
     columns: {
@@ -238,103 +217,6 @@ export const getCardLabelRelationship = async (
   });
 };
 
-export const bulkCreate = async (
-  db: dbClient,
-  cardInput: {
-    publicId: string;
-    title: string;
-    description: string;
-    createdBy: string;
-    listId: number;
-    index: number;
-  }[],
-) => {
-  if (cardInput.length === 0) return [];
-
-  return db.transaction(async (tx) => {
-    const byList = new Map<number, typeof cardInput>();
-    for (const item of cardInput) {
-      const arr = byList.get(item.listId) ?? [];
-      arr.push(item);
-      byList.set(item.listId, arr);
-    }
-
-    const allValuesToInsert: {
-      publicId: string;
-      title: string;
-      description: string;
-      createdBy: string;
-      listId: number;
-      index: number;
-    }[] = [];
-
-    for (const [listId, items] of byList.entries()) {
-      const last = await tx.query.cards.findFirst({
-        columns: { index: true },
-        where: and(eq(cards.listId, listId), isNull(cards.deletedAt)),
-        orderBy: [desc(cards.index)],
-      });
-
-      let nextIndex = last ? last.index + 1 : 0;
-      const sorted = [...items].sort((a, b) => a.index - b.index);
-      for (const it of sorted) {
-        allValuesToInsert.push({
-          publicId: it.publicId,
-          title: it.title,
-          description: it.description,
-          createdBy: it.createdBy,
-          listId: it.listId,
-          index: nextIndex++,
-        });
-      }
-    }
-
-    const inserted = await tx
-      .insert(cards)
-      .values(allValuesToInsert)
-      .returning({ id: cards.id });
-
-    const countExpr = sql<number>`COUNT(*)`.mapWith(Number);
-    for (const listId of byList.keys()) {
-      const duplicateIndices = await tx
-        .select({ index: cards.index, count: countExpr })
-        .from(cards)
-        .where(and(eq(cards.listId, listId), isNull(cards.deletedAt)))
-        .groupBy(cards.listId, cards.index)
-        .having(gt(countExpr, 1));
-
-      if (duplicateIndices.length > 0) {
-        await tx.execute(sql`
-          WITH ordered AS (
-            SELECT id, ROW_NUMBER() OVER (ORDER BY "index", id) - 1 AS new_index
-            FROM "card"
-            WHERE "listId" = ${listId} AND "deletedAt" IS NULL
-          )
-          UPDATE "card" c
-          SET "index" = o.new_index
-          FROM ordered o
-          WHERE c.id = o.id;
-        `);
-
-        const postFixDupes = await tx
-          .select({ index: cards.index, count: countExpr })
-          .from(cards)
-          .where(and(eq(cards.listId, listId), isNull(cards.deletedAt)))
-          .groupBy(cards.listId, cards.index)
-          .having(gt(countExpr, 1));
-
-        if (postFixDupes.length > 0) {
-          throw new Error(
-            `Invariant violation: duplicate card indices remain after compaction in list ${listId}`,
-          );
-        }
-      }
-    }
-
-    return inserted;
-  });
-};
-
 export const createCardLabelRelationship = async (
   db: dbClient,
   cardLabelRelationshipInput: { cardId: number; labelId: number },
@@ -345,18 +227,6 @@ export const createCardLabelRelationship = async (
       cardId: cardLabelRelationshipInput.cardId,
       labelId: cardLabelRelationshipInput.labelId,
     })
-    .returning();
-
-  return result;
-};
-
-export const bulkCreateCardLabelRelationship = async (
-  db: dbClient,
-  cardLabelRelationshipInput: { cardId: number; labelId: number }[],
-) => {
-  const [result] = await db
-    .insert(cardsToLabels)
-    .values(cardLabelRelationshipInput)
     .returning();
 
   return result;

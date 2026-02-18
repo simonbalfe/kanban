@@ -10,7 +10,7 @@ import type { dbClient } from "~/db/client";
 import { createDrizzleClient } from "~/db/client";
 import * as userRepo from "~/db/repository/user.repo";
 
-export interface User {
+interface User {
   id: string;
   name: string | null;
   email: string;
@@ -20,7 +20,7 @@ export interface User {
   image?: string | null | undefined;
 }
 
-export interface AuthAdapter {
+interface AuthAdapter {
   api: {
     getSession: () => Promise<{ user: User } | null>;
     signInMagicLink: (input: {
@@ -46,7 +46,7 @@ interface CreateContextOptions {
   headers: Headers;
 }
 
-export const createInnerTRPCContext = (opts: CreateContextOptions) => {
+const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     user: opts.user,
     db: opts.db,
@@ -127,8 +127,6 @@ const t = initTRPC
   });
 
 export const createTRPCRouter = t.router;
-
-export const createCallerFactory = t.createCallerFactory;
 
 export const publicProcedure = t.procedure.meta({
   openapi: { method: "GET", path: "/public" },

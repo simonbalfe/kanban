@@ -211,27 +211,6 @@ export const getByPublicId = async (db: dbClient, listPublicId: string) => {
   });
 };
 
-export const getWithCardsByPublicId = async (
-  db: dbClient,
-  listPublicId: string,
-) => {
-  return db.query.lists.findFirst({
-    columns: {
-      id: true,
-    },
-    with: {
-      cards: {
-        columns: {
-          index: true,
-        },
-        where: isNull(lists.deletedAt),
-        orderBy: [desc(lists.index)],
-      },
-    },
-    where: and(eq(lists.publicId, listPublicId), isNull(lists.deletedAt)),
-  });
-};
-
 export const update = async (
   db: dbClient,
   listInput: {

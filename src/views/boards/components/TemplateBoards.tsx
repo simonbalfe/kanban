@@ -10,7 +10,7 @@ export interface Template {
   labels: string[];
 }
 
-export const getTemplates = (): Template[] => [
+const getTemplates = (): Template[] => [
   {
     id: "basic",
     name: t`Basic Kanban`,

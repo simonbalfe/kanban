@@ -461,28 +461,6 @@ export const getWithListIdsByPublicId = (
   });
 };
 
-export const getWithLatestListIndexByPublicId = (
-  db: dbClient,
-  boardPublicId: string,
-) => {
-  return db.query.boards.findFirst({
-    columns: {
-      id: true,
-    },
-    with: {
-      lists: {
-        columns: {
-          index: true,
-        },
-        where: isNull(lists.deletedAt),
-        orderBy: [desc(lists.index)],
-        limit: 1,
-      },
-    },
-    where: eq(boards.publicId, boardPublicId),
-  });
-};
-
 export const create = async (
   db: dbClient,
   boardInput: {
@@ -551,18 +529,6 @@ export const softDelete = async (
     .update(boards)
     .set({ deletedAt: args.deletedAt, deletedBy: args.deletedBy })
     .where(and(eq(boards.id, args.boardId), isNull(boards.deletedAt)))
-    .returning({
-      publicId: boards.publicId,
-      name: boards.name,
-    });
-
-  return result;
-};
-
-export const hardDelete = async (db: dbClient, boardId: number) => {
-  const [result] = await db
-    .delete(boards)
-    .where(eq(boards.id, boardId))
     .returning({
       publicId: boards.publicId,
       name: boards.name,
