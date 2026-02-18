@@ -53,4 +53,4 @@ __ENV.js
 i18n.cache
 
 # pgdata
-/apps/web/pgdata
+/pgdata
