@@ -4,68 +4,22 @@ import {
   HiLink,
   HiOutlineDocumentDuplicate,
   HiOutlineTrash,
-  HiOutlineStar,
-  HiStar,
 } from "react-icons/hi2";
 
 import Dropdown from "~/components/Dropdown";
 import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
-import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
 
 export default function BoardDropdown({
   isTemplate,
   isLoading,
-  boardPublicId,
-  isFavorite,
-  boardName,
 }: {
   isTemplate: boolean;
   isLoading: boolean;
-  boardPublicId: string;
-  isFavorite?: boolean;
-  boardName?: string;
 }) {
   const { openModal } = useModal();
   const { isAdminOrMember } = usePermissions();
-  const { showPopup } = usePopup();
-  const utils = api.useUtils();
 
-  const handleToggleFavorite = () => {
-    updateBoard.mutate({
-      boardPublicId,
-      favorite: !isFavorite,
-    });
-  };
-
-  const updateBoard = api.board.update.useMutation({
-    onSuccess: (data, variables) => {
-      void utils.board.all.invalidate();
-      void utils.board.byId.invalidate();
-
-      // Show popup notification
-      if (variables.favorite !== undefined) {
-        showPopup({
-          header: variables.favorite
-            ? t`Added to favorites`
-            : t`Removed from favorites`,
-          message: variables.favorite
-            ? t`${boardName ?? "Board"} has been added to your favorites.`
-            : t`${boardName ?? "Board"} has been removed from your favorites.`,
-          icon: "success",
-        });
-      }
-    },
-    onError: () => {
-      showPopup({
-        header: t`Unable to update board`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
-    },
-  });
-  
   const items = [
     ...(isTemplate && isAdminOrMember
       ? [
@@ -87,17 +41,6 @@ export default function BoardDropdown({
           },
         ]
       : []),
-    {
-      label: isFavorite
-        ? t`Remove from favorites`
-        : t`Add to favorites`,
-      action: handleToggleFavorite,
-      icon: isFavorite ? (
-        <HiStar className="h-[16px] w-[16px] text-dark-900" />
-      ) : (
-        <HiOutlineStar className="h-[16px] w-[16px] text-dark-900" />
-      ),
-    },
     ...(isAdminOrMember
       ? [
           {
@@ -108,7 +51,6 @@ export default function BoardDropdown({
         ]
       : []),
   ];
-  
 
   if (items.length === 0) {
     return null;

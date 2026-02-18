@@ -452,10 +452,9 @@ export const boardRouter = createTRPCRouter({
           .regex(/^(?![-]+$)[a-zA-Z0-9-]+$/)
           .optional(),
         visibility: z.enum(["public", "private"]).optional(),
-        favorite: z.boolean().optional()
       }),
     )
-    .output(z.object({ success: z.boolean() }).or(z.custom<Awaited<ReturnType<typeof boardRepo.update>>>()))
+    .output(z.custom<Awaited<ReturnType<typeof boardRepo.update>>>())
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
 
@@ -483,20 +482,6 @@ export const boardRouter = createTRPCRouter({
         "board:edit",
         board.createdBy ?? null,
       );
-
-      if (input.favorite !== undefined) {
-        if (input.favorite) {
-          await boardRepo.addUserFavorite(ctx.db, userId, board.id);
-        } else {
-          await boardRepo.removeUserFavorite(ctx.db, userId, board.id);
-        }
-      }
-
-      const hasOtherUpdates = input.name || input.slug || input.visibility !== undefined;
-
-      if (!hasOtherUpdates) {
-        return { success: true };
-      }
 
       if (input.slug) {
         const isBoardSlugAvailable = await boardRepo.isBoardSlugAvailable(

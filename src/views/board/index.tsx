@@ -485,10 +485,6 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
             <BoardDropdown
               isTemplate={!!isTemplate}
               isLoading={!boardData}
-              boardPublicId={boardId ?? ""}
-              workspacePublicId={workspace.publicId}
-              isFavorite={boardData?.favorite}
-              boardName={boardData?.name}
             />
           </div>
         </div>
