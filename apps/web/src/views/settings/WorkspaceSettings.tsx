@@ -1,6 +1,5 @@
 import { t } from "@lingui/core/macro";
 
-import FeedbackModal from "~/components/FeedbackModal";
 import Modal from "~/components/modal";
 import { NewWorkspaceForm } from "~/components/NewWorkspaceForm";
 import { PageHead } from "~/components/PageHead";
@@ -94,12 +93,6 @@ export default function WorkspaceSettings() {
         <DeleteWorkspaceConfirmation />
       </Modal>
 
-      <Modal
-        modalSize="md"
-        isVisible={isOpen && modalContentType === "NEW_FEEDBACK"}
-      >
-        <FeedbackModal />
-      </Modal>
       <Modal
         modalSize="sm"
         isVisible={isOpen && modalContentType === "NEW_WORKSPACE"}

@@ -2,7 +2,6 @@ import { t } from "@lingui/core/macro";
 import { env } from "next-runtime-env";
 
 import Button from "~/components/Button";
-import FeedbackModal from "~/components/FeedbackModal";
 import { LanguageSelector } from "~/components/LanguageSelector";
 import Modal from "~/components/modal";
 import { NewWorkspaceForm } from "~/components/NewWorkspaceForm";
@@ -105,13 +104,6 @@ export default function AccountSettings() {
         <ChangePasswordFormConfirmation />
       </Modal>
 
-      {/* Global modals */}
-      <Modal
-        modalSize="md"
-        isVisible={isOpen && modalContentType === "NEW_FEEDBACK"}
-      >
-        <FeedbackModal />
-      </Modal>
       <Modal
         modalSize="sm"
         isVisible={isOpen && modalContentType === "NEW_WORKSPACE"}

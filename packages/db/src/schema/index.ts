@@ -3,7 +3,6 @@ export * from "./boards";
 export * from "./auth";
 export * from "./cards";
 export * from "./checklists";
-export * from "./feedback";
 export * from "./labels";
 export * from "./lists";
 export * from "./users";
