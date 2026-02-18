@@ -15,7 +15,8 @@
     "db:push": "dotenv -e .env -- drizzle-kit push",
     "db:studio": "dotenv -e .env -- drizzle-kit studio",
     "lingui:extract": "lingui extract",
-    "lingui:compile": "lingui compile --typescript"
+    "lingui:compile": "lingui compile --typescript",
+    "knip": "knip"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.802.0",
@@ -98,6 +99,7 @@
     "eslint": "^9.12.0",
     "eslint-config-next": "15.5.9",
     "jiti": "^1.21.6",
+    "knip": "^5.84.0",
     "postcss": "^8.4.49",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.9",

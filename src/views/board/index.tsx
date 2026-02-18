@@ -145,13 +145,11 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 
         const updatedLists = Array.from(oldBoard.lists);
 
-        const sourceList = updatedLists.find(
+        const currentIndex = updatedLists.findIndex(
           (list) => list.publicId === args.listPublicId,
         );
 
-        const currentIndex = sourceList?.index;
-
-        if (currentIndex === undefined) return oldBoard;
+        if (currentIndex === -1) return oldBoard;
 
         const removedList = updatedLists.splice(currentIndex, 1)[0];
 
@@ -198,13 +196,13 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
           (list) => list.publicId === args.listPublicId,
         );
 
-        const cardToMove = sourceList?.cards.find(
+        const cardIndex = sourceList?.cards.findIndex(
           (card) => card.publicId === args.cardPublicId,
         );
 
-        if (!cardToMove) return oldBoard;
+        if (cardIndex === undefined || cardIndex === -1) return oldBoard;
 
-        const removedCard = sourceList?.cards.splice(cardToMove.index, 1)[0];
+        const removedCard = sourceList?.cards.splice(cardIndex, 1)[0];
 
         if (
           sourceList &&
@@ -520,7 +518,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                         {boardData.lists.map((list, index) => (
                           <List
                             index={index}
-                            key={index}
+                            key={list.publicId}
                             list={list}
                             setSelectedPublicListId={(publicListId) =>
                               setSelectedPublicListId(publicListId)
