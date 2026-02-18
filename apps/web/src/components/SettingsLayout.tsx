@@ -7,11 +7,9 @@ import {
   ListboxOptions,
 } from "@headlessui/react";
 import { t } from "@lingui/core/macro";
-import { env } from "next-runtime-env";
 import { useEffect, useState } from "react";
 import {
   HiChevronDown,
-  HiOutlineBanknotes,
   HiOutlineCodeBracketSquare,
   HiOutlineRectangleGroup,
   HiOutlineShieldCheck,
@@ -51,12 +49,6 @@ export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
       icon: <HiOutlineShieldCheck />,
       label: t`Permissions`,
       condition: isAdmin,
-    },
-    {
-      key: "billing",
-      label: t`Billing`,
-      icon: <HiOutlineBanknotes />,
-      condition: env("NEXT_PUBLIC_KAN_ENV") === "cloud" && isAdmin,
     },
     {
       key: "api",

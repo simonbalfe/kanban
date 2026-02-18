@@ -1,9 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { env } from "next-runtime-env";
 import { z } from "zod";
 
 import * as workspaceRepo from "@kan/db/repository/workspace.repo";
-import * as workspaceSlugRepo from "@kan/db/repository/workspaceSlug.repo";
 import { generateUID } from "@kan/shared/utils";
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
@@ -223,30 +221,12 @@ export const workspaceRouter = createTRPCRouter({
           code: "UNAUTHORIZED",
         });
 
-      // Check if slug is provided in cloud environment
-      if (input.slug && env("NEXT_PUBLIC_KAN_ENV") === "cloud") {
-        throw new TRPCError({
-          message: "Custom URLs are only available for Pro workspaces",
-          code: "BAD_REQUEST",
-        });
-      }
-
       const workspacePublicId = generateUID();
       const workspaceSlug = input.slug ?? workspacePublicId;
 
       if (input.slug) {
-        const reservedOrPremiumWorkspaceSlug =
-          await workspaceSlugRepo.getWorkspaceSlug(ctx.db, input.slug);
-
         const isWorkspaceSlugAvailable =
           await workspaceRepo.isWorkspaceSlugAvailable(ctx.db, input.slug);
-
-        if (reservedOrPremiumWorkspaceSlug) {
-          throw new TRPCError({
-            message: `Workspace slug '${input.slug}' is reserved or premium`,
-            code: "BAD_REQUEST",
-          });
-        }
 
         if (!isWorkspaceSlugAvailable) {
           throw new TRPCError({
@@ -320,27 +300,10 @@ export const workspaceRouter = createTRPCRouter({
       await assertPermission(ctx.db, userId, workspace.id, "workspace:edit");
 
       if (input.slug) {
-        const reservedOrPremiumWorkspaceSlug =
-          await workspaceSlugRepo.getWorkspaceSlug(ctx.db, input.slug);
-
         const isWorkspaceSlugAvailable =
           await workspaceRepo.isWorkspaceSlugAvailable(ctx.db, input.slug);
 
-        if (
-          env("NEXT_PUBLIC_KAN_ENV") === "cloud" &&
-          workspace.plan !== "pro" &&
-          input.slug !== workspace.publicId
-        ) {
-          throw new TRPCError({
-            message: `Workspace slug cannot be changed in cloud without upgrading to a paid plan`,
-            code: "FORBIDDEN",
-          });
-        }
-
-        if (
-          reservedOrPremiumWorkspaceSlug?.type === "reserved" ||
-          !isWorkspaceSlugAvailable
-        ) {
+        if (!isWorkspaceSlugAvailable) {
           throw new TRPCError({
             message: `Workspace slug already taken`,
             code: "CONFLICT",
@@ -444,33 +407,13 @@ export const workspaceRouter = createTRPCRouter({
         });
 
       const slug = input.workspaceSlug.toLowerCase();
-      // check slug is not reserved
-      const workspaceSlug = await workspaceSlugRepo.getWorkspaceSlug(
-        ctx.db,
-        slug,
-      );
 
-      // check slug is not taken already
       const isWorkspaceSlugAvailable =
         await workspaceRepo.isWorkspaceSlugAvailable(ctx.db, slug);
 
-      const isAvailable =
-        isWorkspaceSlugAvailable && workspaceSlug?.type !== "reserved";
-      const isReserved = workspaceSlug?.type === "reserved";
-
-      if (env("NEXT_PUBLIC_KAN_ENV") === "cloud") {
-        await workspaceSlugRepo.createWorkspaceSlugCheck(ctx.db, {
-          slug,
-          userId,
-          available: isAvailable,
-          reserved: isReserved,
-        });
-      }
-
       return {
-        isAvailable:
-          isWorkspaceSlugAvailable && workspaceSlug?.type !== "reserved",
-        isReserved: workspaceSlug?.type === "reserved",
+        isAvailable: isWorkspaceSlugAvailable,
+        isReserved: false,
       };
     }),
   search: protectedProcedure

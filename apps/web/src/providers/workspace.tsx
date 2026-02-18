@@ -17,7 +17,6 @@ interface Workspace {
   description: string | null | undefined;
   publicId: string;
   slug: string | undefined;
-  plan: "free" | "pro" | "enterprise" | undefined;
   role: "admin" | "member" | "guest";
 }
 
@@ -26,7 +25,6 @@ const initialWorkspace: Workspace = {
   description: null,
   publicId: "",
   slug: "",
-  plan: "free",
   role: "member",
 };
 
@@ -78,7 +76,6 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({
         name: workspace.name,
         slug: workspace.slug,
         description: workspace.description,
-        plan: workspace.plan,
         hasLoaded: true,
       })) as Workspace[];
 
@@ -97,7 +94,6 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({
         publicId: selectedWorkspace.workspace.publicId,
         name: selectedWorkspace.workspace.name,
         slug: selectedWorkspace.workspace.slug,
-        plan: selectedWorkspace.workspace.plan,
         description: selectedWorkspace.workspace.description,
         role: selectedWorkspace.role,
       });
@@ -116,7 +112,6 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({
         publicId: primaryWorkspace.publicId,
         name: primaryWorkspace.name,
         slug: primaryWorkspace.slug,
-        plan: primaryWorkspace.plan,
         description: primaryWorkspace.description,
         role: primaryWorkspaceRole,
       });

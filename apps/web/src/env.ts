@@ -28,7 +28,6 @@ export const env = createEnv({
     POSTGRES_URL: z.string().url().optional().or(z.literal("")),
     TRELLO_APP_API_KEY: z.string().optional(),
     TRELLO_APP_SECRET: z.string().optional(),
-    STRIPE_SECRET_KEY: z.string().optional(),
     GOOGLE_CLIENT_ID: z.string().optional(),
     GOOGLE_CLIENT_SECRET: z.string().optional(),
     DISCORD_CLIENT_ID: z.string().optional(),
@@ -52,8 +51,6 @@ export const env = createEnv({
     VK_CLIENT_SECRET: z.string().optional(),
     LINKEDIN_CLIENT_ID: z.string().optional(),
     LINKEDIN_CLIENT_SECRET: z.string().optional(),
-    NOVU_API_KEY: z.string().optional(),
-    EMAIL_UNSUBSCRIBE_SECRET: z.string().optional(),
     // Generic OIDC Provider
     OIDC_CLIENT_ID: z.string().optional(),
     OIDC_CLIENT_SECRET: z.string().optional(),

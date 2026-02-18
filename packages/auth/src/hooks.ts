@@ -1,13 +1,11 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { ChatOrPushProviderEnum } from "@novu/api/models/components";
 import { createAuthMiddleware } from "better-auth/api";
 import { env } from "next-runtime-env";
 
 import type { dbClient } from "@kan/db/client";
 import * as memberRepo from "@kan/db/repository/member.repo";
 import * as userRepo from "@kan/db/repository/user.repo";
-import { notificationClient } from "@kan/email";
-import { createEmailUnsubscribeLink, createS3Client } from "@kan/shared";
+import { createS3Client } from "@kan/shared";
 
 import { downloadImage } from "./utils";
 
@@ -19,7 +17,6 @@ type BetterAuthUser = {
   emailVerified: boolean;
   name: string;
   image?: string | null | undefined;
-  stripeCustomerId?: string | null | undefined;
 } & Record<string, unknown>;
 
 export function createDatabaseHooks(db: dbClient) {
@@ -53,7 +50,6 @@ export function createDatabaseHooks(db: dbClient) {
           return Promise.resolve(true);
         },
         async after(user: BetterAuthUser, _context: unknown) {
-          let avatarKey = user.image;
           const storageDomain = process.env.NEXT_PUBLIC_STORAGE_DOMAIN;
           if (
             user.image &&
@@ -81,8 +77,6 @@ export function createDatabaseHooks(db: dbClient) {
                 }),
               );
 
-              avatarKey = key;
-
               await userRepo.update(db, user.id, {
                 image: key,
               });
@@ -91,52 +85,6 @@ export function createDatabaseHooks(db: dbClient) {
             }
           }
 
-          if (notificationClient) {
-            try {
-              const [firstName, ...rest] = (user.name || "")
-                .split(" ")
-                .filter(Boolean);
-              const lastName = rest.length ? rest.join(" ") : undefined;
-              const avatarUrl = avatarKey
-                ? `${env("NEXT_PUBLIC_STORAGE_URL")}/${env("NEXT_PUBLIC_AVATAR_BUCKET_NAME")}/${avatarKey}`
-                : undefined;
-
-              const unsubscribeUrl = await createEmailUnsubscribeLink(user.id);
-
-              await notificationClient.trigger({
-                to: {
-                  subscriberId: user.id,
-                  firstName: firstName,
-                  lastName: lastName,
-                  email: user.email,
-                  avatar: avatarUrl,
-                  data: {
-                    emailVerified: user.emailVerified,
-                    stripeCustomerId: user.stripeCustomerId,
-                    createdAt: user.createdAt,
-                    updatedAt: user.updatedAt,
-                  },
-                },
-                payload: {
-                  emailUnsubscribeUrl: unsubscribeUrl,
-                },
-                workflowId: "user-signup",
-              });
-
-              await notificationClient.subscribers.credentials.update(
-                {
-                  providerId: ChatOrPushProviderEnum.Discord,
-                  credentials: {
-                    webhookUrl: env("DISCORD_WEBHOOK_URL"),
-                  },
-                  integrationIdentifier: "discord",
-                },
-                user.id,
-              );
-            } catch (error) {
-              console.error("Error adding user to notification client", error);
-            }
-          }
         },
       },
     },

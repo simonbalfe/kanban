@@ -80,7 +80,6 @@ export const create = async (
       name: workspaces.name,
       slug: workspaces.slug,
       description: workspaces.description,
-      plan: workspaces.plan,
     });
 
   if (workspace) {
@@ -124,7 +123,6 @@ export const update = async (
   workspaceInput: {
     name?: string;
     slug?: string;
-    plan?: "free" | "pro" | "enterprise";
     description?: string;
     showEmailsToMembers?: boolean;
   },
@@ -134,7 +132,6 @@ export const update = async (
     .set({
       name: workspaceInput.name,
       slug: workspaceInput.slug,
-      plan: workspaceInput.plan,
       description: workspaceInput.description,
       showEmailsToMembers: workspaceInput.showEmailsToMembers,
     })
@@ -145,7 +142,6 @@ export const update = async (
       name: workspaces.name,
       slug: workspaces.slug,
       description: workspaces.description,
-      plan: workspaces.plan,
       showEmailsToMembers: workspaces.showEmailsToMembers,
     });
 
@@ -158,7 +154,6 @@ export const getByPublicId = (db: dbClient, workspacePublicId: string) => {
       id: true,
       publicId: true,
       name: true,
-      plan: true,
       slug: true,
     },
     where: eq(workspaces.publicId, workspacePublicId),
@@ -171,7 +166,6 @@ export const getById = (db: dbClient, workspaceId: number) => {
       id: true,
       publicId: true,
       name: true,
-      plan: true,
       slug: true,
     },
     where: eq(workspaces.id, workspaceId),
@@ -213,17 +207,6 @@ export const getByPublicIdWithMembers = (
               image: true,
             },
           },
-        },
-      },
-      subscriptions: {
-        columns: {
-          id: true,
-          plan: true,
-          status: true,
-          seats: true,
-          unlimitedSeats: true,
-          periodStart: true,
-          periodEnd: true,
         },
       },
     },
@@ -273,7 +256,6 @@ export const getAllByUserId = async (db: dbClient, userId: string) => {
           name: true,
           description: true,
           slug: true,
-          plan: true,
           deletedAt: true,
         },
         // https://github.com/drizzle-team/drizzle-orm/issues/2903

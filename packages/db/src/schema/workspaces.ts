@@ -13,7 +13,6 @@ import {
 
 import { boards } from "./boards";
 import { workspaceMemberPermissions, workspaceRoles } from "./permissions";
-import { subscription } from "./subscriptions";
 import { users } from "./users";
 
 export const memberRoles = ["admin", "member", "guest"] as const;
@@ -29,21 +28,12 @@ export const memberStatuses = [
 export type MemberStatus = (typeof memberStatuses)[number];
 export const memberStatusEnum = pgEnum("member_status", memberStatuses);
 
-export const slugTypes = ["reserved", "premium"] as const;
-export type SlugType = (typeof slugTypes)[number];
-export const slugTypeEnum = pgEnum("slug_type", slugTypes);
-
-export const workspacePlans = ["free", "pro", "enterprise"] as const;
-export type WorkspacePlan = (typeof workspacePlans)[number];
-export const workspacePlanEnum = pgEnum("workspace_plan", workspacePlans);
-
 export const workspaces = pgTable("workspace", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
   publicId: varchar("publicId", { length: 12 }).notNull().unique(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   slug: varchar("slug", { length: 255 }).notNull().unique(),
-  plan: workspacePlanEnum("plan").notNull().default("free"),
   showEmailsToMembers: boolean("showEmailsToMembers").notNull().default(true),
   createdBy: uuid("createdBy").references(() => users.id, {
     onDelete: "set null",
@@ -69,7 +59,6 @@ export const workspaceRelations = relations(workspaces, ({ one, many }) => ({
   }),
   members: many(workspaceMembers),
   boards: many(boards),
-  subscriptions: many(subscription),
   roles: many(workspaceRoles),
 }));
 
@@ -130,21 +119,3 @@ export const workspaceMemberPermissionsRelations = relations(
   }),
 );
 
-export const slugs = pgTable("workspace_slugs", {
-  slug: varchar("slug", { length: 255 }).notNull().unique(),
-  type: slugTypeEnum("type").notNull(),
-});
-
-export const slugChecks = pgTable("workspace_slug_checks", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
-  slug: varchar("slug", { length: 255 }).notNull(),
-  available: boolean("available").notNull(),
-  reserved: boolean("reserved").notNull(),
-  workspaceId: bigint("workspaceId", { mode: "number" }).references(
-    () => workspaces.id,
-  ),
-  createdBy: uuid("createdBy").references(() => users.id, {
-    onDelete: "set null",
-  }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-}).enableRLS();
