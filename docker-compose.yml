@@ -57,10 +57,6 @@ services:
       # API configuration (optional)
       - NEXT_API_BODY_SIZE_LIMIT=${NEXT_API_BODY_SIZE_LIMIT}
 
-      # Integration providers (optional)
-      - TRELLO_APP_API_KEY=${TRELLO_APP_API_KEY}
-      - TRELLO_APP_SECRET=${TRELLO_APP_SECRET}
-
       # Generic OIDC provider (optional)
       - OIDC_CLIENT_ID=${OIDC_CLIENT_ID}
       - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}

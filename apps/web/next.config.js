@@ -10,10 +10,7 @@ configureRuntimeEnv();
 
 /** @type {import("next").NextConfig} */
 const config = {
-  output:
-    env("NEXT_PUBLIC_USE_STANDALONE_OUTPUT") === "true"
-      ? "standalone"
-      : undefined,
+  output: "standalone",
   reactStrictMode: true,
 
   /** Enables hot reloading for local packages without a build step */
@@ -22,7 +19,6 @@ const config = {
     "@kan/db",
     "@kan/shared",
     "@kan/auth",
-    "@kan/stripe",
   ],
 
   /** We already do linting and typechecking as separate tasks in CI */

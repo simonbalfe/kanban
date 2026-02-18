@@ -594,7 +594,6 @@ export const create = async (
     name: string;
     createdBy: string;
     workspaceId: number;
-    importId?: number;
     slug: string;
     type?: "regular" | "template";
     sourceBoardId?: number;
@@ -607,7 +606,6 @@ export const create = async (
       name: boardInput.name,
       createdBy: boardInput.createdBy,
       workspaceId: boardInput.workspaceId,
-      importId: boardInput.importId,
       slug: boardInput.slug,
       type: boardInput.type ?? "regular",
       sourceBoardId: boardInput.sourceBoardId,

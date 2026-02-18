@@ -266,7 +266,6 @@ export const bulkCreate = async (
     createdBy: string;
     listId: number;
     index: number;
-    importId?: number;
   }[],
 ) => {
   if (cardInput.length === 0) return [];
@@ -287,7 +286,6 @@ export const bulkCreate = async (
       createdBy: string;
       listId: number;
       index: number;
-      importId?: number;
     }[] = [];
 
     // For each list, append incoming cards after current max index, preserving incoming order
@@ -308,7 +306,6 @@ export const bulkCreate = async (
           createdBy: it.createdBy,
           listId: it.listId,
           index: nextIndex++,
-          importId: it.importId,
         });
       }
     }

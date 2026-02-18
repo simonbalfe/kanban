@@ -4,6 +4,7 @@ import "~/utils/i18n";
 import type { NextPage, Viewport } from "next";
 import type { AppProps, AppType } from "next/app";
 import type { ReactElement, ReactNode } from "react";
+import dynamic from "next/dynamic";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 
@@ -39,9 +40,29 @@ type AppPropsWithLayout = AppProps & {
   Component: NextPageWithLayout;
 };
 
-const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
+function AppContent({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout = Component.getLayout ?? ((page) => page);
 
+  return (
+    <KeyboardShortcutProvider>
+      <LinguiProviderWrapper>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <ModalProvider>
+            <PopupProvider>
+              {getLayout(<Component {...pageProps} />)}
+            </PopupProvider>
+          </ModalProvider>
+        </ThemeProvider>
+      </LinguiProviderWrapper>
+    </KeyboardShortcutProvider>
+  );
+}
+
+const ClientAppContent = dynamic(() => Promise.resolve(AppContent), {
+  ssr: false,
+});
+
+const MyApp: AppType = (props: AppPropsWithLayout) => {
   return (
     <>
       <style jsx global>{`
@@ -54,17 +75,7 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
       `}</style>
       <script src="/__ENV.js" />
       <main className="font-sans">
-        <KeyboardShortcutProvider>
-          <LinguiProviderWrapper>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              <ModalProvider>
-                <PopupProvider>
-                  {getLayout(<Component {...pageProps} />)}
-                </PopupProvider>
-              </ModalProvider>
-            </ThemeProvider>
-          </LinguiProviderWrapper>
-        </KeyboardShortcutProvider>
+        <ClientAppContent {...props} />
       </main>
     </>
   );

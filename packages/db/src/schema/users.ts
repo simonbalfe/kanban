@@ -10,10 +10,8 @@ import {
 import { apikey } from "./auth";
 import { boards, userBoardFavorites } from "./boards";
 import { cards } from "./cards";
-import { imports } from "./imports";
 import { lists } from "./lists";
 import { workspaceMembers, workspaces } from "./workspaces";
-import { integrations } from "./integrations";
 
 export const users = pgTable("user", {
   id: uuid("id")
@@ -41,8 +39,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   cards: many(cards, {
     relationName: "cardsCreatedByUser",
   }),
-  imports: many(imports),
-  deletedLists: many(lists, {
+deletedLists: many(lists, {
     relationName: "listsDeletedByUser",
   }),
   lists: many(lists, {
@@ -55,7 +52,6 @@ export const usersRelations = relations(users, ({ many }) => ({
     relationName: "workspaceCreatedByUser",
   }),
   apiKeys: many(apikey),
-  integrations: many(integrations),
 }));
 
 export const usersToWorkspacesRelations = relations(

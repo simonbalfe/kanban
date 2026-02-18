@@ -26,7 +26,7 @@ interface SettingsLayoutProps {
 export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
   const router = useRouter();
   const { workspace } = useWorkspace();
-  const { canViewWorkspace, canEditWorkspace } = usePermissions();
+  const { canViewWorkspace } = usePermissions();
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
 
   const isAdmin = workspace.role === "admin";
@@ -55,12 +55,6 @@ export function SettingsLayout({ children, currentTab }: SettingsLayoutProps) {
       icon: <HiOutlineCodeBracketSquare />,
       label: t`API`,
       condition: true,
-    },
-    {
-      key: "integrations",
-      icon: <HiOutlineCodeBracketSquare />,
-      label: t`Integrations`,
-      condition: canEditWorkspace,
     },
   ];
 

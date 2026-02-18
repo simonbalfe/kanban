@@ -14,7 +14,6 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-import { imports } from "./imports";
 import { labels } from "./labels";
 import { lists } from "./lists";
 import { users } from "./users";
@@ -48,10 +47,7 @@ export const boards = pgTable(
     deletedBy: uuid("deletedBy").references(() => users.id, {
       onDelete: "set null",
     }),
-    importId: bigint("importId", { mode: "number" }).references(
-      () => imports.id,
-    ),
-    workspaceId: bigint("workspaceId", { mode: "number" })
+workspaceId: bigint("workspaceId", { mode: "number" })
       .notNull()
       .references(() => workspaces.id, { onDelete: "cascade" }),
     visibility: boardVisibilityEnum("visibility").notNull().default("private"),
@@ -83,12 +79,7 @@ export const boardsRelations = relations(boards, ({ one, many }) => ({
     references: [users.id],
     relationName: "boardDeletedByUser",
   }),
-  import: one(imports, {
-    fields: [boards.importId],
-    references: [imports.id],
-    relationName: "boardImport",
-  }),
-  workspace: one(workspaces, {
+workspace: one(workspaces, {
     fields: [boards.workspaceId],
     references: [workspaces.id],
     relationName: "boardWorkspace",

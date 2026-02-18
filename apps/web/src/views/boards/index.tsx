@@ -1,5 +1,5 @@
 import { t } from "@lingui/core/macro";
-import { HiArrowDownTray, HiOutlinePlusSmall } from "react-icons/hi2";
+import { HiOutlinePlusSmall } from "react-icons/hi2";
 
 import Button from "~/components/Button";
 import FeedbackModal from "~/components/FeedbackModal";
@@ -12,7 +12,6 @@ import { useKeyboardShortcut } from "~/providers/keyboard-shortcuts";
 import { useModal } from "~/providers/modal";
 import { useWorkspace } from "~/providers/workspace";
 import { BoardsList } from "./components/BoardsList";
-import { ImportBoardsForm } from "./components/ImportBoardsForm";
 import { NewBoardForm } from "./components/NewBoardForm";
 
 export default function BoardsPage({ isTemplate }: { isTemplate?: boolean }) {
@@ -40,28 +39,7 @@ export default function BoardsPage({ isTemplate }: { isTemplate?: boolean }) {
             {t`${isTemplate ? "Templates" : "Boards"}`}
           </h1>
           <div className="flex gap-2">
-            {!isTemplate && (
-              <Tooltip
-                content={
-                  !canCreateBoard ? t`You don't have permission` : undefined
-                }
-              >
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    if (canCreateBoard) openModal("IMPORT_BOARDS");
-                  }}
-                  disabled={!canCreateBoard}
-                  iconLeft={
-                    <HiArrowDownTray aria-hidden="true" className="h-4 w-4" />
-                  }
-                >
-                  {t`Import`}
-                </Button>
-              </Tooltip>
-            )}
-            <Tooltip
+<Tooltip
               content={
                 !canCreateBoard
                   ? t`You don't have permission`
@@ -100,14 +78,7 @@ export default function BoardsPage({ isTemplate }: { isTemplate?: boolean }) {
             <NewBoardForm isTemplate={!!isTemplate} />
           </Modal>
 
-          <Modal
-            modalSize="sm"
-            isVisible={isOpen && modalContentType === "IMPORT_BOARDS"}
-          >
-            <ImportBoardsForm />
-          </Modal>
-
-          <Modal
+<Modal
             modalSize="sm"
             isVisible={isOpen && modalContentType === "NEW_WORKSPACE"}
           >
