@@ -1,4 +1,20 @@
 services:
+  api:
+    image: ghcr.io/simonbalfe/kanban/api:latest
+    container_name: ${API_CONTAINER_NAME:-kan-api}
+    ports:
+      - "${API_PORT:-3001}:3001"
+    networks:
+      - kan-network
+    build:
+      context: ./apps/api
+      dockerfile: ./Dockerfile
+    environment:
+      - POSTGRES_URL=${POSTGRES_URL}
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
   web:
     image: ghcr.io/kanbn/kan:latest
     container_name: ${CONTAINER_NAME:-kan-web}
@@ -13,17 +29,14 @@ services:
     env_file:
       - ./apps/web/.env
     environment:
-      # Required environment variables
       - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://api:3001}
       - POSTGRES_URL=${POSTGRES_URL}
 
-      # Redis (optional - for rate limiting)
       - REDIS_URL=${REDIS_URL}
 
-      # Admin API key (optional)
       - KAN_ADMIN_API_KEY=${KAN_ADMIN_API_KEY}
 
-      # SMTP (optional)
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USER=${SMTP_USER}
@@ -31,10 +44,8 @@ services:
       - EMAIL_FROM=${EMAIL_FROM}
       - SMTP_REJECT_UNAUTHORIZED=${SMTP_REJECT_UNAUTHORIZED}
 
-      # Disable email features entirely (optional)
       - NEXT_PUBLIC_DISABLE_EMAIL=${NEXT_PUBLIC_DISABLE_EMAIL}
 
-      # S3 storage (optional)
       - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
       - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
       - S3_REGION=${S3_REGION}
@@ -46,12 +57,11 @@ services:
       - NEXT_PUBLIC_STORAGE_DOMAIN=${NEXT_PUBLIC_STORAGE_DOMAIN}
       - NEXT_PUBLIC_USE_VIRTUAL_HOSTED_URLS=${NEXT_PUBLIC_USE_VIRTUAL_HOSTED_URLS}
 
-      # White label
       - NEXT_PUBLIC_WHITE_LABEL_HIDE_POWERED_BY=${NEXT_PUBLIC_WHITE_LABEL_HIDE_POWERED_BY}
 
-      # API configuration (optional)
       - NEXT_API_BODY_SIZE_LIMIT=${NEXT_API_BODY_SIZE_LIMIT}
     depends_on:
+      - api
       - postgres
     restart: unless-stopped
 
