@@ -9,6 +9,8 @@ import { Button } from "@headlessui/react";
 import Link from "@tiptap/extension-link";
 import Mention from "@tiptap/extension-mention";
 import Placeholder from "@tiptap/extension-placeholder";
+import TaskItem from "@tiptap/extension-task-item";
+import TaskList from "@tiptap/extension-task-list";
 import {
   BubbleMenu,
   EditorContent,
@@ -455,6 +457,8 @@ export default function Editor({
           heading: disableHeadings ? false : undefined,
         }),
         Markdown,
+        TaskList,
+        TaskItem.configure({ nested: true }),
         Placeholder.configure({
           placeholder: readOnly
             ? ""
@@ -542,7 +546,7 @@ export default function Editor({
         }),
       ],
       content,
-      onUpdate: ({ editor }) => onChange?.(editor.getHTML()),
+      onUpdate: ({ editor }) => onChange?.(editor.storage.markdown.getMarkdown()),
       onBlur: ({ event }) => {
         if (
           document
@@ -595,6 +599,33 @@ export default function Editor({
           color: rgb(59, 130, 246);
           text-decoration: none;
           font-weight: 500;
+        }
+        .tiptap ul[data-type="taskList"] {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        .tiptap ul[data-type="taskList"] li {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.5rem;
+          margin: 0.25rem 0;
+        }
+        .tiptap ul[data-type="taskList"] li > label {
+          flex: 0 0 auto;
+          margin-top: 0.2rem;
+          user-select: none;
+        }
+        .tiptap ul[data-type="taskList"] li > label input[type="checkbox"] {
+          cursor: pointer;
+          accent-color: rgb(59, 130, 246);
+        }
+        .tiptap ul[data-type="taskList"] li > div {
+          flex: 1 1 auto;
+        }
+        .tiptap ul[data-type="taskList"] li[data-checked="true"] > div {
+          text-decoration: line-through;
+          opacity: 0.6;
         }
       ` }} />
       {!readOnly && editor && <EditorBubbleMenu editor={editor} />}
