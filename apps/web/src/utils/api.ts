@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const API = import.meta.env.NEXT_PUBLIC_API_URL;
+const API = import.meta.env.VITE_API_URL;
 
 export interface ApiLabel {
   publicId: string;

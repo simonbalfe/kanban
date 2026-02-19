@@ -10,7 +10,7 @@ export default defineConfig({
     port: 3000,
     allowedHosts: true,
   },
-  envPrefix: ["VITE_", "NEXT_PUBLIC_"],
+  envPrefix: ["VITE_"],
   plugins: [
     cloudflare({ viteEnvironment: { name: "ssr" } }),
     tailwindcss(),

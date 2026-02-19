@@ -199,21 +199,21 @@ export default function UserMenu({
                 </button>
               </Menu.Item>
             </div>
-            {env.NEXT_PUBLIC_APP_VERSION && (
+            {env.VITE_APP_VERSION && (
               <div className="light-border-600 border-t-[1px] p-1 dark:border-dark-600">
                 <Menu.Item>
                   <a
                     href={
-                      env.NEXT_PUBLIC_APP_VERSION.includes("+")
-                        ? `https://github.com/kanbn/kan/commit/${env.NEXT_PUBLIC_APP_VERSION.split("+")[1]}`
-                        : `https://github.com/kanbn/kan/releases/tag/v${env.NEXT_PUBLIC_APP_VERSION}`
+                      env.VITE_APP_VERSION.includes("+")
+                        ? `https://github.com/kanbn/kan/commit/${env.VITE_APP_VERSION.split("+")[1]}`
+                        : `https://github.com/kanbn/kan/releases/tag/v${env.VITE_APP_VERSION}`
                     }
                     target="_blank"
                     rel="noreferrer"
                     onClick={handleLinkClick}
                     className="flex w-full items-center justify-center rounded-[5px] px-3 py-2 text-center text-xs text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-400"
                   >
-                    Version: {env.NEXT_PUBLIC_APP_VERSION}
+                    Version: {env.VITE_APP_VERSION}
                   </a>
                 </Menu.Item>
               </div>

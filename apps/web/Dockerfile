@@ -24,7 +24,7 @@ RUN git fetch --tags --unshallow 2>/dev/null || git fetch --tags 2>/dev/null || 
     git rev-parse --short HEAD 2>/dev/null | head -c 7 || \
     echo "unknown") && \
     VERSION="${APP_VERSION:-$AUTO_VERSION}" && \
-    NEXT_PUBLIC_APP_VERSION="$VERSION" pnpm build
+    VITE_APP_VERSION="$VERSION" pnpm build
 
 FROM alpine AS runner
 RUN addgroup --system --gid 1001 nodejs

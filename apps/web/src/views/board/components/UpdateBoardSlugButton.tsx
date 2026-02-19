@@ -5,9 +5,9 @@ import { env } from "~/env";
 import { Tooltip } from "~/components/Tooltip";
 import { usePopup } from "~/providers/popup";
 
-const displayBaseUrl = env.NEXT_PUBLIC_BASE_URL;
+const displayBaseUrl = env.VITE_PUBLIC_URL;
 
-const linkBaseUrl = env.NEXT_PUBLIC_BASE_URL;
+const linkBaseUrl = env.VITE_PUBLIC_URL;
 
 const pathSeparator = (
   <div className="mx-1.5 h-4 w-px rotate-[20deg] bg-gray-300 dark:bg-dark-600" />

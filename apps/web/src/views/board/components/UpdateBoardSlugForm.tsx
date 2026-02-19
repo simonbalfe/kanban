@@ -137,7 +137,7 @@ export function UpdateBoardSlugForm({
               ? "This board URL has already been taken"
               : undefined)
           }
-          prefix={`${env.NEXT_PUBLIC_BASE_URL}/`}
+          prefix={`${env.VITE_PUBLIC_URL}/`}
           onKeyDown={async (e) => {
             if (e.key === "Enter") {
               e.preventDefault();
