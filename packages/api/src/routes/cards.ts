@@ -1,27 +1,36 @@
-import { Elysia, t } from "elysia";
+import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
+import { z } from "zod";
 
+import type { Env } from "../app";
 import type { dbClient } from "../db/client";
 import * as cardRepo from "../db/repository/card.repo";
 import * as labelRepo from "../db/repository/label.repo";
 import * as listRepo from "../db/repository/list.repo";
-import {
-  errorResponseSchema,
-  movePositionSchema,
-  successResponseSchema,
-} from "../lib/schemas";
+import { movePositionSchema } from "../lib/schemas";
 
 export const cardRoutes = (db: dbClient) =>
-  new Elysia({ prefix: "/cards" })
-    .state("userId", "")
+  new Hono<Env>()
     .post(
       "/",
-      async ({ body, store, set }) => {
-        const userId = store.userId;
+      zValidator(
+        "json",
+        z.object({
+          title: z.string().min(1).max(2000),
+          description: z.string().max(10000),
+          listPublicId: z.string(),
+          labelPublicIds: z.array(z.string()).optional(),
+          position: movePositionSchema,
+          dueDate: z.string().nullable().optional(),
+        }),
+      ),
+      async (c) => {
+        const userId = c.get("userId");
+        const body = c.req.valid("json");
 
         const list = await listRepo.getListIdByPublicId(db, body.listPublicId);
         if (!list) {
-          set.status = 404;
-          return { error: "List not found" };
+          return c.json({ error: "List not found" }, 404);
         }
 
         const newCard = await cardRepo.create(db, {
@@ -34,8 +43,7 @@ export const cardRoutes = (db: dbClient) =>
         });
 
         if (!newCard?.id) {
-          set.status = 500;
-          return { error: "Failed to create card" };
+          return c.json({ error: "Failed to create card" }, 500);
         }
 
         if (body.labelPublicIds?.length) {
@@ -54,82 +62,64 @@ export const cardRoutes = (db: dbClient) =>
           }
         }
 
-        return newCard;
-      },
-      {
-        body: t.Object({
-          title: t.String({ minLength: 1, maxLength: 2000 }),
-          description: t.String({ maxLength: 10000 }),
-          listPublicId: t.String(),
-          labelPublicIds: t.Optional(t.Array(t.String())),
-          position: movePositionSchema,
-          dueDate: t.Optional(t.Nullable(t.String())),
-        }),
-        response: {
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
+        return c.json(newCard);
       },
     )
 
-    .get(
-      "/:cardPublicId",
-      async ({ params, set }) => {
-        const card = await cardRepo.getCardIdByPublicId(
-          db,
-          params.cardPublicId,
-        );
-        if (!card) {
-          set.status = 404;
-          return { error: "Card not found" };
-        }
+    .get("/:cardPublicId", async (c) => {
+      const cardPublicId = c.req.param("cardPublicId");
 
-        const result = await cardRepo.getWithListAndMembersByPublicId(
-          db,
-          params.cardPublicId,
-        );
-        if (!result) {
-          set.status = 404;
-          return { error: "Card not found" };
-        }
+      const card = await cardRepo.getCardIdByPublicId(db, cardPublicId);
+      if (!card) {
+        return c.json({ error: "Card not found" }, 404);
+      }
 
-        return result;
-      },
-      {
-        params: t.Object({ cardPublicId: t.String() }),
-        response: {
-          404: errorResponseSchema,
-        },
-      },
-    )
+      const result = await cardRepo.getWithListAndMembersByPublicId(
+        db,
+        cardPublicId,
+      );
+      if (!result) {
+        return c.json({ error: "Card not found" }, 404);
+      }
+
+      return c.json(result);
+    })
 
     .put(
       "/:cardPublicId",
-      async ({ params, body, set }) => {
-        const card = await cardRepo.getCardIdByPublicId(
-          db,
-          params.cardPublicId,
-        );
+      zValidator(
+        "json",
+        z
+          .object({
+            title: z.string().optional(),
+            description: z.string().optional(),
+            index: z.number().optional(),
+            listPublicId: z.string().optional(),
+            dueDate: z.string().nullable().optional(),
+          })
+          .refine((data) => Object.keys(data).length >= 1, {
+            message: "At least one field must be provided",
+          }),
+      ),
+      async (c) => {
+        const cardPublicId = c.req.param("cardPublicId");
+        const body = c.req.valid("json");
+
+        const card = await cardRepo.getCardIdByPublicId(db, cardPublicId);
         if (!card) {
-          set.status = 404;
-          return { error: "Card not found" };
+          return c.json({ error: "Card not found" }, 404);
         }
 
-        const existingCard = await cardRepo.getByPublicId(
-          db,
-          params.cardPublicId,
-        );
+        const existingCard = await cardRepo.getByPublicId(db, cardPublicId);
         if (!existingCard) {
-          set.status = 404;
-          return { error: "Card not found" };
+          return c.json({ error: "Card not found" }, 404);
         }
 
         let newListId: number | undefined;
         if (body.listPublicId) {
           const newList = await listRepo.getByPublicId(db, body.listPublicId);
           if (!newList) {
-            set.status = 404;
-            return { error: "List not found" };
+            return c.json({ error: "List not found" }, 404);
           }
           newListId = newList.id;
         }
@@ -155,7 +145,7 @@ export const cardRoutes = (db: dbClient) =>
                 dueDate: body.dueDate ? new Date(body.dueDate) : null,
               }),
             },
-            { cardPublicId: params.cardPublicId },
+            { cardPublicId },
           );
         }
 
@@ -168,104 +158,56 @@ export const cardRoutes = (db: dbClient) =>
         }
 
         if (!result) {
-          set.status = 500;
-          return { error: "Failed to update card" };
+          return c.json({ error: "Failed to update card" }, 500);
         }
 
-        return result;
-      },
-      {
-        params: t.Object({ cardPublicId: t.String() }),
-        body: t.Object(
-          {
-            title: t.Optional(t.String()),
-            description: t.Optional(t.String()),
-            index: t.Optional(t.Number()),
-            listPublicId: t.Optional(t.String()),
-            dueDate: t.Optional(t.Nullable(t.String())),
-          },
-          {
-            minProperties: 1,
-          },
-        ),
-        response: {
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
+        return c.json(result);
       },
     )
 
-    .delete(
-      "/:cardPublicId",
-      async ({ params, store, set }) => {
-        const userId = store.userId;
+    .delete("/:cardPublicId", async (c) => {
+      const userId = c.get("userId");
+      const cardPublicId = c.req.param("cardPublicId");
 
-        const card = await cardRepo.getCardIdByPublicId(
-          db,
-          params.cardPublicId,
-        );
-        if (!card) {
-          set.status = 404;
-          return { error: "Card not found" };
-        }
+      const card = await cardRepo.getCardIdByPublicId(db, cardPublicId);
+      if (!card) {
+        return c.json({ error: "Card not found" }, 404);
+      }
 
-        await cardRepo.softDelete(db, {
-          cardId: card.id,
-          deletedAt: new Date(),
-          deletedBy: userId,
-        });
+      await cardRepo.softDelete(db, {
+        cardId: card.id,
+        deletedAt: new Date(),
+        deletedBy: userId,
+      });
 
-        return { success: true };
-      },
-      {
-        params: t.Object({ cardPublicId: t.String() }),
-        response: {
-          200: successResponseSchema,
-          404: errorResponseSchema,
-        },
-      },
-    )
+      return c.json({ success: true });
+    })
 
-    .put(
-      "/:cardPublicId/labels/:labelPublicId",
-      async ({ params, set }) => {
-        const card = await cardRepo.getCardIdByPublicId(
-          db,
-          params.cardPublicId,
-        );
-        if (!card) {
-          set.status = 404;
-          return { error: "Card not found" };
-        }
+    .put("/:cardPublicId/labels/:labelPublicId", async (c) => {
+      const cardPublicId = c.req.param("cardPublicId");
+      const labelPublicId = c.req.param("labelPublicId");
 
-        const label = await labelRepo.getByPublicId(db, params.labelPublicId);
-        if (!label) {
-          set.status = 404;
-          return { error: "Label not found" };
-        }
+      const card = await cardRepo.getCardIdByPublicId(db, cardPublicId);
+      if (!card) {
+        return c.json({ error: "Card not found" }, 404);
+      }
 
-        const cardLabelIds = { cardId: card.id, labelId: label.id };
-        const existing = await cardRepo.getCardLabelRelationship(
-          db,
-          cardLabelIds,
-        );
+      const label = await labelRepo.getByPublicId(db, labelPublicId);
+      if (!label) {
+        return c.json({ error: "Label not found" }, 404);
+      }
 
-        if (existing) {
-          await cardRepo.hardDeleteCardLabelRelationship(db, cardLabelIds);
-          return { newLabel: false };
-        }
+      const cardLabelIds = { cardId: card.id, labelId: label.id };
+      const existing = await cardRepo.getCardLabelRelationship(
+        db,
+        cardLabelIds,
+      );
 
-        await cardRepo.createCardLabelRelationship(db, cardLabelIds);
-        return { newLabel: true };
-      },
-      {
-        params: t.Object({
-          cardPublicId: t.String(),
-          labelPublicId: t.String(),
-        }),
-        response: {
-          200: t.Object({ newLabel: t.Boolean() }),
-          404: errorResponseSchema,
-        },
-      },
-    );
+      if (existing) {
+        await cardRepo.hardDeleteCardLabelRelationship(db, cardLabelIds);
+        return c.json({ newLabel: false });
+      }
+
+      await cardRepo.createCardLabelRelationship(db, cardLabelIds);
+      return c.json({ newLabel: true });
+    });

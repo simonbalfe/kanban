@@ -1,22 +1,30 @@
-import { Elysia, t } from "elysia";
+import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
+import { z } from "zod";
 
+import type { Env } from "../app";
 import type { dbClient } from "../db/client";
 import * as cardRepo from "../db/repository/card.repo";
 import * as checklistRepo from "../db/repository/checklist.repo";
-import { errorResponseSchema, successResponseSchema } from "../lib/schemas";
 
 export const checklistRoutes = (db: dbClient) =>
-  new Elysia({ prefix: "/checklists" })
-    .state("userId", "")
+  new Hono<Env>()
     .post(
       "/",
-      async ({ body, store, set }) => {
-        const userId = store.userId;
+      zValidator(
+        "json",
+        z.object({
+          cardPublicId: z.string(),
+          name: z.string().min(1).max(255),
+        }),
+      ),
+      async (c) => {
+        const userId = c.get("userId");
+        const body = c.req.valid("json");
 
         const card = await cardRepo.getCardIdByPublicId(db, body.cardPublicId);
         if (!card) {
-          set.status = 404;
-          return { error: "Card not found" };
+          return c.json({ error: "Card not found" }, 404);
         }
 
         const result = await checklistRepo.create(db, {
@@ -26,34 +34,31 @@ export const checklistRoutes = (db: dbClient) =>
         });
 
         if (!result?.id) {
-          set.status = 500;
-          return { error: "Failed to create checklist" };
+          return c.json({ error: "Failed to create checklist" }, 500);
         }
 
-        return result;
-      },
-      {
-        body: t.Object({
-          cardPublicId: t.String(),
-          name: t.String({ minLength: 1, maxLength: 255 }),
-        }),
-        response: {
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
+        return c.json(result);
       },
     )
 
     .put(
       "/:checklistPublicId",
-      async ({ params, body, set }) => {
+      zValidator(
+        "json",
+        z.object({
+          name: z.string().min(1).max(255),
+        }),
+      ),
+      async (c) => {
+        const checklistPublicId = c.req.param("checklistPublicId");
+        const body = c.req.valid("json");
+
         const checklist = await checklistRepo.getChecklistByPublicId(
           db,
-          params.checklistPublicId,
+          checklistPublicId,
         );
         if (!checklist) {
-          set.status = 404;
-          return { error: "Checklist not found" };
+          return c.json({ error: "Checklist not found" }, 404);
         }
 
         const updated = await checklistRepo.updateChecklistById(db, {
@@ -62,73 +67,59 @@ export const checklistRoutes = (db: dbClient) =>
         });
 
         if (!updated) {
-          set.status = 500;
-          return { error: "Failed to update checklist" };
+          return c.json({ error: "Failed to update checklist" }, 500);
         }
 
-        return updated;
-      },
-      {
-        params: t.Object({ checklistPublicId: t.String() }),
-        body: t.Object({
-          name: t.String({ minLength: 1, maxLength: 255 }),
-        }),
-        response: {
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
+        return c.json(updated);
       },
     )
 
-    .delete(
-      "/:checklistPublicId",
-      async ({ params, store, set }) => {
-        const userId = store.userId;
+    .delete("/:checklistPublicId", async (c) => {
+      const userId = c.get("userId");
+      const checklistPublicId = c.req.param("checklistPublicId");
 
-        const checklist = await checklistRepo.getChecklistByPublicId(
-          db,
-          params.checklistPublicId,
-        );
-        if (!checklist) {
-          set.status = 404;
-          return { error: "Checklist not found" };
-        }
+      const checklist = await checklistRepo.getChecklistByPublicId(
+        db,
+        checklistPublicId,
+      );
+      if (!checklist) {
+        return c.json({ error: "Checklist not found" }, 404);
+      }
 
-        await checklistRepo.softDeleteAllItemsByChecklistId(db, {
-          checklistId: checklist.id,
-          deletedAt: new Date(),
-          deletedBy: userId,
-        });
+      await checklistRepo.softDeleteAllItemsByChecklistId(db, {
+        checklistId: checklist.id,
+        deletedAt: new Date(),
+        deletedBy: userId,
+      });
 
-        await checklistRepo.softDeleteById(db, {
-          id: checklist.id,
-          deletedAt: new Date(),
-          deletedBy: userId,
-        });
+      await checklistRepo.softDeleteById(db, {
+        id: checklist.id,
+        deletedAt: new Date(),
+        deletedBy: userId,
+      });
 
-        return { success: true };
-      },
-      {
-        params: t.Object({ checklistPublicId: t.String() }),
-        response: {
-          200: successResponseSchema,
-          404: errorResponseSchema,
-        },
-      },
-    )
+      return c.json({ success: true });
+    })
 
     .post(
       "/:checklistPublicId/items",
-      async ({ params, body, store, set }) => {
-        const userId = store.userId;
+      zValidator(
+        "json",
+        z.object({
+          title: z.string().min(1).max(500),
+        }),
+      ),
+      async (c) => {
+        const userId = c.get("userId");
+        const checklistPublicId = c.req.param("checklistPublicId");
+        const body = c.req.valid("json");
 
         const checklist = await checklistRepo.getChecklistByPublicId(
           db,
-          params.checklistPublicId,
+          checklistPublicId,
         );
         if (!checklist) {
-          set.status = 404;
-          return { error: "Checklist not found" };
+          return c.json({ error: "Checklist not found" }, 404);
         }
 
         const result = await checklistRepo.createItem(db, {
@@ -138,35 +129,38 @@ export const checklistRoutes = (db: dbClient) =>
         });
 
         if (!result?.id) {
-          set.status = 500;
-          return { error: "Failed to create checklist item" };
+          return c.json({ error: "Failed to create checklist item" }, 500);
         }
 
-        return result;
-      },
-      {
-        params: t.Object({ checklistPublicId: t.String() }),
-        body: t.Object({
-          title: t.String({ minLength: 1, maxLength: 500 }),
-        }),
-        response: {
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
+        return c.json(result);
       },
     )
 
     .patch(
       "/items/:checklistItemPublicId",
-      async ({ params, body, set }) => {
+      zValidator(
+        "json",
+        z
+          .object({
+            title: z.string().optional(),
+            completed: z.boolean().optional(),
+            index: z.number().optional(),
+          })
+          .refine((data) => Object.keys(data).length >= 1, {
+            message: "At least one field must be provided",
+          }),
+      ),
+      async (c) => {
+        const checklistItemPublicId = c.req.param("checklistItemPublicId");
+        const body = c.req.valid("json");
+
         const item =
           await checklistRepo.getChecklistItemByPublicIdWithChecklist(
             db,
-            params.checklistItemPublicId,
+            checklistItemPublicId,
           );
         if (!item) {
-          set.status = 404;
-          return { error: "Checklist item not found" };
+          return c.json({ error: "Checklist item not found" }, 404);
         }
 
         let updatedItem:
@@ -190,59 +184,30 @@ export const checklistRoutes = (db: dbClient) =>
         }
 
         if (!updatedItem) {
-          set.status = 500;
-          return { error: "Failed to update checklist item" };
+          return c.json({ error: "Failed to update checklist item" }, 500);
         }
 
-        return updatedItem;
-      },
-      {
-        params: t.Object({ checklistItemPublicId: t.String() }),
-        body: t.Object(
-          {
-            title: t.Optional(t.String()),
-            completed: t.Optional(t.Boolean()),
-            index: t.Optional(t.Number()),
-          },
-          {
-            minProperties: 1,
-          },
-        ),
-        response: {
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
+        return c.json(updatedItem);
       },
     )
 
-    .delete(
-      "/items/:checklistItemPublicId",
-      async ({ params, store, set }) => {
-        const userId = store.userId;
+    .delete("/items/:checklistItemPublicId", async (c) => {
+      const userId = c.get("userId");
+      const checklistItemPublicId = c.req.param("checklistItemPublicId");
 
-        const item =
-          await checklistRepo.getChecklistItemByPublicIdWithChecklist(
-            db,
-            params.checklistItemPublicId,
-          );
-        if (!item) {
-          set.status = 404;
-          return { error: "Checklist item not found" };
-        }
+      const item = await checklistRepo.getChecklistItemByPublicIdWithChecklist(
+        db,
+        checklistItemPublicId,
+      );
+      if (!item) {
+        return c.json({ error: "Checklist item not found" }, 404);
+      }
 
-        await checklistRepo.softDeleteItemById(db, {
-          id: item.id,
-          deletedAt: new Date(),
-          deletedBy: userId,
-        });
+      await checklistRepo.softDeleteItemById(db, {
+        id: item.id,
+        deletedAt: new Date(),
+        deletedBy: userId,
+      });
 
-        return { success: true };
-      },
-      {
-        params: t.Object({ checklistItemPublicId: t.String() }),
-        response: {
-          200: successResponseSchema,
-          404: errorResponseSchema,
-        },
-      },
-    );
+      return c.json({ success: true });
+    });

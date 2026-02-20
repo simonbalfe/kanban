@@ -1,55 +1,51 @@
-import { Elysia, t } from "elysia";
+import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
+import { z } from "zod";
 
+import type { Env } from "../app";
 import type { dbClient } from "../db/client";
 import * as boardRepo from "../db/repository/board.repo";
 import * as cardRepo from "../db/repository/card.repo";
 import * as labelRepo from "../db/repository/label.repo";
-import {
-  errorResponseSchema,
-  hexColourCodeSchema,
-  labelSummarySchema,
-  successResponseSchema,
-} from "../lib/schemas";
+import { hexColourCodeSchema } from "../lib/schemas";
 
 export const labelRoutes = (db: dbClient) =>
-  new Elysia({ prefix: "/labels" })
-    .state("userId", "")
-    .get(
-      "/:labelPublicId",
-      async ({ params, set }) => {
-        const label = await labelRepo.getByPublicId(db, params.labelPublicId);
-        if (!label) {
-          set.status = 404;
-          return { error: "Label not found" };
-        }
+  new Hono<Env>()
+    .get("/:labelPublicId", async (c) => {
+      const labelPublicId = c.req.param("labelPublicId");
 
-        return {
-          publicId: label.publicId,
-          name: label.name,
-          colourCode: label.colourCode,
-        };
-      },
-      {
-        params: t.Object({ labelPublicId: t.String() }),
-        response: {
-          200: labelSummarySchema,
-          404: errorResponseSchema,
-        },
-      },
-    )
+      const label = await labelRepo.getByPublicId(db, labelPublicId);
+      if (!label) {
+        return c.json({ error: "Label not found" }, 404);
+      }
+
+      return c.json({
+        publicId: label.publicId,
+        name: label.name,
+        colourCode: label.colourCode,
+      });
+    })
 
     .post(
       "/",
-      async ({ body, store, set }) => {
-        const userId = store.userId;
+      zValidator(
+        "json",
+        z.object({
+          name: z.string().min(1).max(36),
+          boardPublicId: z.string(),
+          colourCode: hexColourCodeSchema,
+        }),
+      ),
+      async (c) => {
+        const userId = c.get("userId");
+        const body = c.req.valid("json");
 
         const board = await boardRepo.getBoardIdByPublicId(
           db,
           body.boardPublicId,
         );
         if (!board) {
-          set.status = 404;
-          return { error: "Board not found" };
+          return c.json({ error: "Board not found" }, 404);
         }
 
         const result = await labelRepo.create(db, {
@@ -60,102 +56,69 @@ export const labelRoutes = (db: dbClient) =>
         });
 
         if (!result) {
-          set.status = 500;
-          return { error: "Failed to create label" };
+          return c.json({ error: "Failed to create label" }, 500);
         }
 
-        return {
+        return c.json({
           publicId: result.publicId,
           name: result.name,
           colourCode: result.colourCode,
-        };
-      },
-      {
-        body: t.Object({
-          name: t.String({ minLength: 1, maxLength: 36 }),
-          boardPublicId: t.String(),
-          colourCode: hexColourCodeSchema,
-        }),
-        response: {
-          200: labelSummarySchema,
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
+        });
       },
     )
 
     .put(
       "/:labelPublicId",
-      async ({ params, body, set }) => {
-        const label = await labelRepo.getLabelIdByPublicId(
-          db,
-          params.labelPublicId,
-        );
+      zValidator(
+        "json",
+        z.object({
+          name: z.string().min(1).max(36),
+          colourCode: hexColourCodeSchema,
+        }),
+      ),
+      async (c) => {
+        const labelPublicId = c.req.param("labelPublicId");
+        const body = c.req.valid("json");
+
+        const label = await labelRepo.getLabelIdByPublicId(db, labelPublicId);
         if (!label) {
-          set.status = 404;
-          return { error: "Label not found" };
+          return c.json({ error: "Label not found" }, 404);
         }
 
         const result = await labelRepo.update(db, {
-          labelPublicId: params.labelPublicId,
+          labelPublicId,
           name: body.name,
           colourCode: body.colourCode,
         });
 
         if (!result) {
-          set.status = 500;
-          return { error: "Failed to update label" };
+          return c.json({ error: "Failed to update label" }, 500);
         }
 
-        return {
+        return c.json({
           publicId: result.publicId,
           name: result.name,
           colourCode: result.colourCode,
-        };
-      },
-      {
-        params: t.Object({ labelPublicId: t.String() }),
-        body: t.Object({
-          name: t.String({ minLength: 1, maxLength: 36 }),
-          colourCode: hexColourCodeSchema,
-        }),
-        response: {
-          200: labelSummarySchema,
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
+        });
       },
     )
 
-    .delete(
-      "/:labelPublicId",
-      async ({ params, store, set }) => {
-        const userId = store.userId;
+    .delete("/:labelPublicId", async (c) => {
+      const userId = c.get("userId");
+      const labelPublicId = c.req.param("labelPublicId");
 
-        const label = await labelRepo.getLabelIdByPublicId(
-          db,
-          params.labelPublicId,
-        );
-        if (!label) {
-          set.status = 404;
-          return { error: "Label not found" };
-        }
+      const label = await labelRepo.getLabelIdByPublicId(db, labelPublicId);
+      if (!label) {
+        return c.json({ error: "Label not found" }, 404);
+      }
 
-        await cardRepo.hardDeleteAllCardLabelRelationships(db, label.id);
+      await cardRepo.hardDeleteAllCardLabelRelationships(db, label.id);
 
-        await labelRepo.softDelete(db, {
-          labelId: label.id,
-          deletedAt: new Date(),
-          deletedBy: userId,
-        });
+      await labelRepo.softDelete(db, {
+        labelId: label.id,
+        deletedAt: new Date(),
+        deletedBy: userId,
+      });
 
-        return { success: true };
-      },
-      {
-        params: t.Object({ labelPublicId: t.String() }),
-        response: {
-          200: successResponseSchema,
-          404: errorResponseSchema,
-        },
-      },
-    );
+      return c.json({ success: true });
+    });

@@ -1,5 +1,5 @@
-import { Elysia } from "elysia";
-import type { ValidationError } from "elysia/error";
+import { Hono } from "hono";
+import { logger } from "hono/logger";
 
 import { db } from "./db/client";
 import * as userRepo from "./db/repository/user.repo";
@@ -11,18 +11,11 @@ import { labelRoutes } from "./routes/labels";
 import { listRoutes } from "./routes/lists";
 import { userRoutes } from "./routes/users";
 
-const logger = (name: string) => (app: Elysia) =>
-  app
-    .onBeforeHandle(({ request }) => {
-      const method = request.method;
-      const url = new URL(request.url).pathname;
-      console.log(`[${name}] ${method} ${url}`);
-    })
-    .onError(({ request, code, error }) => {
-      const method = request.method;
-      const url = new URL(request.url).pathname;
-      console.error(`[${name}] ${method} ${url} ERROR: ${code}`, error);
-    });
+export type Env = {
+  Variables: {
+    userId: string;
+  };
+};
 
 const DEFAULT_EMAIL = "local@kan.dev";
 
@@ -35,29 +28,22 @@ const getDefaultUser = async () => {
   return created;
 };
 
-export const app = new Elysia({ prefix: "/api", aot: false })
-  .state("userId", "")
-  .use(logger("API"))
-  .onError(({ code, error, set }) => {
-    if (code === "VALIDATION") {
-      set.status = 422;
-      return {
-        error: "Validation failed",
-        details: (error as ValidationError).all,
-      };
-    }
-
-    set.status = 500;
-    return { error: "Internal server error" };
-  })
-  .onBeforeHandle(async ({ store }) => {
+export const app = new Hono<Env>()
+  .basePath("/api")
+  .use(logger())
+  .use(async (c, next) => {
     const user = await getDefaultUser();
-    store.userId = user.id;
+    c.set("userId", user.id);
+    await next();
   })
-  .use(healthRoutes(db))
-  .use(boardRoutes(db))
-  .use(cardRoutes(db))
-  .use(checklistRoutes(db))
-  .use(labelRoutes(db))
-  .use(listRoutes(db))
-  .use(userRoutes(db));
+  .onError((err, c) => {
+    console.error(`[API] ${c.req.method} ${c.req.path} ERROR:`, err);
+    return c.json({ error: "Internal server error" }, 500);
+  })
+  .route("/", healthRoutes(db))
+  .route("/boards", boardRoutes(db))
+  .route("/cards", cardRoutes(db))
+  .route("/checklists", checklistRoutes(db))
+  .route("/labels", labelRoutes(db))
+  .route("/lists", listRoutes(db))
+  .route("/users", userRoutes(db));

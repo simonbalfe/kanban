@@ -1,5 +1,8 @@
-import { Elysia, t } from "elysia";
+import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
+import { z } from "zod";
 
+import type { Env } from "../app";
 import type { dbClient } from "../db/client";
 import * as boardRepo from "../db/repository/board.repo";
 import * as cardRepo from "../db/repository/card.repo";
@@ -10,8 +13,6 @@ import {
   boardTypeSchema,
   boardVisibilitySchema,
   dueDateFilterSchema,
-  errorResponseSchema,
-  successResponseSchema,
 } from "../lib/schemas";
 import {
   convertDueDateFiltersToRanges,
@@ -19,95 +20,150 @@ import {
   generateUID,
 } from "../lib/utils";
 
-const boardFiltersSchema = t.Object({
-  members: t.Optional(t.Array(t.String())),
-  labels: t.Optional(t.Array(t.String())),
-  lists: t.Optional(t.Array(t.String())),
-  dueDateFilters: t.Optional(t.Array(dueDateFilterSchema)),
-  type: t.Optional(boardTypeSchema),
-});
-
 export const boardRoutes = (db: dbClient) =>
-  new Elysia({ prefix: "/boards" })
-    .state("userId", "")
+  new Hono<Env>()
     .get(
       "/",
-      async ({ query, store }) => {
-        const userId = store.userId;
-        const type = query.type;
-        return boardRepo.getAllByUserId(db, userId, { type });
-      },
-      {
-        query: t.Object({
-          type: t.Optional(boardTypeSchema),
+      zValidator(
+        "query",
+        z.object({
+          type: boardTypeSchema.optional(),
         }),
+      ),
+      async (c) => {
+        const userId = c.get("userId");
+        const { type } = c.req.valid("query");
+        return c.json(await boardRepo.getAllByUserId(db, userId, { type }));
       },
     )
 
     .get(
       "/:boardPublicId",
-      async ({ params, query, store, set }) => {
-        const userId = store.userId;
+      zValidator(
+        "query",
+        z.object({
+          members: z.union([z.array(z.string()), z.string()]).optional(),
+          labels: z.union([z.array(z.string()), z.string()]).optional(),
+          lists: z.union([z.array(z.string()), z.string()]).optional(),
+          dueDateFilters: z
+            .union([z.array(dueDateFilterSchema), dueDateFilterSchema])
+            .optional(),
+          type: boardTypeSchema.optional(),
+        }),
+      ),
+      async (c) => {
+        const userId = c.get("userId");
+        const boardPublicId = c.req.param("boardPublicId");
+        const query = c.req.valid("query");
 
-        const board = await boardRepo.getBoardIdByPublicId(
-          db,
-          params.boardPublicId,
-        );
+        const board = await boardRepo.getBoardIdByPublicId(db, boardPublicId);
         if (!board) {
-          set.status = 404;
-          return { error: "Board not found" };
+          return c.json({ error: "Board not found" }, 404);
         }
 
-        const dueDateFilters = query.dueDateFilters
-          ? convertDueDateFiltersToRanges(query.dueDateFilters)
+        const members = query.members
+          ? Array.isArray(query.members)
+            ? query.members
+            : [query.members]
+          : [];
+        const labels = query.labels
+          ? Array.isArray(query.labels)
+            ? query.labels
+            : [query.labels]
+          : [];
+        const lists = query.lists
+          ? Array.isArray(query.lists)
+            ? query.lists
+            : [query.lists]
+          : [];
+        const rawDueDateFilters = query.dueDateFilters
+          ? Array.isArray(query.dueDateFilters)
+            ? query.dueDateFilters
+            : [query.dueDateFilters]
+          : [];
+        const dueDateFilters = rawDueDateFilters.length
+          ? convertDueDateFiltersToRanges(rawDueDateFilters)
           : [];
 
-        return boardRepo.getByPublicId(db, params.boardPublicId, userId, {
-          members: query.members ?? [],
-          labels: query.labels ?? [],
-          lists: query.lists ?? [],
-          dueDate: dueDateFilters,
-          type: query.type,
-        });
-      },
-      {
-        params: t.Object({ boardPublicId: t.String() }),
-        query: boardFiltersSchema,
-        response: {
-          404: errorResponseSchema,
-        },
+        return c.json(
+          await boardRepo.getByPublicId(db, boardPublicId, userId, {
+            members,
+            labels,
+            lists,
+            dueDate: dueDateFilters,
+            type: query.type,
+          }),
+        );
       },
     )
 
     .get(
       "/by-slug/:boardSlug",
-      async ({ params, query }) => {
-        const dueDateFilters = query.dueDateFilters
-          ? convertDueDateFiltersToRanges(query.dueDateFilters)
+      zValidator(
+        "query",
+        z.object({
+          members: z.union([z.array(z.string()), z.string()]).optional(),
+          labels: z.union([z.array(z.string()), z.string()]).optional(),
+          lists: z.union([z.array(z.string()), z.string()]).optional(),
+          dueDateFilters: z
+            .union([z.array(dueDateFilterSchema), dueDateFilterSchema])
+            .optional(),
+        }),
+      ),
+      async (c) => {
+        const boardSlug = c.req.param("boardSlug");
+        const query = c.req.valid("query");
+
+        const members = query.members
+          ? Array.isArray(query.members)
+            ? query.members
+            : [query.members]
+          : [];
+        const labels = query.labels
+          ? Array.isArray(query.labels)
+            ? query.labels
+            : [query.labels]
+          : [];
+        const lists = query.lists
+          ? Array.isArray(query.lists)
+            ? query.lists
+            : [query.lists]
+          : [];
+        const rawDueDateFilters = query.dueDateFilters
+          ? Array.isArray(query.dueDateFilters)
+            ? query.dueDateFilters
+            : [query.dueDateFilters]
+          : [];
+        const dueDateFilters = rawDueDateFilters.length
+          ? convertDueDateFiltersToRanges(rawDueDateFilters)
           : [];
 
-        return boardRepo.getBySlug(db, params.boardSlug, {
-          members: query.members ?? [],
-          labels: query.labels ?? [],
-          lists: query.lists ?? [],
-          dueDate: dueDateFilters,
-        });
-      },
-      {
-        params: t.Object({ boardSlug: t.String() }),
-        query: t.Object({
-          members: t.Optional(t.Array(t.String())),
-          labels: t.Optional(t.Array(t.String())),
-          lists: t.Optional(t.Array(t.String())),
-          dueDateFilters: t.Optional(t.Array(dueDateFilterSchema)),
-        }),
+        return c.json(
+          await boardRepo.getBySlug(db, boardSlug, {
+            members,
+            labels,
+            lists,
+            dueDate: dueDateFilters,
+          }),
+        );
       },
     )
 
     .post(
       "/",
-      async ({ body, store, set }) => {
-        const userId = store.userId;
+      zValidator(
+        "json",
+        z.object({
+          name: z.string().min(1).max(100),
+          lists: z.array(z.string()),
+          labels: z.array(z.string()),
+          type: boardTypeSchema.optional(),
+          sourceBoardPublicId: z.string().optional(),
+        }),
+      ),
+      async (c) => {
+        const userId = c.get("userId");
+        const body = c.req.valid("json");
 
         if (body.sourceBoardPublicId) {
           const sourceBoardInfo = await boardRepo.getIdByPublicId(
@@ -115,8 +171,7 @@ export const boardRoutes = (db: dbClient) =>
             body.sourceBoardPublicId,
           );
           if (!sourceBoardInfo) {
-            set.status = 404;
-            return { error: "Source board not found" };
+            return c.json({ error: "Source board not found" }, 404);
           }
 
           const sourceBoard = await boardRepo.getByPublicId(
@@ -133,8 +188,7 @@ export const boardRoutes = (db: dbClient) =>
           );
 
           if (!sourceBoard) {
-            set.status = 404;
-            return { error: "Source board not found" };
+            return c.json({ error: "Source board not found" }, 404);
           }
 
           let slug = generateSlug(body.name);
@@ -142,14 +196,16 @@ export const boardRoutes = (db: dbClient) =>
           if (!isSlugUnique || body.type === "template")
             slug = `${slug}-${generateUID()}`;
 
-          return boardRepo.createFromSnapshot(db, {
-            source: sourceBoard,
-            createdBy: userId,
-            slug,
-            name: body.name,
-            type: body.type ?? "regular",
-            sourceBoardId: sourceBoardInfo.id,
-          });
+          return c.json(
+            await boardRepo.createFromSnapshot(db, {
+              source: sourceBoard,
+              createdBy: userId,
+              slug,
+              name: body.name,
+              type: body.type ?? "regular",
+              sourceBoardId: sourceBoardInfo.id,
+            }),
+          );
         }
 
         let slug = generateSlug(body.name);
@@ -166,8 +222,7 @@ export const boardRoutes = (db: dbClient) =>
         });
 
         if (!result) {
-          set.status = 500;
-          return { error: "Failed to create board" };
+          return c.json({ error: "Failed to create board" }, 500);
         }
 
         if (body.lists.length) {
@@ -194,149 +249,111 @@ export const boardRoutes = (db: dbClient) =>
           await labelRepo.bulkCreate(db, labelInputs);
         }
 
-        return result;
-      },
-      {
-        body: t.Object({
-          name: t.String({ minLength: 1, maxLength: 100 }),
-          lists: t.Array(t.String()),
-          labels: t.Array(t.String()),
-          type: t.Optional(boardTypeSchema),
-          sourceBoardPublicId: t.Optional(t.String()),
-        }),
-        response: {
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
+        return c.json(result);
       },
     )
 
     .put(
       "/:boardPublicId",
-      async ({ params, body, set }) => {
-        const board = await boardRepo.getBoardIdByPublicId(
-          db,
-          params.boardPublicId,
-        );
+      zValidator(
+        "json",
+        z
+          .object({
+            name: z.string().optional(),
+            slug: z.string().optional(),
+            visibility: boardVisibilitySchema.optional(),
+          })
+          .refine((data) => Object.keys(data).length >= 1, {
+            message: "At least one field must be provided",
+          }),
+      ),
+      async (c) => {
+        const boardPublicId = c.req.param("boardPublicId");
+        const body = c.req.valid("json");
+
+        const board = await boardRepo.getBoardIdByPublicId(db, boardPublicId);
         if (!board) {
-          set.status = 404;
-          return { error: "Board not found" };
+          return c.json({ error: "Board not found" }, 404);
         }
 
         if (body.slug) {
           const available = await boardRepo.isBoardSlugAvailable(db, body.slug);
           if (!available) {
-            set.status = 400;
-            return { error: `Board slug ${body.slug} is not available` };
+            return c.json(
+              { error: `Board slug ${body.slug} is not available` },
+              400,
+            );
           }
         }
 
         const result = await boardRepo.update(db, {
           name: body.name,
           slug: body.slug,
-          boardPublicId: params.boardPublicId,
+          boardPublicId,
           visibility: body.visibility,
         });
 
         if (!result) {
-          set.status = 500;
-          return { error: "Failed to update board" };
+          return c.json({ error: "Failed to update board" }, 500);
         }
 
-        return result;
-      },
-      {
-        params: t.Object({ boardPublicId: t.String() }),
-        body: t.Object(
-          {
-            name: t.Optional(t.String()),
-            slug: t.Optional(t.String()),
-            visibility: t.Optional(boardVisibilitySchema),
-          },
-          {
-            minProperties: 1,
-          },
-        ),
-        response: {
-          400: errorResponseSchema,
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
+        return c.json(result);
       },
     )
 
-    .delete(
-      "/:boardPublicId",
-      async ({ params, store, set }) => {
-        const userId = store.userId;
+    .delete("/:boardPublicId", async (c) => {
+      const userId = c.get("userId");
+      const boardPublicId = c.req.param("boardPublicId");
 
-        const board = await boardRepo.getWithListIdsByPublicId(
-          db,
-          params.boardPublicId,
-        );
-        if (!board) {
-          set.status = 404;
-          return { error: "Board not found" };
-        }
+      const board = await boardRepo.getWithListIdsByPublicId(db, boardPublicId);
+      if (!board) {
+        return c.json({ error: "Board not found" }, 404);
+      }
 
-        const listIds = board.lists.map((list) => list.id);
-        const deletedAt = new Date();
+      const listIds = board.lists.map((list) => list.id);
+      const deletedAt = new Date();
 
-        await boardRepo.softDelete(db, {
+      await boardRepo.softDelete(db, {
+        boardId: board.id,
+        deletedAt,
+        deletedBy: userId,
+      });
+
+      if (listIds.length) {
+        await listRepo.softDeleteAllByBoardId(db, {
           boardId: board.id,
           deletedAt,
           deletedBy: userId,
         });
 
-        if (listIds.length) {
-          await listRepo.softDeleteAllByBoardId(db, {
-            boardId: board.id,
-            deletedAt,
-            deletedBy: userId,
-          });
+        await cardRepo.softDeleteAllByListIds(db, {
+          listIds,
+          deletedAt,
+          deletedBy: userId,
+        });
+      }
 
-          await cardRepo.softDeleteAllByListIds(db, {
-            listIds,
-            deletedAt,
-            deletedBy: userId,
-          });
-        }
-
-        return { success: true };
-      },
-      {
-        params: t.Object({ boardPublicId: t.String() }),
-        response: {
-          200: successResponseSchema,
-          404: errorResponseSchema,
-        },
-      },
-    )
+      return c.json({ success: true });
+    })
 
     .get(
       "/:boardPublicId/check-slug",
-      async ({ params, query, set }) => {
-        const board = await boardRepo.getBoardIdByPublicId(
-          db,
-          params.boardPublicId,
-        );
+      zValidator(
+        "query",
+        z.object({
+          boardSlug: z.string(),
+        }),
+      ),
+      async (c) => {
+        const boardPublicId = c.req.param("boardPublicId");
+        const { boardSlug } = c.req.valid("query");
+
+        const board = await boardRepo.getBoardIdByPublicId(db, boardPublicId);
         if (!board) {
-          set.status = 404;
-          return { error: "Board not found" };
+          return c.json({ error: "Board not found" }, 404);
         }
 
-        const available = await boardRepo.isBoardSlugAvailable(
-          db,
-          query.boardSlug,
-        );
-        return { isReserved: !available };
-      },
-      {
-        params: t.Object({ boardPublicId: t.String() }),
-        query: t.Object({ boardSlug: t.String() }),
-        response: {
-          200: t.Object({ isReserved: t.Boolean() }),
-          404: errorResponseSchema,
-        },
+        const available = await boardRepo.isBoardSlugAvailable(db, boardSlug);
+        return c.json({ isReserved: !available });
       },
     );

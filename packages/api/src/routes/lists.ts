@@ -1,26 +1,34 @@
-import { Elysia, t } from "elysia";
+import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
+import { z } from "zod";
 
+import type { Env } from "../app";
 import type { dbClient } from "../db/client";
 import * as boardRepo from "../db/repository/board.repo";
 import * as cardRepo from "../db/repository/card.repo";
 import * as listRepo from "../db/repository/list.repo";
-import { errorResponseSchema, successResponseSchema } from "../lib/schemas";
 
 export const listRoutes = (db: dbClient) =>
-  new Elysia({ prefix: "/lists" })
-    .state("userId", "")
+  new Hono<Env>()
     .post(
       "/",
-      async ({ body, store, set }) => {
-        const userId = store.userId;
+      zValidator(
+        "json",
+        z.object({
+          name: z.string().min(1),
+          boardPublicId: z.string(),
+        }),
+      ),
+      async (c) => {
+        const userId = c.get("userId");
+        const body = c.req.valid("json");
 
         const board = await boardRepo.getBoardIdByPublicId(
           db,
           body.boardPublicId,
         );
         if (!board) {
-          set.status = 404;
-          return { error: "Board not found" };
+          return c.json({ error: "Board not found" }, 404);
         }
 
         const result = await listRepo.create(db, {
@@ -30,34 +38,33 @@ export const listRoutes = (db: dbClient) =>
         });
 
         if (!result) {
-          set.status = 500;
-          return { error: "Failed to create list" };
+          return c.json({ error: "Failed to create list" }, 500);
         }
 
-        return result;
-      },
-      {
-        body: t.Object({
-          name: t.String({ minLength: 1 }),
-          boardPublicId: t.String(),
-        }),
-        response: {
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
+        return c.json(result);
       },
     )
 
     .put(
       "/:listPublicId",
-      async ({ params, body, set }) => {
-        const list = await listRepo.getListIdByPublicId(
-          db,
-          params.listPublicId,
-        );
+      zValidator(
+        "json",
+        z
+          .object({
+            name: z.string().optional(),
+            index: z.number().optional(),
+          })
+          .refine((data) => Object.keys(data).length >= 1, {
+            message: "At least one field must be provided",
+          }),
+      ),
+      async (c) => {
+        const listPublicId = c.req.param("listPublicId");
+        const body = c.req.valid("json");
+
+        const list = await listRepo.getListIdByPublicId(db, listPublicId);
         if (!list) {
-          set.status = 404;
-          return { error: "List not found" };
+          return c.json({ error: "List not found" }, 404);
         }
 
         let result:
@@ -69,77 +76,47 @@ export const listRoutes = (db: dbClient) =>
           result = await listRepo.update(
             db,
             { name: body.name },
-            { listPublicId: params.listPublicId },
+            { listPublicId },
           );
         }
 
         if (body.index !== undefined) {
           result = await listRepo.reorder(db, {
-            listPublicId: params.listPublicId,
+            listPublicId,
             newIndex: body.index,
           });
         }
 
         if (!result) {
-          set.status = 500;
-          return { error: "Failed to update list" };
+          return c.json({ error: "Failed to update list" }, 500);
         }
 
-        return result;
-      },
-      {
-        params: t.Object({ listPublicId: t.String() }),
-        body: t.Object(
-          {
-            name: t.Optional(t.String()),
-            index: t.Optional(t.Number()),
-          },
-          {
-            minProperties: 1,
-          },
-        ),
-        response: {
-          404: errorResponseSchema,
-          500: errorResponseSchema,
-        },
+        return c.json(result);
       },
     )
 
-    .delete(
-      "/:listPublicId",
-      async ({ params, store, set }) => {
-        const userId = store.userId;
+    .delete("/:listPublicId", async (c) => {
+      const userId = c.get("userId");
+      const listPublicId = c.req.param("listPublicId");
 
-        const list = await listRepo.getListIdByPublicId(
-          db,
-          params.listPublicId,
-        );
-        if (!list) {
-          set.status = 404;
-          return { error: "List not found" };
-        }
+      const list = await listRepo.getListIdByPublicId(db, listPublicId);
+      if (!list) {
+        return c.json({ error: "List not found" }, 404);
+      }
 
-        const deletedAt = new Date();
+      const deletedAt = new Date();
 
-        await listRepo.softDeleteById(db, {
-          listId: list.id,
-          deletedAt,
-          deletedBy: userId,
-        });
+      await listRepo.softDeleteById(db, {
+        listId: list.id,
+        deletedAt,
+        deletedBy: userId,
+      });
 
-        await cardRepo.softDeleteAllByListIds(db, {
-          listIds: [list.id],
-          deletedAt,
-          deletedBy: userId,
-        });
+      await cardRepo.softDeleteAllByListIds(db, {
+        listIds: [list.id],
+        deletedAt,
+        deletedBy: userId,
+      });
 
-        return { success: true };
-      },
-      {
-        params: t.Object({ listPublicId: t.String() }),
-        response: {
-          200: successResponseSchema,
-          404: errorResponseSchema,
-        },
-      },
-    );
+      return c.json({ success: true });
+    });

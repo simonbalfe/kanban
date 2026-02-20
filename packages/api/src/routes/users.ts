@@ -1,67 +1,45 @@
-import { Elysia, t } from "elysia";
+import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
+import { z } from "zod";
 
+import type { Env } from "../app";
 import type { dbClient } from "../db/client";
 import * as userRepo from "../db/repository/user.repo";
-import { errorResponseSchema } from "../lib/schemas";
 
 export const userRoutes = (db: dbClient) =>
-  new Elysia({ prefix: "/users" })
-    .state("userId", "")
-    .get(
-      "/me",
-      async ({ store, set }) => {
-        const userId = store.userId;
+  new Hono<Env>()
+    .get("/me", async (c) => {
+      const userId = c.get("userId");
 
-        const result = await userRepo.getById(db, userId);
-        if (!result) {
-          set.status = 404;
-          return { error: "User not found" };
-        }
+      const result = await userRepo.getById(db, userId);
+      if (!result) {
+        return c.json({ error: "User not found" }, 404);
+      }
 
-        return result;
-      },
-      {
-        response: {
-          200: t.Object({
-            id: t.String(),
-            name: t.Nullable(t.String()),
-            email: t.String(),
-            image: t.Nullable(t.String()),
-          }),
-          404: errorResponseSchema,
-        },
-      },
-    )
-
+      return c.json(result);
+    })
     .put(
       "/",
-      async ({ body, store, set }) => {
-        const userId = store.userId;
+      zValidator(
+        "json",
+        z
+          .object({
+            name: z.string().optional(),
+            image: z.string().optional(),
+          })
+          .refine((data) => Object.keys(data).length >= 1, {
+            message: "At least one field must be provided",
+          }),
+      ),
+      async (c) => {
+        const userId = c.get("userId");
+        const body = c.req.valid("json");
 
         const result = await userRepo.update(db, userId, body);
         if (!result) {
-          set.status = 404;
-          return { error: "User not found" };
+          return c.json({ error: "User not found" }, 404);
         }
 
-        return result;
-      },
-      {
-        body: t.Object(
-          {
-            name: t.Optional(t.String()),
-            image: t.Optional(t.String()),
-          },
-          {
-            minProperties: 1,
-          },
-        ),
-        response: {
-          200: t.Object({
-            name: t.Nullable(t.String()),
-            image: t.Nullable(t.String()),
-          }),
-          404: errorResponseSchema,
-        },
+        return c.json(result);
       },
     );
