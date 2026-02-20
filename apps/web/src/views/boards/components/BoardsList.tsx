@@ -1,7 +1,7 @@
-import { Link } from "@tanstack/react-router";
-import { HiOutlineRectangleStack } from "react-icons/hi2";
-import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
+import { motion } from "framer-motion";
+import { HiOutlineRectangleStack } from "react-icons/hi2";
 import Button from "~/components/Button";
 import PatternedBackground from "~/components/PatternedBackground";
 import { Tooltip } from "~/components/Tooltip";
@@ -40,9 +40,7 @@ export function BoardsList({ isTemplate }: { isTemplate?: boolean }) {
           </p>
         </div>
         <Tooltip
-          content={
-            !isAdminOrMember ? "You don't have permission" : undefined
-          }
+          content={!isAdminOrMember ? "You don't have permission" : undefined}
         >
           <Button
             onClick={() => {
@@ -72,14 +70,16 @@ export function BoardsList({ isTemplate }: { isTemplate?: boolean }) {
               type: "spring",
               stiffness: 300,
               damping: 30,
-              mass: 1
+              mass: 1,
             },
             opacity: { duration: 0.2 },
-            scale: { duration: 0.2 }
+            scale: { duration: 0.2 },
           }}
         >
           <Link
-            to={`${isTemplate ? "/templates" : "/boards"}/${board.publicId}` as string}
+            to={
+              `${isTemplate ? "/templates" : "/boards"}/${board.publicId}` as string
+            }
           >
             <div className="group relative mr-5 flex h-[150px] w-full items-center justify-center rounded-md border border-dashed border-light-400 bg-light-50 shadow-sm hover:bg-light-200 dark:border-dark-600 dark:bg-dark-50 dark:hover:bg-dark-100">
               <PatternedBackground />

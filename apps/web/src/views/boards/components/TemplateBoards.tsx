@@ -31,7 +31,14 @@ const getTemplates = (): Template[] => [
   {
     id: "roadmap-extended",
     name: "Extended Roadmap",
-    lists: ["Requested", "Under Review", "Planned", "In Progress", "Done", "Rejected"],
+    lists: [
+      "Requested",
+      "Under Review",
+      "Planned",
+      "In Progress",
+      "Done",
+      "Rejected",
+    ],
     labels: ["Feature", "Enhancement", "Critical", "Documentation"],
   },
   {
@@ -59,13 +66,7 @@ const getTemplates = (): Template[] => [
       "Resolution",
       "Done",
     ],
-    labels: [
-      "Bug Report",
-      "Feature Request",
-      "Question",
-      "Urgent",
-      "Billing",
-    ],
+    labels: ["Bug Report", "Feature Request", "Question", "Urgent", "Billing"],
   },
   {
     id: "recruitment",
@@ -132,7 +133,7 @@ export default function TemplateBoards({
 
     scrollElement.addEventListener("scroll", handleScroll);
     return () => scrollElement.removeEventListener("scroll", handleScroll);
-  }, [showTemplates]);
+  }, [handleScroll]);
 
   useEffect(() => {
     if (showTemplates && currentBoard && scrollRef.current) {

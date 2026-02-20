@@ -3,12 +3,10 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Fragment, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { HiChevronUpDown, HiXMark } from "react-icons/hi2";
-
-import { colours } from "~/lib/shared/constants";
-
 import Button from "~/components/Button";
 import Input from "~/components/Input";
 import Toggle from "~/components/Toggle";
+import { colours } from "~/lib/shared/constants";
 import { useModal } from "~/providers/modal";
 import { api, apiKeys } from "~/utils/api";
 
@@ -239,9 +237,7 @@ export function LabelForm({
           <Button
             type="submit"
             isLoading={updateLabel.isPending || createLabel.isPending}
-            disabled={
-              !watch("name")
-            }
+            disabled={!watch("name")}
           >
             {isEdit ? "Update label" : "Create label"}
           </Button>

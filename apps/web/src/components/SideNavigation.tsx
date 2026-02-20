@@ -1,13 +1,11 @@
-import { Link, useLocation } from "@tanstack/react-router";
 import { Button } from "@headlessui/react";
-import { useTheme } from "~/providers/theme";
+import { Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   TbLayoutSidebarLeftCollapse,
   TbLayoutSidebarLeftExpand,
 } from "react-icons/tb";
 import { twMerge } from "tailwind-merge";
-
 import boardsIconDark from "~/assets/boards-dark.json";
 import boardsIconLight from "~/assets/boards-light.json";
 import settingsIconDark from "~/assets/settings-dark.json";
@@ -16,6 +14,7 @@ import templatesIconDark from "~/assets/templates-dark.json";
 import templatesIconLight from "~/assets/templates-light.json";
 import ReactiveButton from "~/components/ReactiveButton";
 import UserMenu from "~/components/UserMenu";
+import { useTheme } from "~/providers/theme";
 
 interface SideNavigationProps {
   user: UserType;
@@ -84,71 +83,69 @@ export default function SideNavigation({
   };
 
   return (
-    <>
-      <nav
-        className={twMerge(
-          "flex h-full w-64 flex-col justify-between border-r border-light-300 bg-light-100 p-3 dark:border-dark-300 dark:bg-dark-100 md:border-r-0 md:py-0 md:pl-0",
-          isCollapsed && "md:w-auto",
-        )}
-      >
-        <div>
-          <div className="hidden h-[45px] items-center justify-between pb-3 md:flex">
-            {!isCollapsed && (
-              <Link to="/" className="block">
-                <h1 className="pl-2 text-[16px] font-bold tracking-tight text-neutral-900 dark:text-dark-1000">
-                  kan.bn
-                </h1>
-              </Link>
+    <nav
+      className={twMerge(
+        "flex h-full w-64 flex-col justify-between border-r border-light-300 bg-light-100 p-3 dark:border-dark-300 dark:bg-dark-100 md:border-r-0 md:py-0 md:pl-0",
+        isCollapsed && "md:w-auto",
+      )}
+    >
+      <div>
+        <div className="hidden h-[45px] items-center justify-between pb-3 md:flex">
+          {!isCollapsed && (
+            <Link to="/" className="block">
+              <h1 className="pl-2 text-[16px] font-bold tracking-tight text-neutral-900 dark:text-dark-1000">
+                kan.bn
+              </h1>
+            </Link>
+          )}
+          <Button
+            onClick={toggleCollapse}
+            className={twMerge(
+              "flex h-8 items-center justify-center rounded-md hover:bg-light-200 dark:hover:bg-dark-200",
+              isCollapsed ? "w-full" : "w-8",
             )}
-            <Button
-              onClick={toggleCollapse}
-              className={twMerge(
-                "flex h-8 items-center justify-center rounded-md hover:bg-light-200 dark:hover:bg-dark-200",
-                isCollapsed ? "w-full" : "w-8",
-              )}
-            >
-              {isCollapsed ? (
-                <TbLayoutSidebarLeftExpand
-                  size={18}
-                  className="text-light-900 dark:text-dark-900"
-                />
-              ) : (
-                <TbLayoutSidebarLeftCollapse
-                  size={18}
-                  className="text-light-900 dark:text-dark-900"
-                />
-              )}
-            </Button>
-          </div>
-          <div className="mx-1 mb-4 hidden w-auto border-b border-light-300 dark:border-dark-400 md:block" />
-
-          <ul role="list" className="space-y-1">
-            {navigation.map((item) => (
-              <li key={item.name}>
-                <ReactiveButton
-                  href={item.href}
-                  current={pathname.includes(item.href)}
-                  name={item.name}
-                  json={item.icon}
-                  isCollapsed={isCollapsed}
-                  onCloseSideNav={onCloseSideNav}
-                />
-              </li>
-            ))}
-          </ul>
+          >
+            {isCollapsed ? (
+              <TbLayoutSidebarLeftExpand
+                size={18}
+                className="text-light-900 dark:text-dark-900"
+              />
+            ) : (
+              <TbLayoutSidebarLeftCollapse
+                size={18}
+                className="text-light-900 dark:text-dark-900"
+              />
+            )}
+          </Button>
         </div>
+        <div className="mx-1 mb-4 hidden w-auto border-b border-light-300 dark:border-dark-400 md:block" />
 
-        <div className="space-y-2">
-          <UserMenu
-            displayName={user.displayName ?? undefined}
-            email={user.email ?? "Email not provided?"}
-            imageUrl={user.image ?? undefined}
-            isLoading={isLoading}
-            isCollapsed={isCollapsed}
-            onCloseSideNav={onCloseSideNav}
-          />
-        </div>
-      </nav>
-    </>
+        <ul className="space-y-1">
+          {navigation.map((item) => (
+            <li key={item.name}>
+              <ReactiveButton
+                href={item.href}
+                current={pathname.includes(item.href)}
+                name={item.name}
+                json={item.icon}
+                isCollapsed={isCollapsed}
+                onCloseSideNav={onCloseSideNav}
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="space-y-2">
+        <UserMenu
+          displayName={user.displayName ?? undefined}
+          email={user.email ?? "Email not provided?"}
+          imageUrl={user.image ?? undefined}
+          isLoading={isLoading}
+          isCollapsed={isCollapsed}
+          onCloseSideNav={onCloseSideNav}
+        />
+      </div>
+    </nav>
   );
 }

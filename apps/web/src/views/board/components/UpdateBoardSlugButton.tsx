@@ -1,8 +1,7 @@
 import { Fragment } from "react";
 import { HiLink } from "react-icons/hi";
-
-import { env } from "~/env";
 import { Tooltip } from "~/components/Tooltip";
+import { env } from "~/env";
 import { usePopup } from "~/providers/popup";
 
 const displayBaseUrl = env.VITE_PUBLIC_URL;
@@ -38,9 +37,7 @@ const UpdateBoardSlugButton = ({
   const pathSegments = [displayBaseUrl, "boards", boardPublicId];
 
   return (
-    <Tooltip
-      content={!canEdit ? "You don't have permission" : undefined}
-    >
+    <Tooltip content={!canEdit ? "You don't have permission" : undefined}>
       <button
         onClick={canEdit ? handleOnClick : undefined}
         disabled={!canEdit || isLoading}
@@ -58,14 +55,16 @@ const UpdateBoardSlugButton = ({
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            navigator.clipboard.writeText(boardUrl).then(
-              () =>
+            navigator.clipboard
+              .writeText(boardUrl)
+              .then(() =>
                 showPopup({
                   header: "Link copied",
                   icon: "success",
                   message: "Board URL copied to clipboard",
                 }),
-            ).catch(() => undefined);
+              )
+              .catch(() => undefined);
           }}
           className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-light-200 dark:hover:bg-dark-200"
           aria-label={"Copy board link"}

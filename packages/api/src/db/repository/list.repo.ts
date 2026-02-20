@@ -1,8 +1,7 @@
 import { and, count, desc, eq, gt, isNull, sql } from "drizzle-orm";
-
+import { generateUID } from "../../lib/utils";
 import type { dbClient } from "../client";
 import { lists } from "../schema";
-import { generateUID } from "../../lib/utils";
 
 export const getCount = async (db: dbClient) => {
   const result = await db

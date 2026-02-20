@@ -6,7 +6,12 @@ export default function Dropdown({
   children,
   disabled,
 }: {
-  items: { label: string; action?: () => void; icon?: React.ReactNode; disabled?: boolean }[];
+  items: {
+    label: string;
+    action?: () => void;
+    icon?: React.ReactNode;
+    disabled?: boolean;
+  }[];
   children: React.ReactNode;
   disabled?: boolean;
 }) {

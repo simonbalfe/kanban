@@ -1,5 +1,5 @@
-import { Link, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { HiXMark } from "react-icons/hi2";
@@ -217,7 +217,13 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
       }
       clearModalState("NEW_LABEL_CREATED");
     }
-  }, [modalStates.NEW_LABEL_CREATED, card, cardId]);
+  }, [
+    modalStates.NEW_LABEL_CREATED,
+    card,
+    cardId,
+    addOrRemoveLabel.mutate,
+    clearModalState,
+  ]);
 
   useEffect(() => {
     if (!card) return;
@@ -237,10 +243,9 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
       titleTextarea.style.height = "auto";
       titleTextarea.style.height = `${titleTextarea.scrollHeight}px`;
     }
-  }, [card]);
+  }, []);
 
   if (!cardId) return <></>;
-
 
   return (
     <>
@@ -259,7 +264,9 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
               <div className="flex items-center gap-1">
                 <Link
                   className="whitespace-nowrap text-sm font-bold leading-[1.5rem] text-light-900 dark:text-dark-950"
-                  to={`${isTemplate ? "/templates" : "/boards"}/${board?.publicId}` as string}
+                  to={
+                    `${isTemplate ? "/templates" : "/boards"}/${board?.publicId}` as string
+                  }
                 >
                   {board?.name}
                 </Link>
@@ -272,7 +279,9 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                   cardCreatedBy={card?.createdBy}
                 />
                 <Link
-                  to={`/${isTemplate ? "templates" : "boards"}/${boardId}` as string}
+                  to={
+                    `/${isTemplate ? "templates" : "boards"}/${boardId}` as string
+                  }
                   className="flex h-7 w-7 items-center justify-center rounded-[5px] text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-200"
                   aria-label={"Close"}
                 >
@@ -361,63 +370,60 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
           </div>
         </div>
 
-        <>
-<Modal
-            modalSize="sm"
-            isVisible={isOpen && modalContentType === "NEW_LABEL"}
-          >
-            <LabelForm boardPublicId={boardId ?? ""} refetch={refetchCard} />
-          </Modal>
+        <Modal
+          modalSize="sm"
+          isVisible={isOpen && modalContentType === "NEW_LABEL"}
+        >
+          <LabelForm boardPublicId={boardId ?? ""} refetch={refetchCard} />
+        </Modal>
 
-          <Modal
-            modalSize="sm"
-            isVisible={isOpen && modalContentType === "EDIT_LABEL"}
-          >
-            <LabelForm
-              boardPublicId={boardId ?? ""}
-              refetch={refetchCard}
-              isEdit
-            />
-          </Modal>
+        <Modal
+          modalSize="sm"
+          isVisible={isOpen && modalContentType === "EDIT_LABEL"}
+        >
+          <LabelForm
+            boardPublicId={boardId ?? ""}
+            refetch={refetchCard}
+            isEdit
+          />
+        </Modal>
 
-          <Modal
-            modalSize="sm"
-            isVisible={isOpen && modalContentType === "DELETE_LABEL"}
-          >
-            <DeleteLabelConfirmation
-              refetch={refetchCard}
-              labelPublicId={entityId}
-            />
-          </Modal>
+        <Modal
+          modalSize="sm"
+          isVisible={isOpen && modalContentType === "DELETE_LABEL"}
+        >
+          <DeleteLabelConfirmation
+            refetch={refetchCard}
+            labelPublicId={entityId}
+          />
+        </Modal>
 
-          <Modal
-            modalSize="sm"
-            isVisible={isOpen && modalContentType === "DELETE_CARD"}
-          >
-            <DeleteCardConfirmation
-              boardPublicId={boardId ?? ""}
-              cardPublicId={cardId}
-            />
-          </Modal>
+        <Modal
+          modalSize="sm"
+          isVisible={isOpen && modalContentType === "DELETE_CARD"}
+        >
+          <DeleteCardConfirmation
+            boardPublicId={boardId ?? ""}
+            cardPublicId={cardId}
+          />
+        </Modal>
 
-          <Modal
-            modalSize="sm"
-            isVisible={isOpen && modalContentType === "ADD_CHECKLIST"}
-          >
-            <NewChecklistForm cardPublicId={cardId} />
-          </Modal>
+        <Modal
+          modalSize="sm"
+          isVisible={isOpen && modalContentType === "ADD_CHECKLIST"}
+        >
+          <NewChecklistForm cardPublicId={cardId} />
+        </Modal>
 
-          <Modal
-            modalSize="sm"
-            isVisible={isOpen && modalContentType === "DELETE_CHECKLIST"}
-          >
-            <DeleteChecklistConfirmation
-              cardPublicId={cardId}
-              checklistPublicId={entityId}
-            />
-          </Modal>
-
-        </>
+        <Modal
+          modalSize="sm"
+          isVisible={isOpen && modalContentType === "DELETE_CHECKLIST"}
+        >
+          <DeleteChecklistConfirmation
+            cardPublicId={cardId}
+            checklistPublicId={entityId}
+          />
+        </Modal>
       </div>
     </>
   );

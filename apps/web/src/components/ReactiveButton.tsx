@@ -12,14 +12,7 @@ const Button: React.FC<{
   json: object;
   isCollapsed?: boolean;
   onCloseSideNav?: () => void;
-}> = ({
-  href,
-  current,
-  name,
-  json,
-  isCollapsed = false,
-  onCloseSideNav,
-}) => {
+}> = ({ href, current, name, json, isCollapsed = false, onCloseSideNav }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [index, setIndex] = useState(0);
   const isMobile = useIsMobile();

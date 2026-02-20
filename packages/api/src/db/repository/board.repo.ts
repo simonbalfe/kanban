@@ -2,7 +2,6 @@ import {
   and,
   asc,
   count,
-  desc,
   eq,
   gte,
   inArray,
@@ -11,7 +10,7 @@ import {
   lt,
   or,
 } from "drizzle-orm";
-
+import { generateUID } from "../../lib/utils";
 import type { dbClient } from "../client";
 import type { BoardVisibilityStatus } from "../schema";
 import {
@@ -23,7 +22,6 @@ import {
   labels,
   lists,
 } from "../schema";
-import { generateUID } from "../../lib/utils";
 
 export const getCount = async (db: dbClient) => {
   const result = await db
@@ -119,7 +117,7 @@ const buildDueDateWhere = (filters: DueDateFilter[]) => {
 export const getByPublicId = async (
   db: dbClient,
   boardPublicId: string,
-  userId: string,
+  _userId: string,
   filters: {
     members: string[];
     labels: string[];
@@ -139,10 +137,7 @@ export const getByPublicId = async (
       .leftJoin(cardsToLabels, eq(cards.id, cardsToLabels.cardId))
       .leftJoin(labels, eq(cardsToLabels.labelId, labels.id))
       .where(
-        and(
-          isNull(cards.deletedAt),
-          inArray(labels.publicId, filters.labels),
-        ),
+        and(isNull(cards.deletedAt), inArray(labels.publicId, filters.labels)),
       );
 
     cardIds = filteredCards.map((card) => card.publicId);
@@ -506,18 +501,12 @@ export const softDelete = async (
   return result;
 };
 
-export const isSlugUnique = async (
-  db: dbClient,
-  args: { slug: string },
-) => {
+export const isSlugUnique = async (db: dbClient, args: { slug: string }) => {
   const result = await db.query.boards.findFirst({
     columns: {
       slug: true,
     },
-    where: and(
-      eq(boards.slug, args.slug),
-      isNull(boards.deletedAt),
-    ),
+    where: and(eq(boards.slug, args.slug), isNull(boards.deletedAt)),
   });
 
   return result === undefined;
@@ -538,18 +527,12 @@ export const getBoardIdByPublicId = async (
   return result;
 };
 
-export const isBoardSlugAvailable = async (
-  db: dbClient,
-  boardSlug: string,
-) => {
+export const isBoardSlugAvailable = async (db: dbClient, boardSlug: string) => {
   const result = await db.query.boards.findFirst({
     columns: {
       id: true,
     },
-    where: and(
-      eq(boards.slug, boardSlug),
-      isNull(boards.deletedAt),
-    ),
+    where: and(eq(boards.slug, boardSlug), isNull(boards.deletedAt)),
   });
 
   return result === undefined;

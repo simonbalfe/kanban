@@ -9,7 +9,7 @@ import {
   isNull,
   sql,
 } from "drizzle-orm";
-
+import { generateUID } from "../../lib/utils";
 import type { dbClient } from "../client";
 import {
   cards,
@@ -19,7 +19,6 @@ import {
   labels,
   lists,
 } from "../schema";
-import { generateUID } from "../../lib/utils";
 
 export const getCount = async (db: dbClient) => {
   const result = await db
@@ -85,7 +84,11 @@ export const create = async (
         index: index,
         dueDate: cardInput.dueDate ?? null,
       })
-      .returning({ id: cards.id, listId: cards.listId, publicId: cards.publicId });
+      .returning({
+        id: cards.id,
+        listId: cards.listId,
+        publicId: cards.publicId,
+      });
 
     if (!result[0]) throw new Error("Unable to create card");
 

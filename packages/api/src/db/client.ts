@@ -8,7 +8,9 @@ export type dbClient = NodePgDatabase<typeof schema> & {
   $client: Pool;
 };
 
-function getConnectionString(connectionString: string | undefined): string | undefined {
+function getConnectionString(
+  connectionString: string | undefined,
+): string | undefined {
   if (!connectionString) {
     return connectionString;
   }

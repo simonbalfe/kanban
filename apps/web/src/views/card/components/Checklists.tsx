@@ -1,5 +1,5 @@
-import type { DropResult } from "react-beautiful-dnd";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { DropResult } from "react-beautiful-dnd";
 import { DragDropContext, Draggable } from "react-beautiful-dnd";
 import { HiPlus, HiXMark } from "react-icons/hi2";
 
@@ -77,8 +77,7 @@ export default function Checklists({
       return { previous };
     },
     onError: (_err: any, _vars: any, ctx: any) => {
-      if (ctx?.previous)
-        queryClient.setQueryData(cardQueryKey, ctx.previous);
+      if (ctx?.previous) queryClient.setQueryData(cardQueryKey, ctx.previous);
       showPopup({
         header: "Unable to reorder checklist item",
         message: "Please try again later, or contact customer support.",

@@ -1,5 +1,5 @@
-import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 
 import Button from "~/components/Button";
 import { useModal } from "~/providers/modal";

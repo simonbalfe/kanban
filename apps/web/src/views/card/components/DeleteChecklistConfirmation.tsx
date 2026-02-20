@@ -34,8 +34,7 @@ export function DeleteChecklistConfirmation({
       return { previous };
     },
     onError: (_err: any, _vars: any, ctx: any) => {
-      if (ctx?.previous)
-        queryClient.setQueryData(cardQueryKey, ctx.previous);
+      if (ctx?.previous) queryClient.setQueryData(cardQueryKey, ctx.previous);
       showPopup({
         header: "Unable to delete checklist",
         message: "Please try again later, or contact customer support.",

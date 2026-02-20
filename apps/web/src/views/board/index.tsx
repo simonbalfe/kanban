@@ -1,7 +1,17 @@
-import type { DropResult } from "react-beautiful-dnd";
-import { Link, useNavigate, useParams, useSearch } from "@tanstack/react-router";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearch,
+} from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import type { DropResult } from "react-beautiful-dnd";
 import { DragDropContext, Draggable } from "react-beautiful-dnd";
 import { useForm } from "react-hook-form";
 import {
@@ -45,7 +55,7 @@ type PublicListId = string;
 export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
   const params = useParams({ strict: false });
   const search = useSearch({ strict: false }) as Record<string, any>;
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showPopup } = usePopup();
   const { openModal, modalContentType, entityId, isOpen } = useModal();
@@ -364,7 +374,6 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
             sourceBoardName={boardData?.name ?? ""}
           />
         </Modal>
-
       </>
     );
   };
@@ -452,10 +461,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                 {"New list"}
               </Button>
             </Tooltip>
-            <BoardDropdown
-              isTemplate={!!isTemplate}
-              isLoading={!boardData}
-            />
+            <BoardDropdown isTemplate={!!isTemplate} isLoading={!boardData} />
           </div>
         </div>
 
@@ -471,130 +477,126 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
               <div className="0 mr-5 h-[375px] w-[18rem] animate-pulse rounded-md bg-light-200 dark:bg-dark-100" />
             </div>
           ) : boardData ? (
-            <>
-              {boardData.lists.length === 0 ? (
-                <div className="z-10 flex h-full w-full flex-col items-center justify-center space-y-8 pb-[150px]">
-                  <div className="flex flex-col items-center">
-                    <HiOutlineSquare3Stack3D className="h-10 w-10 text-light-800 dark:text-dark-800" />
-                    <p className="mb-2 mt-4 text-[14px] font-bold text-light-1000 dark:text-dark-950">
-                      {"No lists"}
-                    </p>
-                    <p className="text-[14px] text-light-900 dark:text-dark-900">
-                      {isAdminOrMember
-                        ? "Get started by creating a new list"
-                        : "No lists have been created yet"}
-                    </p>
-                  </div>
-                  <Tooltip
-                    content={
-                      !isAdminOrMember ? "You don't have permission" : undefined
-                    }
-                  >
-                    <Button
-                      onClick={() => {
-                        if (boardId && isAdminOrMember) openNewListForm(boardId);
-                      }}
-                      disabled={!isAdminOrMember}
-                    >
-                      {"Create new list"}
-                    </Button>
-                  </Tooltip>
+            boardData.lists.length === 0 ? (
+              <div className="z-10 flex h-full w-full flex-col items-center justify-center space-y-8 pb-[150px]">
+                <div className="flex flex-col items-center">
+                  <HiOutlineSquare3Stack3D className="h-10 w-10 text-light-800 dark:text-dark-800" />
+                  <p className="mb-2 mt-4 text-[14px] font-bold text-light-1000 dark:text-dark-950">
+                    {"No lists"}
+                  </p>
+                  <p className="text-[14px] text-light-900 dark:text-dark-900">
+                    {isAdminOrMember
+                      ? "Get started by creating a new list"
+                      : "No lists have been created yet"}
+                  </p>
                 </div>
-              ) : (
-                <DragDropContext onDragEnd={onDragEnd}>
-                  <Droppable
-                    droppableId="all-lists"
-                    direction="horizontal"
-                    type="LIST"
+                <Tooltip
+                  content={
+                    !isAdminOrMember ? "You don't have permission" : undefined
+                  }
+                >
+                  <Button
+                    onClick={() => {
+                      if (boardId && isAdminOrMember) openNewListForm(boardId);
+                    }}
+                    disabled={!isAdminOrMember}
                   >
-                    {(provided) => (
-                      <div
-                        className="flex"
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                      >
-                        <div className="min-w-[2rem]" />
-                        {boardData.lists.map((list, index) => (
-                          <List
-                            index={index}
-                            key={list.publicId}
-                            list={list}
-                            setSelectedPublicListId={(publicListId) =>
-                              setSelectedPublicListId(publicListId)
-                            }
+                    {"Create new list"}
+                  </Button>
+                </Tooltip>
+              </div>
+            ) : (
+              <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable
+                  droppableId="all-lists"
+                  direction="horizontal"
+                  type="LIST"
+                >
+                  {(provided) => (
+                    <div
+                      className="flex"
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                    >
+                      <div className="min-w-[2rem]" />
+                      {boardData.lists.map((list, index) => (
+                        <List
+                          index={index}
+                          key={list.publicId}
+                          list={list}
+                          setSelectedPublicListId={(publicListId) =>
+                            setSelectedPublicListId(publicListId)
+                          }
+                        >
+                          <Droppable
+                            droppableId={`${list.publicId}`}
+                            type="CARD"
                           >
-                            <Droppable
-                              droppableId={`${list.publicId}`}
-                              type="CARD"
-                            >
-                              {(provided) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.droppableProps}
-                                  className="scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-w-[8px] z-10 h-full max-h-[calc(100vh-225px)] min-h-[2rem] overflow-y-auto pr-1 scrollbar dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-600"
-                                >
-                                  {list.cards.map((card, index) => (
-                                    <Draggable
-                                      key={card.publicId}
-                                      draggableId={card.publicId}
-                                      index={index}
-                                      isDragDisabled={!isAdminOrMember}
-                                    >
-                                      {(provided) => (
-                                        <Link
-                                          onClick={(e) => {
-                                            if (
-                                              card.publicId.startsWith(
-                                                "PLACEHOLDER",
-                                              )
-                                            )
-                                              e.preventDefault();
-                                          }}
-                                          key={card.publicId}
-                                          to={(
-                                            isTemplate
-                                              ? `/templates/${boardId}/cards/${card.publicId}`
-                                              : `/cards/${card.publicId}`
-                                          ) as string}
-                                          className={`mb-2 flex !cursor-pointer flex-col ${
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.droppableProps}
+                                className="scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-w-[8px] z-10 h-full max-h-[calc(100vh-225px)] min-h-[2rem] overflow-y-auto pr-1 scrollbar dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-600"
+                              >
+                                {list.cards.map((card, index) => (
+                                  <Draggable
+                                    key={card.publicId}
+                                    draggableId={card.publicId}
+                                    index={index}
+                                    isDragDisabled={!isAdminOrMember}
+                                  >
+                                    {(provided) => (
+                                      <Link
+                                        onClick={(e) => {
+                                          if (
                                             card.publicId.startsWith(
                                               "PLACEHOLDER",
                                             )
-                                              ? "pointer-events-none"
-                                              : ""
-                                          }`}
-                                          ref={provided.innerRef}
-                                          {...provided.draggableProps}
-                                          {...provided.dragHandleProps}
-                                        >
-                                          <Card
-                                            title={card.title}
-                                            labels={card.labels}
-                                            members={[]}
-                                            checklists={card.checklists ?? []}
-                                            description={
-                                              card.description ?? null
-                                            }
-                                            dueDate={card.dueDate ?? null}
-                                          />
-                                        </Link>
-                                      )}
-                                    </Draggable>
-                                  ))}
-                                  {provided.placeholder}
-                                </div>
-                              )}
-                            </Droppable>
-                          </List>
-                        ))}
-                        <div className="min-w-[0.75rem]" />
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                </DragDropContext>
-              )}
-            </>
+                                          )
+                                            e.preventDefault();
+                                        }}
+                                        key={card.publicId}
+                                        to={
+                                          (isTemplate
+                                            ? `/templates/${boardId}/cards/${card.publicId}`
+                                            : `/cards/${card.publicId}`) as string
+                                        }
+                                        className={`mb-2 flex !cursor-pointer flex-col ${
+                                          card.publicId.startsWith(
+                                            "PLACEHOLDER",
+                                          )
+                                            ? "pointer-events-none"
+                                            : ""
+                                        }`}
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                      >
+                                        <Card
+                                          title={card.title}
+                                          labels={card.labels}
+                                          members={[]}
+                                          checklists={card.checklists ?? []}
+                                          description={card.description ?? null}
+                                          dueDate={card.dueDate ?? null}
+                                        />
+                                      </Link>
+                                    )}
+                                  </Draggable>
+                                ))}
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+                        </List>
+                      ))}
+                      <div className="min-w-[0.75rem]" />
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            )
           ) : null}
         </div>
         {renderModalContent()}

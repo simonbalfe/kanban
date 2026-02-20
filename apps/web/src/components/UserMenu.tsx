@@ -1,12 +1,11 @@
-import { Link, useNavigate } from "@tanstack/react-router";
 import { Menu, Transition } from "@headlessui/react";
-import { useTheme } from "~/providers/theme";
+import { useNavigate } from "@tanstack/react-router";
 import { Fragment } from "react";
 import { twMerge } from "tailwind-merge";
-
 import { env } from "~/env";
 import { useIsMobile } from "~/hooks/useMediaQuery";
 import { useModal } from "~/providers/modal";
+import { useTheme } from "~/providers/theme";
 import { getAvatarUrl } from "~/utils/helpers";
 
 interface UserMenuProps {
@@ -44,7 +43,7 @@ export default function UserMenu({
     }
   };
 
-  const handleModalOpen = (modalType: string) => {
+  const _handleModalOpen = (modalType: string) => {
     if (onCloseSideNav && isMobile) {
       onCloseSideNav();
     }
@@ -69,7 +68,7 @@ export default function UserMenu({
         ) : (
           <Menu.Button
             className="flex w-full items-center rounded-md p-1.5 text-neutral-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-200 dark:hover:text-dark-1000"
-            title={isCollapsed ? (displayName || email) : undefined}
+            title={isCollapsed ? displayName || email : undefined}
           >
             {avatarUrl ? (
               <img

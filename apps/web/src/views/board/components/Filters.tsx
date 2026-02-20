@@ -188,7 +188,10 @@ const Filters = ({
     try {
       await navigate({
         to: ".",
-        search: (prev: Record<string, unknown>) => ({ ...prev, [groupKey]: updatedQuery }),
+        search: (prev: Record<string, unknown>) => ({
+          ...prev,
+          [groupKey]: updatedQuery,
+        }),
       });
     } catch (error) {
       console.error(error);

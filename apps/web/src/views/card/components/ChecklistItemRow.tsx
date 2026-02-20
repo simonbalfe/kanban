@@ -1,6 +1,6 @@
-import type { DraggableProvided } from "react-beautiful-dnd";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import type { DraggableProvided } from "react-beautiful-dnd";
 import ContentEditable from "react-contenteditable";
 import { HiXMark } from "react-icons/hi2";
 import { RiDraggable } from "react-icons/ri";
@@ -65,8 +65,7 @@ export default function ChecklistItemRow({
       return { previous };
     },
     onError: (_err: any, _vars: any, ctx: any) => {
-      if (ctx?.previous)
-        queryClient.setQueryData(cardQueryKey, ctx.previous);
+      if (ctx?.previous) queryClient.setQueryData(cardQueryKey, ctx.previous);
       showPopup({
         header: "Unable to update checklist item",
         message: "Please try again later, or contact customer support.",
@@ -94,8 +93,7 @@ export default function ChecklistItemRow({
       return { previous };
     },
     onError: (_err: any, _vars: any, ctx: any) => {
-      if (ctx?.previous)
-        queryClient.setQueryData(cardQueryKey, ctx.previous);
+      if (ctx?.previous) queryClient.setQueryData(cardQueryKey, ctx.previous);
       showPopup({
         header: "Unable to delete checklist item",
         message: "Please try again later, or contact customer support.",
@@ -110,7 +108,7 @@ export default function ChecklistItemRow({
   useEffect(() => {
     setTitle(item.title);
     setCompleted(item.completed);
-  }, [item.publicId, item.title, item.completed]);
+  }, [item.title, item.completed]);
 
   const sanitizeHtmlToPlainText = (html: string): string =>
     html

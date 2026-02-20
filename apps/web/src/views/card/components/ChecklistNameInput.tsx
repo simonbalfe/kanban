@@ -24,7 +24,7 @@ export default function ChecklistNameInput({
 
   useEffect(() => {
     setName(initialName);
-  }, [initialName, checklistPublicId]);
+  }, [initialName]);
 
   const cardQueryKey = apiKeys.card.byId({ cardPublicId });
 
@@ -43,8 +43,7 @@ export default function ChecklistNameInput({
       return { previous };
     },
     onError: (_err: any, _vars: any, ctx: any) => {
-      if (ctx?.previous)
-        queryClient.setQueryData(cardQueryKey, ctx.previous);
+      if (ctx?.previous) queryClient.setQueryData(cardQueryKey, ctx.previous);
       showPopup({
         header: "Unable to update checklist",
         message: "Please try again later, or contact customer support.",

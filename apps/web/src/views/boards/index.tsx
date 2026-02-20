@@ -14,16 +14,14 @@ export default function BoardsPage({ isTemplate }: { isTemplate?: boolean }) {
 
   return (
     <>
-      <PageHead
-        title={isTemplate ? "Templates" : "Boards"}
-      />
+      <PageHead title={isTemplate ? "Templates" : "Boards"} />
       <div className="m-auto h-full max-w-[1100px] p-6 px-5 md:px-28 md:py-12">
         <div className="relative z-10 mb-8 flex w-full items-center justify-between">
           <h1 className="font-bold tracking-tight text-neutral-900 dark:text-dark-1000 sm:text-[1.2rem]">
             {isTemplate ? "Templates" : "Boards"}
           </h1>
           <div className="flex gap-2">
-<Tooltip
+            <Tooltip
               content={
                 !isAdminOrMember
                   ? "You don't have permission"

@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const API = import.meta.env.VITE_API_URL;
+const API = "/api";
 
 export interface ApiLabel {
   publicId: string;
@@ -108,14 +108,17 @@ export const apiKeys = {
     all: (input?: { type?: string }) => ["board", "all", input ?? {}] as const,
     byId: (input: BoardByIdInput) => ["board", "byId", input] as const,
     bySlug: (input: BoardBySlugInput) => ["board", "bySlug", input] as const,
-    checkSlugAvailability: (input: { boardSlug: string; boardPublicId: string }) =>
-      ["board", "checkSlugAvailability", input] as const,
+    checkSlugAvailability: (input: {
+      boardSlug: string;
+      boardPublicId: string;
+    }) => ["board", "checkSlugAvailability", input] as const,
   },
   card: {
     byId: (input: { cardPublicId: string }) => ["card", "byId", input] as const,
   },
   label: {
-    byPublicId: (input: { labelPublicId: string }) => ["label", "byPublicId", input] as const,
+    byPublicId: (input: { labelPublicId: string }) =>
+      ["label", "byPublicId", input] as const,
   },
   user: {
     getUser: () => ["user", "getUser"] as const,
@@ -130,7 +133,10 @@ function qs(params: Record<string, unknown>) {
   const s = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
     if (v === undefined || v === null) continue;
-    if (Array.isArray(v)) { for (const i of v) s.append(k, String(i)); continue; }
+    if (Array.isArray(v)) {
+      for (const i of v) s.append(k, String(i));
+      continue;
+    }
     s.set(k, String(v));
   }
   const str = s.toString();
@@ -185,54 +191,109 @@ export const api = {
       get<ApiBoardSummary[]>(`/boards${qs({ type: input?.type })}`),
 
     byId: (input: BoardByIdInput) =>
-      get<ApiBoard>(`/boards/${input.boardPublicId}${qs({
-        members: input.members,
-        labels: input.labels,
-        lists: input.lists,
-        dueDateFilters: input.dueDateFilters,
-        type: input.type,
-      })}`),
+      get<ApiBoard>(
+        `/boards/${input.boardPublicId}${qs({
+          members: input.members,
+          labels: input.labels,
+          lists: input.lists,
+          dueDateFilters: input.dueDateFilters,
+          type: input.type,
+        })}`,
+      ),
 
     bySlug: (input: BoardBySlugInput) =>
-      get<ApiBoard>(`/boards/by-slug/${input.boardSlug}${qs({
-        members: input.members,
-        labels: input.labels,
-        lists: input.lists,
-        dueDateFilters: input.dueDateFilters,
-      })}`),
+      get<ApiBoard>(
+        `/boards/by-slug/${input.boardSlug}${qs({
+          members: input.members,
+          labels: input.labels,
+          lists: input.lists,
+          dueDateFilters: input.dueDateFilters,
+        })}`,
+      ),
 
-    create: (input: { name: string; lists: string[]; labels: string[]; type?: string; sourceBoardPublicId?: string }) =>
+    create: (input: {
+      name: string;
+      lists: string[];
+      labels: string[];
+      type?: string;
+      sourceBoardPublicId?: string;
+    }) =>
       post<{ id: number; publicId: string; name: string }>("/boards", input),
 
-    update: (input: { boardPublicId: string; name?: string; slug?: string; visibility?: string }) =>
-      put<{ publicId: string; name: string }>(`/boards/${input.boardPublicId}`, {
-        name: input.name, slug: input.slug, visibility: input.visibility,
-      }),
+    update: (input: {
+      boardPublicId: string;
+      name?: string;
+      slug?: string;
+      visibility?: string;
+    }) =>
+      put<{ publicId: string; name: string }>(
+        `/boards/${input.boardPublicId}`,
+        {
+          name: input.name,
+          slug: input.slug,
+          visibility: input.visibility,
+        },
+      ),
 
     delete: (input: { boardPublicId: string }) =>
       del<{ success: boolean }>(`/boards/${input.boardPublicId}`),
 
-    checkSlugAvailability: (input: { boardSlug: string; boardPublicId: string }) =>
-      get<{ isReserved: boolean }>(`/boards/${input.boardPublicId}/check-slug${qs({ boardSlug: input.boardSlug })}`),
+    checkSlugAvailability: (input: {
+      boardSlug: string;
+      boardPublicId: string;
+    }) =>
+      get<{ isReserved: boolean }>(
+        `/boards/${input.boardPublicId}/check-slug${qs({ boardSlug: input.boardSlug })}`,
+      ),
   },
 
   card: {
     byId: (input: { cardPublicId: string }) =>
       get<ApiCardDetail>(`/cards/${input.cardPublicId}`),
 
-    create: (input: { title: string; description: string; listPublicId: string; labelPublicIds: string[]; position: string; dueDate?: string | null }) =>
+    create: (input: {
+      title: string;
+      description: string;
+      listPublicId: string;
+      labelPublicIds: string[];
+      position: string;
+      dueDate?: string | null;
+    }) =>
       post<{ id: number; listId: number; publicId: string }>("/cards", input),
 
-    update: (input: { cardPublicId: string; title?: string; description?: string; index?: number; listPublicId?: string; dueDate?: string | null }) =>
-      put<{ id: number; publicId: string; title: string; description: string | null; dueDate: string | null }>(`/cards/${input.cardPublicId}`, {
-        title: input.title, description: input.description, index: input.index, listPublicId: input.listPublicId, dueDate: input.dueDate,
+    update: (input: {
+      cardPublicId: string;
+      title?: string;
+      description?: string;
+      index?: number;
+      listPublicId?: string;
+      dueDate?: string | null;
+    }) =>
+      put<{
+        id: number;
+        publicId: string;
+        title: string;
+        description: string | null;
+        dueDate: string | null;
+      }>(`/cards/${input.cardPublicId}`, {
+        title: input.title,
+        description: input.description,
+        index: input.index,
+        listPublicId: input.listPublicId,
+        dueDate: input.dueDate,
       }),
 
     delete: (input: { cardPublicId: string }) =>
       del<{ success: boolean }>(`/cards/${input.cardPublicId}`),
 
-    addOrRemoveLabel: (input: { cardPublicId: string; labelPublicId: string }) =>
-      put<{ newLabel: boolean }>(`/cards/${input.cardPublicId}/labels/${input.labelPublicId}`, {}),
+    addOrRemoveLabel: (input: {
+      cardPublicId: string;
+      labelPublicId: string;
+    }) =>
+      put<{ newLabel: boolean }>(
+        `/cards/${input.cardPublicId}/labels/${input.labelPublicId}`,
+        {},
+      ),
   },
 
   list: {
@@ -240,7 +301,10 @@ export const api = {
       post<{ id: number; publicId: string; name: string }>("/lists", input),
 
     update: (input: { listPublicId: string; name?: string; index?: number }) =>
-      put<{ publicId: string; name: string }>(`/lists/${input.listPublicId}`, { name: input.name, index: input.index }),
+      put<{ publicId: string; name: string }>(`/lists/${input.listPublicId}`, {
+        name: input.name,
+        index: input.index,
+      }),
 
     delete: (input: { listPublicId: string }) =>
       del<{ success: boolean }>(`/lists/${input.listPublicId}`),
@@ -251,32 +315,60 @@ export const api = {
       post<{ publicId: string; name: string }>("/checklists", input),
 
     update: (input: { checklistPublicId: string; name: string }) =>
-      put<{ publicId: string; name: string }>(`/checklists/${input.checklistPublicId}`, { name: input.name }),
+      put<{ publicId: string; name: string }>(
+        `/checklists/${input.checklistPublicId}`,
+        { name: input.name },
+      ),
 
     delete: (input: { checklistPublicId: string }) =>
       del<{ success: boolean }>(`/checklists/${input.checklistPublicId}`),
 
     createItem: (input: { checklistPublicId: string; title: string }) =>
-      post<{ publicId: string; title: string }>(`/checklists/${input.checklistPublicId}/items`, { title: input.title }),
+      post<{ publicId: string; title: string }>(
+        `/checklists/${input.checklistPublicId}/items`,
+        { title: input.title },
+      ),
 
-    updateItem: (input: { checklistItemPublicId: string; title?: string; completed?: boolean; index?: number }) =>
-      patch<{ publicId: string; title: string; completed: boolean }>(`/checklists/items/${input.checklistItemPublicId}`, {
-        title: input.title, completed: input.completed, index: input.index,
-      }),
+    updateItem: (input: {
+      checklistItemPublicId: string;
+      title?: string;
+      completed?: boolean;
+      index?: number;
+    }) =>
+      patch<{ publicId: string; title: string; completed: boolean }>(
+        `/checklists/items/${input.checklistItemPublicId}`,
+        {
+          title: input.title,
+          completed: input.completed,
+          index: input.index,
+        },
+      ),
 
     deleteItem: (input: { checklistItemPublicId: string }) =>
-      del<{ success: boolean }>(`/checklists/items/${input.checklistItemPublicId}`),
+      del<{ success: boolean }>(
+        `/checklists/items/${input.checklistItemPublicId}`,
+      ),
   },
 
   label: {
     byPublicId: (input: { labelPublicId: string }) =>
       get<ApiLabel>(`/labels/${input.labelPublicId}`),
 
-    create: (input: { name: string; boardPublicId: string; colourCode: string }) =>
-      post<ApiLabel>("/labels", input),
+    create: (input: {
+      name: string;
+      boardPublicId: string;
+      colourCode: string;
+    }) => post<ApiLabel>("/labels", input),
 
-    update: (input: { labelPublicId: string; name: string; colourCode: string }) =>
-      put<ApiLabel>(`/labels/${input.labelPublicId}`, { name: input.name, colourCode: input.colourCode }),
+    update: (input: {
+      labelPublicId: string;
+      name: string;
+      colourCode: string;
+    }) =>
+      put<ApiLabel>(`/labels/${input.labelPublicId}`, {
+        name: input.name,
+        colourCode: input.colourCode,
+      }),
 
     delete: (input: { labelPublicId: string }) =>
       del<{ success: boolean }>(`/labels/${input.labelPublicId}`),
@@ -291,7 +383,8 @@ export const api = {
 
   health: {
     health: () => get<{ status: string; database: string }>("/health"),
-    stats: () => get<{ boards: number; cards: number; users: number }>("/stats"),
+    stats: () =>
+      get<{ boards: number; cards: number; users: number }>("/stats"),
   },
 };
 

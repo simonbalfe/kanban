@@ -1,13 +1,11 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { HiXMark } from "react-icons/hi2";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-import { generateUID } from "~/lib/shared/utils";
-
 import Button from "~/components/Button";
 import Input from "~/components/Input";
 import Toggle from "~/components/Toggle";
+import { generateUID } from "~/lib/shared/utils";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { api, apiKeys } from "~/utils/api";
@@ -51,31 +49,41 @@ export function NewListForm({
   const createList = useMutation({
     mutationFn: api.list.create,
     onMutate: async (args) => {
-      await queryClient.cancelQueries({ queryKey: apiKeys.board.byId(queryParams) });
-
-      const currentState = queryClient.getQueryData(apiKeys.board.byId(queryParams));
-
-      queryClient.setQueryData(apiKeys.board.byId(queryParams), (oldBoard: any) => {
-        if (!oldBoard) return oldBoard;
-
-        const newList = {
-          publicId: generateUID(),
-          name: args.name,
-          boardId: 1,
-          boardPublicId,
-          cards: [],
-          index: oldBoard.lists.length,
-        };
-
-        const updatedLists = [...oldBoard.lists, newList];
-
-        return { ...oldBoard, lists: updatedLists };
+      await queryClient.cancelQueries({
+        queryKey: apiKeys.board.byId(queryParams),
       });
+
+      const currentState = queryClient.getQueryData(
+        apiKeys.board.byId(queryParams),
+      );
+
+      queryClient.setQueryData(
+        apiKeys.board.byId(queryParams),
+        (oldBoard: any) => {
+          if (!oldBoard) return oldBoard;
+
+          const newList = {
+            publicId: generateUID(),
+            name: args.name,
+            boardId: 1,
+            boardPublicId,
+            cards: [],
+            index: oldBoard.lists.length,
+          };
+
+          const updatedLists = [...oldBoard.lists, newList];
+
+          return { ...oldBoard, lists: updatedLists };
+        },
+      );
 
       return { previousState: currentState };
     },
     onError: (_error, _newList, context) => {
-      queryClient.setQueryData(apiKeys.board.byId(queryParams), context?.previousState);
+      queryClient.setQueryData(
+        apiKeys.board.byId(queryParams),
+        context?.previousState,
+      );
       showPopup({
         header: "Unable to create list",
         message: "Please try again later, or contact customer support.",

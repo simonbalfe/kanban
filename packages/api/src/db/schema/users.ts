@@ -6,10 +6,7 @@ import { cards } from "./cards";
 import { lists } from "./lists";
 
 export const users = pgTable("user", {
-  id: uuid("id")
-    .notNull()
-    .primaryKey()
-    .default(sql`uuid_generate_v4()`),
+  id: uuid("id").notNull().primaryKey().default(sql`uuid_generate_v4()`),
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 255 }).notNull().unique(),
   image: varchar("image", { length: 255 }),

@@ -1,14 +1,14 @@
 import {
-  Outlet,
   createRootRoute,
   HeadContent,
+  Outlet,
   Scripts,
 } from "@tanstack/react-router";
-import appCss from "~/styles/globals.css?url";
-import { ThemeProvider } from "~/providers/theme";
 import { ModalProvider } from "~/providers/modal";
 import { PopupProvider } from "~/providers/popup";
-import { queryClient, QueryProvider } from "~/utils/api";
+import { ThemeProvider } from "~/providers/theme";
+import appCss from "~/styles/globals.css?url";
+import { QueryProvider, queryClient } from "~/utils/api";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -16,7 +16,8 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       {
         name: "viewport",
-        content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+        content:
+          "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
       },
       { title: "Kan" },
       { name: "description", content: "The open source Trello alternative" },

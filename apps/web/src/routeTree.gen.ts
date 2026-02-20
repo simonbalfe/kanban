@@ -16,6 +16,7 @@ import { Route as BoardsIndexRouteImport } from './app/boards.index'
 import { Route as SettingsAccountRouteImport } from './app/settings.account'
 import { Route as CardsCardIdRouteImport } from './app/cards.$cardId'
 import { Route as BoardsBoardIdRouteImport } from './app/boards.$boardId'
+import { Route as ApiSplatRouteImport } from './app/api.$'
 import { Route as TemplatesBoardIdIndexRouteImport } from './app/templates.$boardId.index'
 import { Route as TemplatesBoardIdCardsCardIdRouteImport } from './app/templates.$boardId.cards.$cardId'
 
@@ -54,6 +55,11 @@ const BoardsBoardIdRoute = BoardsBoardIdRouteImport.update({
   path: '/boards/$boardId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSplatRoute = ApiSplatRouteImport.update({
+  id: '/api/$',
+  path: '/api/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TemplatesBoardIdIndexRoute = TemplatesBoardIdIndexRouteImport.update({
   id: '/templates/$boardId/',
   path: '/templates/$boardId/',
@@ -68,6 +74,7 @@ const TemplatesBoardIdCardsCardIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/$': typeof ApiSplatRoute
   '/boards/$boardId': typeof BoardsBoardIdRoute
   '/cards/$cardId': typeof CardsCardIdRoute
   '/settings/account': typeof SettingsAccountRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/$': typeof ApiSplatRoute
   '/boards/$boardId': typeof BoardsBoardIdRoute
   '/cards/$cardId': typeof CardsCardIdRoute
   '/settings/account': typeof SettingsAccountRoute
@@ -91,6 +99,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/$': typeof ApiSplatRoute
   '/boards/$boardId': typeof BoardsBoardIdRoute
   '/cards/$cardId': typeof CardsCardIdRoute
   '/settings/account': typeof SettingsAccountRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/api/$'
     | '/boards/$boardId'
     | '/cards/$cardId'
     | '/settings/account'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/api/$'
     | '/boards/$boardId'
     | '/cards/$cardId'
     | '/settings/account'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/api/$'
     | '/boards/$boardId'
     | '/cards/$cardId'
     | '/settings/account'
@@ -138,6 +150,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiSplatRoute: typeof ApiSplatRoute
   BoardsBoardIdRoute: typeof BoardsBoardIdRoute
   CardsCardIdRoute: typeof CardsCardIdRoute
   SettingsAccountRoute: typeof SettingsAccountRoute
@@ -199,6 +212,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BoardsBoardIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/$': {
+      id: '/api/$'
+      path: '/api/$'
+      fullPath: '/api/$'
+      preLoaderRoute: typeof ApiSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/templates/$boardId/': {
       id: '/templates/$boardId/'
       path: '/templates/$boardId'
@@ -218,6 +238,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiSplatRoute: ApiSplatRoute,
   BoardsBoardIdRoute: BoardsBoardIdRoute,
   CardsCardIdRoute: CardsCardIdRoute,
   SettingsAccountRoute: SettingsAccountRoute,

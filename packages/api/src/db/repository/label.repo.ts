@@ -1,8 +1,7 @@
 import { and, count, eq, inArray, isNull } from "drizzle-orm";
-
+import { generateUID } from "../../lib/utils";
 import type { dbClient } from "../client";
 import { cardsToLabels, labels } from "../schema";
-import { generateUID } from "../../lib/utils";
 
 export const getCount = async (db: dbClient) => {
   const result = await db

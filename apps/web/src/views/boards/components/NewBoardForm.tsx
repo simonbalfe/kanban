@@ -1,18 +1,17 @@
-import { useNavigate } from "@tanstack/react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { HiXMark } from "react-icons/hi2";
 import { z } from "zod";
-
-import type { Template } from "./TemplateBoards";
 import Button from "~/components/Button";
 import Input from "~/components/Input";
 import Toggle from "~/components/Toggle";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { api, apiKeys } from "~/utils/api";
+import type { Template } from "./TemplateBoards";
 import TemplateBoards from "./TemplateBoards";
 
 const schema = z.object({

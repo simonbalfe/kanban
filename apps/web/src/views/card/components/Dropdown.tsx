@@ -1,10 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
 import {
   HiEllipsisHorizontal,
   HiLink,
   HiOutlineCheckCircle,
   HiOutlineTrash,
 } from "react-icons/hi2";
-import { useQuery } from "@tanstack/react-query";
 
 import Dropdown from "~/components/Dropdown";
 import { useModal } from "~/providers/modal";

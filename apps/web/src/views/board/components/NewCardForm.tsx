@@ -1,5 +1,5 @@
-import { format } from "date-fns";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -7,9 +7,6 @@ import {
   HiOutlineBarsArrowUp,
   HiXMark,
 } from "react-icons/hi2";
-
-import { generateUID } from "~/lib/shared/utils";
-
 import Button from "~/components/Button";
 import CheckboxDropdown from "~/components/CheckboxDropdown";
 import DateSelector from "~/components/DateSelector";
@@ -18,6 +15,7 @@ import Input from "~/components/Input";
 import LabelIcon from "~/components/LabelIcon";
 import Toggle from "~/components/Toggle";
 import { useModalFormState } from "~/hooks/useModalFormState";
+import { generateUID } from "~/lib/shared/utils";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { api, apiKeys } from "~/utils/api";
@@ -163,7 +161,7 @@ export function NewCardForm({
               labels: oldBoard.labels.filter((label: any) =>
                 args.labelPublicIds.includes(label.publicId),
               ),
-              checklists: [] as typeof list.cards[number]["checklists"],
+              checklists: [] as (typeof list.cards)[number]["checklists"],
               index: position === "start" ? 0 : list.cards.length,
             };
 
@@ -185,7 +183,9 @@ export function NewCardForm({
       queryClient.setQueryData(boardByIdQueryKey, context?.previousState);
       showPopup({
         header: "Unable to create card",
-        message: error.message || "Please try again later, or contact customer support.",
+        message:
+          error.message ||
+          "Please try again later, or contact customer support.",
         icon: "error",
       });
     },
@@ -241,7 +241,8 @@ export function NewCardForm({
     if (!availableListIds.has(data.listPublicId)) {
       showPopup({
         header: "Unable to create card",
-        message: "The selected list is no longer available. Please select another list.",
+        message:
+          "The selected list is no longer available. Please select another list.",
         icon: "error",
       });
       return;
@@ -379,7 +380,7 @@ export function NewCardForm({
                     </div>
                     {selectedLabelPublicIds.length > 1 && (
                       <div className="ml-1">
-                        <>{`${selectedLabelPublicIds.length} labels`}</>
+                        {`${selectedLabelPublicIds.length} labels`}
                       </div>
                     )}
                   </>
@@ -396,7 +397,7 @@ export function NewCardForm({
               {dueDate ? (
                 <span>{format(dueDate, "MMM d, yyyy")}</span>
               ) : (
-                <>{"Due date"}</>
+                "Due date"
               )}
             </button>
             {isDateSelectorOpen && (

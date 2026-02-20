@@ -1,15 +1,11 @@
 import { format, isBefore, isSameYear, startOfDay } from "date-fns";
-import {
-  HiBars3BottomLeft,
-  HiOutlineClock,
-} from "react-icons/hi2";
+import { enGB } from "date-fns/locale";
+import { HiBars3BottomLeft, HiOutlineClock } from "react-icons/hi2";
 import { twMerge } from "tailwind-merge";
-
 import Avatar from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import CircularProgress from "~/components/CircularProgress";
 import LabelIcon from "~/components/LabelIcon";
-import { enGB } from "date-fns/locale";
 import { getAvatarUrl } from "~/utils/helpers";
 
 const Card = ({
@@ -42,8 +38,12 @@ const Card = ({
 }) => {
   const dateLocale = enGB;
   const parsedDueDate = dueDate ? new Date(dueDate) : null;
-  const showYear = parsedDueDate ? !isSameYear(parsedDueDate, new Date()) : false;
-  const isOverdue = parsedDueDate ? isBefore(parsedDueDate, startOfDay(new Date())) : false;
+  const showYear = parsedDueDate
+    ? !isSameYear(parsedDueDate, new Date())
+    : false;
+  const isOverdue = parsedDueDate
+    ? isBefore(parsedDueDate, startOfDay(new Date()))
+    : false;
   const completedItems = checklists.reduce((acc, checklist) => {
     return acc + checklist.items.filter((item) => item.completed).length;
   }, 0);
@@ -94,9 +94,13 @@ const Card = ({
                 >
                   <HiOutlineClock className="h-4 w-4" />
                   <span className="text-[11px]">
-                    {format(parsedDueDate, showYear ? "do MMM yyyy" : "do MMM", {
-                      locale: dateLocale,
-                    })}
+                    {format(
+                      parsedDueDate,
+                      showYear ? "do MMM yyyy" : "do MMM",
+                      {
+                        locale: dateLocale,
+                      },
+                    )}
                   </span>
                 </div>
               )}

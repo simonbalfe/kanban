@@ -1,4 +1,5 @@
-import React, { forwardRef, useState } from "react";
+import type React from "react";
+import { forwardRef, useState } from "react";
 import ContentEditable from "react-contenteditable";
 import { HiOutlineEye, HiOutlineEyeSlash } from "react-icons/hi2";
 import { twMerge } from "tailwind-merge";

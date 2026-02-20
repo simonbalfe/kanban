@@ -31,9 +31,10 @@ export default function AccountSettings() {
           <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
             {"Email"}
           </h2>
-          <p className="text-sm text-neutral-700 dark:text-dark-900">{data?.email}</p>
+          <p className="text-sm text-neutral-700 dark:text-dark-900">
+            {data?.email}
+          </p>
         </div>
-
       </div>
     </>
   );

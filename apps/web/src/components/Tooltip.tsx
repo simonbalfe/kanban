@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
-import type { Root } from "react-dom/client";
-import type { Placement } from "tippy.js";
 import { useEffect, useRef } from "react";
+import type { Root } from "react-dom/client";
 import { createRoot } from "react-dom/client";
+import type { Placement } from "tippy.js";
 import tippy from "tippy.js";
 
 interface TooltipProps {

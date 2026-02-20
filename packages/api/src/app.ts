@@ -1,6 +1,5 @@
-import { cors } from "@elysiajs/cors";
 import { Elysia } from "elysia";
-import { ValidationError } from "elysia/error";
+import type { ValidationError } from "elysia/error";
 
 import { db } from "./db/client";
 import * as userRepo from "./db/repository/user.repo";
@@ -11,7 +10,6 @@ import { healthRoutes } from "./routes/health";
 import { labelRoutes } from "./routes/labels";
 import { listRoutes } from "./routes/lists";
 import { userRoutes } from "./routes/users";
-import { openapi } from '@elysiajs/openapi'
 
 const logger = (name: string) => (app: Elysia) =>
   app
@@ -20,10 +18,10 @@ const logger = (name: string) => (app: Elysia) =>
       const url = new URL(request.url).pathname;
       console.log(`[${name}] ${method} ${url}`);
     })
-    .onError(({ request, code }) => {
+    .onError(({ request, code, error }) => {
       const method = request.method;
       const url = new URL(request.url).pathname;
-      console.error(`[${name}] ${method} ${url} ERROR: ${code}`);
+      console.error(`[${name}] ${method} ${url} ERROR: ${code}`, error);
     });
 
 const DEFAULT_EMAIL = "local@kan.dev";
@@ -37,10 +35,8 @@ const getDefaultUser = async () => {
   return created;
 };
 
-const app = new Elysia()
+export const app = new Elysia({ prefix: "/api", aot: false })
   .state("userId", "")
-  .use(openapi())
-  .use(cors())
   .use(logger("API"))
   .onError(({ code, error, set }) => {
     if (code === "VALIDATION") {
@@ -64,7 +60,4 @@ const app = new Elysia()
   .use(checklistRoutes(db))
   .use(labelRoutes(db))
   .use(listRoutes(db))
-  .use(userRoutes(db))
-  .listen(3001);
-
-console.log(`Kan API running at http://localhost:${app.server?.port}`);
+  .use(userRoutes(db));

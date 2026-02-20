@@ -1,4 +1,4 @@
-import { useTheme } from "~/providers/theme";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import {
   TbLayoutSidebarLeftCollapse,
@@ -6,9 +6,8 @@ import {
   TbLayoutSidebarRightCollapse,
   TbLayoutSidebarRightExpand,
 } from "react-icons/tb";
-import { useQuery } from "@tanstack/react-query";
-
 import { useClickOutside } from "~/hooks/useClickOutside";
+import { useTheme } from "~/providers/theme";
 import { api, apiKeys } from "~/utils/api";
 import SideNavigation from "./SideNavigation";
 
@@ -93,9 +92,7 @@ function Dashboard({
     el.style.height = "100vh";
     el.style.overflow = "hidden";
     el.style.minWidth = "320px";
-    el.style.backgroundColor = !isDarkMode
-      ? "hsl(0deg 0% 97.3%)"
-      : "#1c1c1c";
+    el.style.backgroundColor = !isDarkMode ? "hsl(0deg 0% 97.3%)" : "#1c1c1c";
     return () => {
       el.style.height = "";
       el.style.overflow = "";

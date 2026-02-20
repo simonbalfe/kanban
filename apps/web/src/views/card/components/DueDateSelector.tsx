@@ -1,5 +1,5 @@
-import { format } from "date-fns";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { HiMiniPlus } from "react-icons/hi2";
 
@@ -84,7 +84,8 @@ export function DueDateSelector({
     } else if (!pendingIsNull && dueIsNull) {
       dateChanged = true;
     } else if (!pendingIsNull && !dueIsNull) {
-      dateChanged = new Date(pendingDate).getTime() !== new Date(dueDate).getTime();
+      dateChanged =
+        new Date(pendingDate).getTime() !== new Date(dueDate).getTime();
     }
 
     setIsOpen(false);

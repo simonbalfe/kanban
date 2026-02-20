@@ -1,16 +1,12 @@
-import type { Range as TiptapRange } from "@tiptap/core";
-import type { Editor as TiptapEditor } from "@tiptap/react";
-import type {
-  SuggestionKeyDownProps,
-  SuggestionOptions,
-} from "@tiptap/suggestion";
-import type { Instance as TippyInstance } from "tippy.js";
 import { Button } from "@headlessui/react";
+import type { Range as TiptapRange } from "@tiptap/core";
 import Link from "@tiptap/extension-link";
 import Mention from "@tiptap/extension-mention";
 import Placeholder from "@tiptap/extension-placeholder";
 import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
+import Typography from "@tiptap/extension-typography";
+import type { Editor as TiptapEditor } from "@tiptap/react";
 import {
   BubbleMenu,
   EditorContent,
@@ -18,8 +14,11 @@ import {
   ReactRenderer,
   useEditor,
 } from "@tiptap/react";
-import Typography from "@tiptap/extension-typography";
 import StarterKit from "@tiptap/starter-kit";
+import type {
+  SuggestionKeyDownProps,
+  SuggestionOptions,
+} from "@tiptap/suggestion";
 import Suggestion from "@tiptap/suggestion";
 import {
   forwardRef,
@@ -42,6 +41,7 @@ import {
   HiOutlineStrikethrough,
 } from "react-icons/hi2";
 import { twMerge } from "tailwind-merge";
+import type { Instance as TippyInstance } from "tippy.js";
 import tippy from "tippy.js";
 import { Markdown } from "tiptap-markdown";
 
@@ -462,8 +462,8 @@ export default function Editor({
         Placeholder.configure({
           placeholder: readOnly
             ? ""
-            : placeholder ??
-              "Add description... (type '/' to open commands or '@' to mention)",
+            : (placeholder ??
+              "Add description... (type '/' to open commands or '@' to mention)"),
         }),
         Link.configure({
           openOnClick: true,
@@ -491,24 +491,26 @@ export default function Editor({
           suggestion: {
             char: "@",
             items: ({ query }: { query: string }) => {
-              const withEmail = workspaceMembers.filter((member) => member.email);
-              
+              const withEmail = workspaceMembers.filter(
+                (member) => member.email,
+              );
+
               const mapped = withEmail.map((member: WorkspaceMember) => ({
                 id: member.publicId,
                 label: member?.user?.name?.trim() || member.email || "",
                 image: member?.user?.image ?? null,
               }));
-              
+
               const all: MentionItem[] = mapped.filter(
                 (item) => item.label && item.label.length > 0,
               );
-              
+
               const q = query.toLowerCase().trim();
-              
+
               if (q === "") {
                 return all;
               }
-              
+
               const filtered = all.filter((u) =>
                 u.label.toLowerCase().includes(q),
               );
@@ -534,19 +536,20 @@ export default function Editor({
           },
         }),
         Typography.configure({
-            openDoubleQuote: false,
-            closeDoubleQuote: false,
-            openSingleQuote: false,
-            closeSingleQuote: false,
-            oneHalf: false,
-            oneQuarter: false,
-            threeQuarters: false,
-            superscriptTwo: false,
-            superscriptThree: false,
+          openDoubleQuote: false,
+          closeDoubleQuote: false,
+          openSingleQuote: false,
+          closeSingleQuote: false,
+          oneHalf: false,
+          oneQuarter: false,
+          threeQuarters: false,
+          superscriptTwo: false,
+          superscriptThree: false,
         }),
       ],
       content,
-      onUpdate: ({ editor }) => onChange?.(editor.storage.markdown.getMarkdown()),
+      onUpdate: ({ editor }) =>
+        onChange?.(editor.storage.markdown.getMarkdown()),
       onBlur: ({ event }) => {
         if (
           document
@@ -582,7 +585,9 @@ export default function Editor({
 
   return (
     <div ref={containerRef}>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         .tiptap p.is-empty::before {
           content: attr(data-placeholder);
           float: left;
@@ -627,7 +632,9 @@ export default function Editor({
           text-decoration: line-through;
           opacity: 0.6;
         }
-      ` }} />
+      `,
+        }}
+      />
       {!readOnly && editor && <EditorBubbleMenu editor={editor} />}
       <EditorContent
         editor={editor}

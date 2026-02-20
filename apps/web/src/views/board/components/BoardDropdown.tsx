@@ -44,7 +44,9 @@ export default function BoardDropdown({
           {
             label: isTemplate ? "Delete template" : "Delete board",
             action: () => openModal("DELETE_BOARD"),
-            icon: <HiOutlineTrash className="h-[16px] w-[16px] text-dark-900" />,
+            icon: (
+              <HiOutlineTrash className="h-[16px] w-[16px] text-dark-900" />
+            ),
           },
         ]
       : []),
