@@ -19,12 +19,20 @@ export type Env = {
 
 const DEFAULT_EMAIL = "local@kan.dev";
 
+let cachedUser: { id: string } | null = null;
+
 const getDefaultUser = async () => {
+  if (cachedUser) return cachedUser;
+
   const existing = await userRepo.getByEmail(db, DEFAULT_EMAIL);
-  if (existing) return existing;
+  if (existing) {
+    cachedUser = existing;
+    return existing;
+  }
 
   const created = await userRepo.create(db, { email: DEFAULT_EMAIL });
   if (!created) throw new Error("Failed to initialize default user");
+  cachedUser = created;
   return created;
 };
 
