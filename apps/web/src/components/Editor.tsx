@@ -82,7 +82,7 @@ interface RenderSuggestionsProps {
   command: (item: SlashCommandItem) => void;
 }
 
-export interface WorkspaceMember {
+interface WorkspaceMember {
   publicId: string;
   user: {
     id: string;

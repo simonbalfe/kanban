@@ -2,27 +2,27 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const API = "/api";
 
-export interface ApiLabel {
+interface ApiLabel {
   publicId: string;
   name: string;
   colourCode: string | null;
 }
 
-export interface ApiChecklistItem {
+interface ApiChecklistItem {
   publicId: string;
   title: string;
   completed: boolean;
   index: number;
 }
 
-export interface ApiChecklist {
+interface ApiChecklist {
   publicId: string;
   name: string;
   index: number;
   items: ApiChecklistItem[];
 }
 
-export interface ApiBoardCard {
+interface ApiBoardCard {
   publicId: string;
   title: string;
   description: string | null;
@@ -33,7 +33,7 @@ export interface ApiBoardCard {
   checklists: ApiChecklist[];
 }
 
-export interface ApiBoardList {
+interface ApiBoardList {
   publicId: string;
   name: string;
   boardId: number;
@@ -41,7 +41,7 @@ export interface ApiBoardList {
   cards: ApiBoardCard[];
 }
 
-export interface ApiBoard {
+interface ApiBoard {
   publicId: string;
   name: string;
   slug: string;
@@ -51,14 +51,14 @@ export interface ApiBoard {
   allLists: { publicId: string; name: string }[];
 }
 
-export interface ApiBoardSummary {
+interface ApiBoardSummary {
   publicId: string;
   name: string;
   lists: { publicId: string; name: string; index: number }[];
   labels: ApiLabel[];
 }
 
-export interface ApiCardDetail {
+interface ApiCardDetail {
   id: number;
   publicId: string;
   title: string;
@@ -79,14 +79,14 @@ export interface ApiCardDetail {
   };
 }
 
-export interface ApiUser {
+interface ApiUser {
   id: string;
   name: string | null;
   email: string;
   image: string | null;
 }
 
-export interface BoardByIdInput {
+interface BoardByIdInput {
   boardPublicId: string;
   members?: string[];
   labels?: string[];
@@ -95,7 +95,7 @@ export interface BoardByIdInput {
   type?: string;
 }
 
-export interface BoardBySlugInput {
+interface BoardBySlugInput {
   boardSlug: string;
   members?: string[];
   labels?: string[];
