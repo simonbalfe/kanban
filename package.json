@@ -17,5 +17,14 @@
     "@biomejs/biome": "^2.4.3",
     "knip": "^5.84.0",
     "turbo": "^2.4.4"
-  }
+  },
+  "dependencies": {
+    "@kan/api": "workspace:*",
+    "@neondatabase/serverless": "^1.0.0",
+    "drizzle-orm": "^0.42.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
 }

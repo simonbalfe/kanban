@@ -1,12 +1,10 @@
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool } from "pg";
+import type { NeonDatabase } from "drizzle-orm/neon-serverless";
+import { drizzle } from "drizzle-orm/neon-serverless";
+import { Pool } from "@neondatabase/serverless";
 
 import * as schema from "./schema";
 
-export type dbClient = NodePgDatabase<typeof schema> & {
-  $client: Pool;
-};
+export type dbClient = NeonDatabase<typeof schema>;
 
 const connectionString = process.env.POSTGRES_URL;
 
@@ -19,7 +17,6 @@ const pool = new Pool({
   max: 5,
   connectionTimeoutMillis: 5000,
   idleTimeoutMillis: 10000,
-  statement_timeout: 10000,
 });
 
 export const db = drizzle(pool, { schema }) as dbClient;

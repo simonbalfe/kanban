@@ -15,12 +15,11 @@
     "@hono/zod-validator": "^0.4.3",
     "hono": "^4.7.4",
     "nanoid": "^5.0.9",
-    "pg": "^8.11.3",
+    "@neondatabase/serverless": "^1.0.0",
     "uuid": "^11.1.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/pg": "^8.10.9",
     "typescript": "^5.6.3"
   }
 }
