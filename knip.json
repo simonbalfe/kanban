@@ -1,0 +1,10 @@
+{
+  "$schema": "https://knip.dev/schema.json",
+  "workspaces": {
+    ".": {
+      "ignore": ["apps/**", "packages/**"]
+    },
+    "apps/**": {},
+    "packages/**": {}
+  }
+}

@@ -8,8 +8,14 @@ export type dbClient = NodePgDatabase<typeof schema> & {
   $client: Pool;
 };
 
+const connectionString = process.env.POSTGRES_URL;
+
+if (!connectionString) {
+  throw new Error("Missing database connection string. Set POSTGRES_URL.");
+}
+
 const pool = new Pool({
-  connectionString: process.env.VITE_POSTGRES_URL,
+  connectionString,
 });
 
 export const db = drizzle(pool, { schema }) as dbClient;

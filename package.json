@@ -10,10 +10,12 @@
     "format": "biome check --write .",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
-    "deploy:cf": "turbo deploy"
+    "deploy:cf": "turbo deploy",
+    "knip": "knip"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.3",
+    "knip": "^5.84.0",
     "turbo": "^2.4.4"
   }
 }
