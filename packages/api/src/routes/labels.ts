@@ -3,15 +3,15 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import type { Env } from "../app";
-import type { dbClient } from "../db/client";
 import * as boardRepo from "../db/repository/board.repo";
 import * as cardRepo from "../db/repository/card.repo";
 import * as labelRepo from "../db/repository/label.repo";
 import { hexColourCodeSchema } from "../lib/schemas";
 
-export const labelRoutes = (db: dbClient) =>
+export const labelRoutes = () =>
   new Hono<Env>()
     .get("/:labelPublicId", async (c) => {
+      const db = c.var.db;
       const labelPublicId = c.req.param("labelPublicId");
 
       const label = await labelRepo.getByPublicId(db, labelPublicId);
@@ -37,6 +37,7 @@ export const labelRoutes = (db: dbClient) =>
         }),
       ),
       async (c) => {
+        const db = c.var.db;
         const userId = c.get("userId");
         const body = c.req.valid("json");
 
@@ -77,6 +78,7 @@ export const labelRoutes = (db: dbClient) =>
         }),
       ),
       async (c) => {
+        const db = c.var.db;
         const labelPublicId = c.req.param("labelPublicId");
         const body = c.req.valid("json");
 
@@ -104,6 +106,7 @@ export const labelRoutes = (db: dbClient) =>
     )
 
     .delete("/:labelPublicId", async (c) => {
+      const db = c.var.db;
       const userId = c.get("userId");
       const labelPublicId = c.req.param("labelPublicId");
 

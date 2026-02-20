@@ -3,12 +3,12 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import type { Env } from "../app";
-import type { dbClient } from "../db/client";
 import * as userRepo from "../db/repository/user.repo";
 
-export const userRoutes = (db: dbClient) =>
+export const userRoutes = () =>
   new Hono<Env>()
     .get("/me", async (c) => {
+      const db = c.var.db;
       const userId = c.get("userId");
 
       const result = await userRepo.getById(db, userId);
@@ -32,6 +32,7 @@ export const userRoutes = (db: dbClient) =>
           }),
       ),
       async (c) => {
+        const db = c.var.db;
         const userId = c.get("userId");
         const body = c.req.valid("json");
 

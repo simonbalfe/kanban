@@ -19,15 +19,17 @@ const checkDatabaseConnection = async (db: dbClient) => {
   }
 };
 
-export const healthRoutes = (db: dbClient) =>
+export const healthRoutes = () =>
   new Hono<Env>()
     .get("/health", async (c) => {
+      const db = c.var.db;
       const dbHealthy = await checkDatabaseConnection(db);
       const status: "ok" | "error" = dbHealthy ? "ok" : "error";
 
       return c.json({ status, database: status });
     })
     .get("/stats", async (c) => {
+      const db = c.var.db;
       const userId = c.get("userId");
       if (!userId) {
         return c.json({ error: "Unauthorized" }, 401);

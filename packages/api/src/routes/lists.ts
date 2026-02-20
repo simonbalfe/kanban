@@ -3,12 +3,11 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import type { Env } from "../app";
-import type { dbClient } from "../db/client";
 import * as boardRepo from "../db/repository/board.repo";
 import * as cardRepo from "../db/repository/card.repo";
 import * as listRepo from "../db/repository/list.repo";
 
-export const listRoutes = (db: dbClient) =>
+export const listRoutes = () =>
   new Hono<Env>()
     .post(
       "/",
@@ -20,6 +19,7 @@ export const listRoutes = (db: dbClient) =>
         }),
       ),
       async (c) => {
+        const db = c.var.db;
         const userId = c.get("userId");
         const body = c.req.valid("json");
 
@@ -59,6 +59,7 @@ export const listRoutes = (db: dbClient) =>
           }),
       ),
       async (c) => {
+        const db = c.var.db;
         const listPublicId = c.req.param("listPublicId");
         const body = c.req.valid("json");
 
@@ -96,6 +97,7 @@ export const listRoutes = (db: dbClient) =>
     )
 
     .delete("/:listPublicId", async (c) => {
+      const db = c.var.db;
       const userId = c.get("userId");
       const listPublicId = c.req.param("listPublicId");
 

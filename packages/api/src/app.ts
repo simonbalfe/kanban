@@ -1,7 +1,8 @@
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 
-import { db } from "./db/client";
+import type { dbClient } from "./db/client";
+import { createDb } from "./db/client";
 import * as userRepo from "./db/repository/user.repo";
 import { boardRoutes } from "./routes/boards";
 import { cardRoutes } from "./routes/cards";
@@ -14,6 +15,7 @@ import { userRoutes } from "./routes/users";
 export type Env = {
   Variables: {
     userId: string;
+    db: dbClient;
   };
 };
 
@@ -21,7 +23,7 @@ const DEFAULT_EMAIL = "local@kan.dev";
 
 let cachedUser: { id: string } | null = null;
 
-const getDefaultUser = async () => {
+const getDefaultUser = async (db: dbClient) => {
   if (cachedUser) return cachedUser;
 
   const existing = await userRepo.getByEmail(db, DEFAULT_EMAIL);
@@ -40,7 +42,9 @@ export const app = new Hono<Env>()
   .basePath("/api")
   .use(logger())
   .use(async (c, next) => {
-    const user = await getDefaultUser();
+    const db = createDb();
+    c.set("db", db);
+    const user = await getDefaultUser(db);
     c.set("userId", user.id);
     await next();
   })
@@ -48,10 +52,10 @@ export const app = new Hono<Env>()
     console.error(`[API] ${c.req.method} ${c.req.path} ERROR:`, err);
     return c.json({ error: "Internal server error" }, 500);
   })
-  .route("/", healthRoutes(db))
-  .route("/boards", boardRoutes(db))
-  .route("/cards", cardRoutes(db))
-  .route("/checklists", checklistRoutes(db))
-  .route("/labels", labelRoutes(db))
-  .route("/lists", listRoutes(db))
-  .route("/users", userRoutes(db));
+  .route("/", healthRoutes())
+  .route("/boards", boardRoutes())
+  .route("/cards", cardRoutes())
+  .route("/checklists", checklistRoutes())
+  .route("/labels", labelRoutes())
+  .route("/lists", listRoutes())
+  .route("/users", userRoutes());

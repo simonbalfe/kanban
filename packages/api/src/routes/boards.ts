@@ -3,7 +3,6 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import type { Env } from "../app";
-import type { dbClient } from "../db/client";
 import * as boardRepo from "../db/repository/board.repo";
 import * as cardRepo from "../db/repository/card.repo";
 import * as labelRepo from "../db/repository/label.repo";
@@ -20,7 +19,7 @@ import {
   generateUID,
 } from "../lib/utils";
 
-export const boardRoutes = (db: dbClient) =>
+export const boardRoutes = () =>
   new Hono<Env>()
     .get(
       "/",
@@ -31,6 +30,7 @@ export const boardRoutes = (db: dbClient) =>
         }),
       ),
       async (c) => {
+        const db = c.var.db;
         const userId = c.get("userId");
         const { type } = c.req.valid("query");
         return c.json(await boardRepo.getAllByUserId(db, userId, { type }));
@@ -52,6 +52,7 @@ export const boardRoutes = (db: dbClient) =>
         }),
       ),
       async (c) => {
+        const db = c.var.db;
         const userId = c.get("userId");
         const boardPublicId = c.req.param("boardPublicId");
         const query = c.req.valid("query");
@@ -111,6 +112,7 @@ export const boardRoutes = (db: dbClient) =>
         }),
       ),
       async (c) => {
+        const db = c.var.db;
         const boardSlug = c.req.param("boardSlug");
         const query = c.req.valid("query");
 
@@ -162,6 +164,7 @@ export const boardRoutes = (db: dbClient) =>
         }),
       ),
       async (c) => {
+        const db = c.var.db;
         const userId = c.get("userId");
         const body = c.req.valid("json");
 
@@ -268,6 +271,7 @@ export const boardRoutes = (db: dbClient) =>
           }),
       ),
       async (c) => {
+        const db = c.var.db;
         const boardPublicId = c.req.param("boardPublicId");
         const body = c.req.valid("json");
 
@@ -302,6 +306,7 @@ export const boardRoutes = (db: dbClient) =>
     )
 
     .delete("/:boardPublicId", async (c) => {
+      const db = c.var.db;
       const userId = c.get("userId");
       const boardPublicId = c.req.param("boardPublicId");
 
@@ -345,6 +350,7 @@ export const boardRoutes = (db: dbClient) =>
         }),
       ),
       async (c) => {
+        const db = c.var.db;
         const boardPublicId = c.req.param("boardPublicId");
         const { boardSlug } = c.req.valid("query");
 

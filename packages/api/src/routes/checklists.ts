@@ -3,11 +3,10 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import type { Env } from "../app";
-import type { dbClient } from "../db/client";
 import * as cardRepo from "../db/repository/card.repo";
 import * as checklistRepo from "../db/repository/checklist.repo";
 
-export const checklistRoutes = (db: dbClient) =>
+export const checklistRoutes = () =>
   new Hono<Env>()
     .post(
       "/",
@@ -19,6 +18,7 @@ export const checklistRoutes = (db: dbClient) =>
         }),
       ),
       async (c) => {
+        const db = c.var.db;
         const userId = c.get("userId");
         const body = c.req.valid("json");
 
@@ -50,6 +50,7 @@ export const checklistRoutes = (db: dbClient) =>
         }),
       ),
       async (c) => {
+        const db = c.var.db;
         const checklistPublicId = c.req.param("checklistPublicId");
         const body = c.req.valid("json");
 
@@ -75,6 +76,7 @@ export const checklistRoutes = (db: dbClient) =>
     )
 
     .delete("/:checklistPublicId", async (c) => {
+      const db = c.var.db;
       const userId = c.get("userId");
       const checklistPublicId = c.req.param("checklistPublicId");
 
@@ -110,6 +112,7 @@ export const checklistRoutes = (db: dbClient) =>
         }),
       ),
       async (c) => {
+        const db = c.var.db;
         const userId = c.get("userId");
         const checklistPublicId = c.req.param("checklistPublicId");
         const body = c.req.valid("json");
@@ -151,6 +154,7 @@ export const checklistRoutes = (db: dbClient) =>
           }),
       ),
       async (c) => {
+        const db = c.var.db;
         const checklistItemPublicId = c.req.param("checklistItemPublicId");
         const body = c.req.valid("json");
 
@@ -192,6 +196,7 @@ export const checklistRoutes = (db: dbClient) =>
     )
 
     .delete("/items/:checklistItemPublicId", async (c) => {
+      const db = c.var.db;
       const userId = c.get("userId");
       const checklistItemPublicId = c.req.param("checklistItemPublicId");
 

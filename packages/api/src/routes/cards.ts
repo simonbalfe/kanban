@@ -3,13 +3,12 @@ import { Hono } from "hono";
 import { z } from "zod";
 
 import type { Env } from "../app";
-import type { dbClient } from "../db/client";
 import * as cardRepo from "../db/repository/card.repo";
 import * as labelRepo from "../db/repository/label.repo";
 import * as listRepo from "../db/repository/list.repo";
 import { movePositionSchema } from "../lib/schemas";
 
-export const cardRoutes = (db: dbClient) =>
+export const cardRoutes = () =>
   new Hono<Env>()
     .post(
       "/",
@@ -25,6 +24,7 @@ export const cardRoutes = (db: dbClient) =>
         }),
       ),
       async (c) => {
+        const db = c.var.db;
         const userId = c.get("userId");
         const body = c.req.valid("json");
 
@@ -67,6 +67,7 @@ export const cardRoutes = (db: dbClient) =>
     )
 
     .get("/:cardPublicId", async (c) => {
+      const db = c.var.db;
       const cardPublicId = c.req.param("cardPublicId");
 
       const card = await cardRepo.getCardIdByPublicId(db, cardPublicId);
@@ -102,6 +103,7 @@ export const cardRoutes = (db: dbClient) =>
           }),
       ),
       async (c) => {
+        const db = c.var.db;
         const cardPublicId = c.req.param("cardPublicId");
         const body = c.req.valid("json");
 
@@ -166,6 +168,7 @@ export const cardRoutes = (db: dbClient) =>
     )
 
     .delete("/:cardPublicId", async (c) => {
+      const db = c.var.db;
       const userId = c.get("userId");
       const cardPublicId = c.req.param("cardPublicId");
 
@@ -184,6 +187,7 @@ export const cardRoutes = (db: dbClient) =>
     })
 
     .put("/:cardPublicId/labels/:labelPublicId", async (c) => {
+      const db = c.var.db;
       const cardPublicId = c.req.param("cardPublicId");
       const labelPublicId = c.req.param("labelPublicId");
 
