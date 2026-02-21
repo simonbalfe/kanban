@@ -3,6 +3,7 @@ import { pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 import { boards } from "./boards";
 import { cards } from "./cards";
+import { knowledgeItems, knowledgeLabels } from "./knowledge-items";
 import { lists } from "./lists";
 
 export const users = pgTable("user", {
@@ -32,5 +33,17 @@ export const usersRelations = relations(users, ({ many }) => ({
   }),
   lists: many(lists, {
     relationName: "listsCreatedByUser",
+  }),
+  knowledgeItems: many(knowledgeItems, {
+    relationName: "knowledgeItemsCreatedByUser",
+  }),
+  deletedKnowledgeItems: many(knowledgeItems, {
+    relationName: "knowledgeItemsDeletedByUser",
+  }),
+  knowledgeLabels: many(knowledgeLabels, {
+    relationName: "knowledgeLabelsCreatedByUser",
+  }),
+  deletedKnowledgeLabels: many(knowledgeLabels, {
+    relationName: "knowledgeLabelsDeletedByUser",
   }),
 }));

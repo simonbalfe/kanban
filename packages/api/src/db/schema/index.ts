@@ -1,6 +1,7 @@
 export * from "./boards";
 export * from "./cards";
 export * from "./checklists";
+export * from "./knowledge-items";
 export * from "./labels";
 export * from "./lists";
 export * from "./users";

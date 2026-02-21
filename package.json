@@ -12,7 +12,8 @@
     "test": "turbo test",
     "deploy:cf": "turbo deploy",
     "tail": "pnpm --filter @kan/web exec wrangler tail",
-    "knip": "knip"
+    "knip": "knip",
+    "db:push": "pnpm --filter @kan/api db:push"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.3",

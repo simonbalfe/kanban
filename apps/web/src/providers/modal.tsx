@@ -26,6 +26,7 @@ interface ModalContextType {
   entityId: string;
   entityLabel: string;
   closeOnClickOutside: boolean;
+  isInStack: (contentType: string) => boolean;
   modalStates: Record<string, any>;
   setModalState: (modalType: string, state: any) => void;
   getModalState: (modalType: string) => any;
@@ -121,6 +122,12 @@ export const ModalProvider: React.FC<Props> = ({ children }) => {
     setModalStates({});
   }, []);
 
+  const isInStack = useCallback(
+    (contentType: string) =>
+      modalStack.some((m) => m.contentType === contentType),
+    [modalStack],
+  );
+
   return (
     <ModalContext.Provider
       value={{
@@ -133,6 +140,7 @@ export const ModalProvider: React.FC<Props> = ({ children }) => {
         entityId,
         entityLabel,
         closeOnClickOutside,
+        isInStack,
         modalStates,
         setModalState,
         getModalState,

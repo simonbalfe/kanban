@@ -2,6 +2,7 @@ import { Button } from "@headlessui/react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
+  TbBook,
   TbLayoutSidebarLeftCollapse,
   TbLayoutSidebarLeftExpand,
 } from "react-icons/tb";
@@ -133,6 +134,34 @@ export default function SideNavigation({
               />
             </li>
           ))}
+          <li>
+            <Link
+              to="/knowledge"
+              onClick={() => onCloseSideNav?.()}
+              className={twMerge(
+                "group flex h-[34px] items-center rounded-md p-1.5 text-sm font-normal leading-6 hover:bg-light-200 hover:text-light-1000 dark:hover:bg-dark-200 dark:hover:text-dark-1000",
+                isCollapsed ? "md:justify-center" : "justify-between",
+                pathname.includes("/knowledge")
+                  ? "bg-light-200 text-light-1000 dark:bg-dark-200 dark:text-dark-1000"
+                  : "text-neutral-600 dark:bg-dark-100 dark:text-dark-900",
+              )}
+              title={isCollapsed ? "Knowledge" : undefined}
+            >
+              <div
+                className={twMerge(
+                  "flex items-center",
+                  isCollapsed
+                    ? "justify-start gap-x-3 md:justify-center md:gap-x-0"
+                    : "gap-x-3",
+                )}
+              >
+                <TbBook size={18} className="shrink-0" />
+                <span className={twMerge(isCollapsed && "md:hidden")}>
+                  Knowledge
+                </span>
+              </div>
+            </Link>
+          </li>
         </ul>
       </div>
 

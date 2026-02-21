@@ -1,0 +1,249 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { HiXMark } from "react-icons/hi2";
+import { z } from "zod";
+import Button from "~/components/Button";
+import CheckboxDropdown from "~/components/CheckboxDropdown";
+import Input from "~/components/Input";
+import LabelIcon from "~/components/LabelIcon";
+import { useModal } from "~/providers/modal";
+import { usePopup } from "~/providers/popup";
+import { api, apiKeys } from "~/utils/api";
+
+const knowledgeItemTypes = [
+  "link",
+  "creator",
+  "tweet",
+  "instagram",
+  "tiktok",
+  "youtube",
+  "linkedin",
+  "image",
+  "pdf",
+  "audio",
+  "other",
+] as const;
+
+const schema = z.object({
+  title: z
+    .string()
+    .min(1, { message: "Title is required" })
+    .max(255, { message: "Title cannot exceed 255 characters" }),
+  type: z.enum(knowledgeItemTypes),
+  url: z.string().optional(),
+  description: z.string().optional(),
+  labelPublicIds: z.array(z.string()).default([]),
+});
+
+type FormValues = z.infer<typeof schema>;
+
+export function NewKnowledgeItemForm() {
+  const queryClient = useQueryClient();
+  const { closeModal, openModal, modalStates, clearModalState } = useModal();
+  const { showPopup } = usePopup();
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      title: "",
+      type: "link",
+      url: "",
+      description: "",
+      labelPublicIds: [],
+    },
+  });
+
+  const selectedType = watch("type");
+  const selectedLabelPublicIds = watch("labelPublicIds", []);
+
+  const { data: allLabels } = useQuery({
+    queryKey: apiKeys.knowledgeLabel.all(),
+    queryFn: () => api.knowledgeLabel.all(),
+  });
+
+  const toggleLabelMutation = useMutation({
+    mutationFn: api.knowledgeItem.toggleLabel,
+  });
+
+  const createItem = useMutation({
+    mutationFn: api.knowledgeItem.create,
+    onSuccess: async (result) => {
+      for (const labelPublicId of selectedLabelPublicIds) {
+        await toggleLabelMutation.mutateAsync({
+          publicId: result.publicId,
+          labelPublicId,
+        });
+      }
+      closeModal();
+      await queryClient.refetchQueries({
+        queryKey: apiKeys.knowledgeItem.all(),
+      });
+    },
+    onError: () => {
+      showPopup({
+        header: "Error",
+        message: "Failed to create knowledge item",
+        icon: "error",
+      });
+    },
+  });
+
+  const onSubmit = (data: FormValues) => {
+    createItem.mutate({
+      title: data.title,
+      type: data.type,
+      url: data.url || null,
+      description: data.description || null,
+    });
+  };
+
+  const handleSelectLabel = (labelPublicId: string) => {
+    const currentIndex = selectedLabelPublicIds.indexOf(labelPublicId);
+    if (currentIndex === -1) {
+      setValue("labelPublicIds", [...selectedLabelPublicIds, labelPublicId]);
+    } else {
+      const next = [...selectedLabelPublicIds];
+      next.splice(currentIndex, 1);
+      setValue("labelPublicIds", next);
+    }
+  };
+
+  const formattedLabels =
+    allLabels?.map((label) => ({
+      key: label.publicId,
+      value: label.name,
+      leftIcon: <LabelIcon colourCode={label.colourCode} />,
+      selected: selectedLabelPublicIds.includes(label.publicId),
+    })) ?? [];
+
+  useEffect(() => {
+    const newLabelId = modalStates.NEW_KNOWLEDGE_LABEL_CREATED;
+    if (!newLabelId) return;
+    const current = selectedLabelPublicIds;
+    if (!current.includes(newLabelId)) {
+      setValue("labelPublicIds", [...current, newLabelId]);
+    }
+    clearModalState("NEW_KNOWLEDGE_LABEL_CREATED");
+  }, [modalStates.NEW_KNOWLEDGE_LABEL_CREATED, selectedLabelPublicIds, setValue, clearModalState]);
+
+  useEffect(() => {
+    document.querySelector<HTMLElement>("#title")?.focus();
+  }, []);
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <div className="px-5 pt-5">
+        <div className="flex w-full items-center justify-between pb-4 text-neutral-900 dark:text-dark-1000">
+          <h2 className="text-sm font-bold">New Knowledge Item</h2>
+          <button
+            type="button"
+            className="rounded p-1 hover:bg-light-300 focus:outline-none dark:hover:bg-dark-300"
+            onClick={(e) => {
+              e.preventDefault();
+              closeModal();
+            }}
+          >
+            <HiXMark size={18} className="text-light-900 dark:text-dark-900" />
+          </button>
+        </div>
+        <div className="space-y-3">
+          <Input
+            id="title"
+            placeholder="Title"
+            {...register("title", { required: true })}
+            errorMessage={errors.title?.message}
+            onKeyDown={async (e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                await handleSubmit(onSubmit)();
+              }
+            }}
+          />
+          <select
+            {...register("type")}
+            className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-sm shadow-sm ring-1 ring-inset ring-light-600 focus:ring-2 focus:ring-inset focus:ring-light-700 dark:bg-dark-300 dark:text-dark-1000 dark:ring-dark-700 dark:focus:ring-dark-700 sm:leading-6"
+          >
+            {knowledgeItemTypes.map((t) => (
+              <option key={t} value={t}>
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </option>
+            ))}
+          </select>
+          <Input
+            id="url"
+            placeholder={selectedType === "creator" ? "Profile URL (optional)" : "URL (optional)"}
+            {...register("url")}
+          />
+          <Input
+            id="description"
+            placeholder="Description (optional)"
+            {...register("description")}
+          />
+          <div className="w-fit">
+            <CheckboxDropdown
+              items={formattedLabels}
+              handleSelect={(_groupKey, item) => handleSelectLabel(item.key)}
+              handleCreate={() => openModal("NEW_KNOWLEDGE_LABEL")}
+              createNewItemLabel="Create new label"
+            >
+              <div className="flex h-full w-full items-center rounded-[5px] border-[1px] border-light-600 bg-light-200 px-2 py-1 text-left text-xs text-light-800 hover:bg-light-300 dark:border-dark-600 dark:bg-dark-400 dark:text-dark-1000 dark:hover:bg-dark-500">
+                {!selectedLabelPublicIds.length ? (
+                  "Labels"
+                ) : (
+                  <>
+                    <div
+                      className={
+                        selectedLabelPublicIds.length > 1
+                          ? "flex -space-x-[2px] overflow-hidden"
+                          : "flex items-center"
+                      }
+                    >
+                      {selectedLabelPublicIds.map((labelPublicId) => {
+                        const label = allLabels?.find(
+                          (l) => l.publicId === labelPublicId,
+                        );
+                        return (
+                          <span key={labelPublicId} className="flex items-center">
+                            <svg
+                              fill={label?.colourCode ?? "#3730a3"}
+                              className="h-2 w-2"
+                              viewBox="0 0 6 6"
+                              aria-hidden="true"
+                            >
+                              <circle cx={3} cy={3} r={3} />
+                            </svg>
+                            {selectedLabelPublicIds.length === 1 && (
+                              <span className="ml-1">{label?.name}</span>
+                            )}
+                          </span>
+                        );
+                      })}
+                    </div>
+                    {selectedLabelPublicIds.length > 1 && (
+                      <span className="ml-1">
+                        {`${selectedLabelPublicIds.length} labels`}
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+            </CheckboxDropdown>
+          </div>
+        </div>
+      </div>
+      <div className="mt-6 flex items-center justify-end border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
+        <Button type="submit" isLoading={createItem.isPending}>
+          Create
+        </Button>
+      </div>
+    </form>
+  );
+}

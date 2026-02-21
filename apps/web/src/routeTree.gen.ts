@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './app/__root'
 import { Route as IndexRouteImport } from './app/index'
 import { Route as TemplatesIndexRouteImport } from './app/templates.index'
 import { Route as SettingsIndexRouteImport } from './app/settings.index'
+import { Route as KnowledgeIndexRouteImport } from './app/knowledge.index'
 import { Route as BoardsIndexRouteImport } from './app/boards.index'
 import { Route as SettingsAccountRouteImport } from './app/settings.account'
 import { Route as CardsCardIdRouteImport } from './app/cards.$cardId'
@@ -33,6 +34,11 @@ const TemplatesIndexRoute = TemplatesIndexRouteImport.update({
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
   id: '/settings/',
   path: '/settings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KnowledgeIndexRoute = KnowledgeIndexRouteImport.update({
+  id: '/knowledge/',
+  path: '/knowledge/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BoardsIndexRoute = BoardsIndexRouteImport.update({
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/cards/$cardId': typeof CardsCardIdRoute
   '/settings/account': typeof SettingsAccountRoute
   '/boards/': typeof BoardsIndexRoute
+  '/knowledge/': typeof KnowledgeIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/templates/': typeof TemplatesIndexRoute
   '/templates/$boardId/': typeof TemplatesBoardIdIndexRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/cards/$cardId': typeof CardsCardIdRoute
   '/settings/account': typeof SettingsAccountRoute
   '/boards': typeof BoardsIndexRoute
+  '/knowledge': typeof KnowledgeIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/templates': typeof TemplatesIndexRoute
   '/templates/$boardId': typeof TemplatesBoardIdIndexRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/cards/$cardId': typeof CardsCardIdRoute
   '/settings/account': typeof SettingsAccountRoute
   '/boards/': typeof BoardsIndexRoute
+  '/knowledge/': typeof KnowledgeIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/templates/': typeof TemplatesIndexRoute
   '/templates/$boardId/': typeof TemplatesBoardIdIndexRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/cards/$cardId'
     | '/settings/account'
     | '/boards/'
+    | '/knowledge/'
     | '/settings/'
     | '/templates/'
     | '/templates/$boardId/'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/cards/$cardId'
     | '/settings/account'
     | '/boards'
+    | '/knowledge'
     | '/settings'
     | '/templates'
     | '/templates/$boardId'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/cards/$cardId'
     | '/settings/account'
     | '/boards/'
+    | '/knowledge/'
     | '/settings/'
     | '/templates/'
     | '/templates/$boardId/'
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   CardsCardIdRoute: typeof CardsCardIdRoute
   SettingsAccountRoute: typeof SettingsAccountRoute
   BoardsIndexRoute: typeof BoardsIndexRoute
+  KnowledgeIndexRoute: typeof KnowledgeIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
   TemplatesBoardIdIndexRoute: typeof TemplatesBoardIdIndexRoute
@@ -182,6 +195,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings/'
       preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/knowledge/': {
+      id: '/knowledge/'
+      path: '/knowledge'
+      fullPath: '/knowledge/'
+      preLoaderRoute: typeof KnowledgeIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/boards/': {
@@ -243,6 +263,7 @@ const rootRouteChildren: RootRouteChildren = {
   CardsCardIdRoute: CardsCardIdRoute,
   SettingsAccountRoute: SettingsAccountRoute,
   BoardsIndexRoute: BoardsIndexRoute,
+  KnowledgeIndexRoute: KnowledgeIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
   TemplatesBoardIdIndexRoute: TemplatesBoardIdIndexRoute,

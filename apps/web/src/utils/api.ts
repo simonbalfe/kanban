@@ -79,6 +79,22 @@ interface ApiCardDetail {
   };
 }
 
+interface ApiKnowledgeLabel {
+  publicId: string;
+  name: string;
+  colourCode: string | null;
+}
+
+interface ApiKnowledgeItem {
+  publicId: string;
+  title: string;
+  description: string | null;
+  type: "link" | "creator" | "tweet" | "instagram" | "tiktok" | "youtube" | "linkedin" | "image" | "pdf" | "audio" | "other";
+  url: string | null;
+  createdAt: string;
+  labels: { knowledgeLabel: ApiKnowledgeLabel }[];
+}
+
 interface ApiUser {
   id: string;
   name: string | null;
@@ -119,6 +135,14 @@ export const apiKeys = {
   label: {
     byPublicId: (input: { labelPublicId: string }) =>
       ["label", "byPublicId", input] as const,
+  },
+  knowledgeItem: {
+    all: () => ["knowledgeItem", "all"] as const,
+    byId: (input: { publicId: string }) =>
+      ["knowledgeItem", "byId", input] as const,
+  },
+  knowledgeLabel: {
+    all: () => ["knowledgeLabel", "all"] as const,
   },
   user: {
     getUser: () => ["user", "getUser"] as const,
@@ -372,6 +396,65 @@ export const api = {
 
     delete: (input: { labelPublicId: string }) =>
       del<{ success: boolean }>(`/labels/${input.labelPublicId}`),
+  },
+
+  knowledgeItem: {
+    all: () => get<ApiKnowledgeItem[]>("/knowledge-items"),
+
+    byId: (input: { publicId: string }) =>
+      get<ApiKnowledgeItem>(`/knowledge-items/${input.publicId}`),
+
+    create: (input: {
+      title: string;
+      type: ApiKnowledgeItem["type"];
+      url?: string | null;
+      description?: string | null;
+    }) => post<ApiKnowledgeItem>("/knowledge-items", input),
+
+    update: (input: {
+      publicId: string;
+      title?: string;
+      type?: ApiKnowledgeItem["type"];
+      url?: string | null;
+      description?: string | null;
+    }) =>
+      put<ApiKnowledgeItem>(`/knowledge-items/${input.publicId}`, {
+        title: input.title,
+        type: input.type,
+        url: input.url,
+        description: input.description,
+      }),
+
+    delete: (input: { publicId: string }) =>
+      del<{ success: boolean }>(`/knowledge-items/${input.publicId}`),
+
+    toggleLabel: (input: { publicId: string; labelPublicId: string }) =>
+      put<{ added: boolean }>(
+        `/knowledge-items/${input.publicId}/labels/${input.labelPublicId}`,
+        {},
+      ),
+  },
+
+  knowledgeLabel: {
+    all: () => get<ApiKnowledgeLabel[]>("/knowledge-items/labels/all"),
+
+    create: (input: { name: string; colourCode: string }) =>
+      post<ApiKnowledgeLabel>("/knowledge-items/labels", input),
+
+    update: (input: {
+      labelPublicId: string;
+      name: string;
+      colourCode: string;
+    }) =>
+      put<ApiKnowledgeLabel>(
+        `/knowledge-items/labels/${input.labelPublicId}`,
+        { name: input.name, colourCode: input.colourCode },
+      ),
+
+    delete: (input: { labelPublicId: string }) =>
+      del<{ success: boolean }>(
+        `/knowledge-items/labels/${input.labelPublicId}`,
+      ),
   },
 
   user: {

@@ -7,19 +7,21 @@
     ".": "./src/app.ts"
   },
   "scripts": {
-    "lint": "biome check ."
+    "lint": "biome check .",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@hono/zod-validator": "^0.4.3",
+    "@neondatabase/serverless": "^1.0.0",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.42.0",
-    "@hono/zod-validator": "^0.4.3",
     "hono": "^4.7.4",
     "nanoid": "^5.0.9",
-    "@neondatabase/serverless": "^1.0.0",
     "uuid": "^11.1.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "drizzle-kit": "^0.31.9",
     "typescript": "^5.6.3"
   }
 }

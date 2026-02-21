@@ -8,6 +8,7 @@ import { boardRoutes } from "./routes/boards";
 import { cardRoutes } from "./routes/cards";
 import { checklistRoutes } from "./routes/checklists";
 import { healthRoutes } from "./routes/health";
+import { knowledgeItemRoutes } from "./routes/knowledge-items";
 import { labelRoutes } from "./routes/labels";
 import { listRoutes } from "./routes/lists";
 import { userRoutes } from "./routes/users";
@@ -56,6 +57,7 @@ export const app = new Hono<Env>()
   .route("/boards", boardRoutes())
   .route("/cards", cardRoutes())
   .route("/checklists", checklistRoutes())
+  .route("/knowledge-items", knowledgeItemRoutes())
   .route("/labels", labelRoutes())
   .route("/lists", listRoutes())
   .route("/users", userRoutes());
