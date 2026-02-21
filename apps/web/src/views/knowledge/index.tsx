@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { HiOutlinePlusSmall } from "react-icons/hi2";
 import { TbBrandInstagram, TbBrandLinkedin, TbBrandTiktok, TbBrandX, TbBrandYoutube, TbExternalLink, TbFile, TbMusic, TbPhoto, TbUser } from "react-icons/tb";
 
@@ -29,9 +30,28 @@ const typeIcons: Record<string, React.ReactNode> = {
 
 export default function KnowledgeView() {
   const { openModal, modalContentType, isOpen, entityId, isInStack } = useModal();
+  const [selectedLabelIds, setSelectedLabelIds] = useState<Set<string>>(new Set());
   const { data: items, isLoading } = useQuery({
     queryKey: apiKeys.knowledgeItem.all(),
     queryFn: () => api.knowledgeItem.all(),
+  });
+  const { data: labels } = useQuery({
+    queryKey: apiKeys.knowledgeLabel.all(),
+    queryFn: () => api.knowledgeLabel.all(),
+  });
+
+  const toggleLabel = (publicId: string) => {
+    setSelectedLabelIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(publicId)) next.delete(publicId);
+      else next.add(publicId);
+      return next;
+    });
+  };
+
+  const filteredItems = items?.filter((item) => {
+    if (selectedLabelIds.size === 0) return true;
+    return item.labels.some((l) => selectedLabelIds.has(l.knowledgeLabel.publicId));
   });
 
   return (
@@ -75,24 +95,44 @@ export default function KnowledgeView() {
           {entityId && <EditKnowledgeItemForm publicId={entityId} />}
         </Modal>
 
+        {labels && labels.length > 0 && (
+          <div className="mb-4 flex flex-wrap gap-1.5">
+            {labels.map((label) => (
+              <button
+                key={label.publicId}
+                type="button"
+                onClick={() => toggleLabel(label.publicId)}
+                className={`inline-flex items-center gap-x-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                  selectedLabelIds.has(label.publicId)
+                    ? "bg-neutral-900 text-white ring-1 ring-neutral-900 dark:bg-dark-900 dark:text-dark-100 dark:ring-dark-900"
+                    : "text-neutral-600 ring-1 ring-inset ring-light-600 hover:bg-light-200 dark:text-dark-1000 dark:ring-dark-800 dark:hover:bg-dark-300"
+                }`}
+              >
+                <LabelIcon colourCode={label.colourCode} />
+                {label.name}
+              </button>
+            ))}
+          </div>
+        )}
+
         {isLoading ? (
           <div className="text-sm text-neutral-500 dark:text-dark-800">
             Loading...
           </div>
-        ) : !items?.length ? (
+        ) : !filteredItems?.length ? (
           <div className="text-sm text-neutral-500 dark:text-dark-800">
-            No items yet. Add your first knowledge item to get started.
+            {items?.length ? "No items match the selected labels." : "No items yet. Add your first knowledge item to get started."}
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {items.map((item) => (
+          <div className="flex flex-wrap gap-2 overflow-hidden">
+            {filteredItems.map((item) => (
               <button
                 type="button"
                 key={item.publicId}
                 onClick={() =>
                   openModal("EDIT_KNOWLEDGE_ITEM", item.publicId)
                 }
-                className="flex w-fit items-center gap-3 rounded-lg border border-light-300 bg-white px-4 py-3 text-left transition-colors hover:border-light-600 dark:border-dark-300 dark:bg-dark-200 dark:hover:border-dark-500"
+                className="flex w-full max-w-full items-center gap-3 rounded-lg border border-light-300 bg-white px-4 py-3 text-left transition-colors hover:border-light-600 sm:w-fit dark:border-dark-300 dark:bg-dark-200 dark:hover:border-dark-500"
               >
                 <span className="text-neutral-500 dark:text-dark-800">
                   {typeIcons[item.type] ?? typeIcons.other}
@@ -108,7 +148,7 @@ export default function KnowledgeView() {
                   )}
                 </div>
                 {item.labels.length > 0 && (
-                  <div className="flex shrink-0 gap-1">
+                  <div className="flex shrink gap-1 overflow-hidden">
                     {item.labels.map((l) => (
                       <Badge
                         key={l.knowledgeLabel.publicId}

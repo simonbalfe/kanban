@@ -154,7 +154,7 @@ export function EditKnowledgeItemForm({
     });
   };
 
-  if (!item) return null;
+  if (!item) return <div className="h-[340px]" />;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
